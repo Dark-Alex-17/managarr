@@ -1,11 +1,21 @@
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
-use crate::models::servarr_models::{DiskSpace, QueueEvent};
+use crate::models::servarr_models::{DiskSpace, IndexerSettings, QueueEvent};
 use chrono::DateTime;
 
 pub fn diskspace() -> DiskSpace {
   DiskSpace {
     free_space: 6500,
     total_space: 8675309,
+  }
+}
+
+pub fn indexer_settings() -> IndexerSettings {
+  IndexerSettings {
+    id: 1,
+    minimum_age: 1,
+    retention: 1,
+    maximum_size: 12345,
+    rss_sync_interval: 60,
   }
 }
 

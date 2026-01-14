@@ -5,7 +5,7 @@ mod tests {
     AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
-  use crate::models::servarr_models::{QualityProfile, Tag};
+  use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, lidarr_network::LidarrEvent};
   use bimap::BiMap;
@@ -14,6 +14,17 @@ mod tests {
   use serde_json::json;
   use std::sync::Arc;
   use tokio::sync::Mutex;
+
+  #[rstest]
+  fn test_resource_all_indexer_settings(
+    #[values(
+      LidarrEvent::GetAllIndexerSettings,
+      LidarrEvent::EditAllIndexerSettings(IndexerSettings::default())
+    )]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/indexer");
+  }
 
   #[rstest]
   fn test_resource_artist(
@@ -35,6 +46,18 @@ mod tests {
     #[values(LidarrEvent::GetDownloads(0), LidarrEvent::DeleteDownload(0))] event: LidarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
+  }
+
+  #[rstest]
+  fn test_resource_indexer(
+    #[values(
+      LidarrEvent::GetIndexers,
+      LidarrEvent::DeleteIndexer(0),
+      LidarrEvent::EditIndexer(EditIndexerParams::default())
+    )]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/indexer");
   }
 
   #[rstest]
@@ -107,6 +130,8 @@ mod tests {
   #[case(LidarrEvent::GetTags, "/tag")]
   #[case(LidarrEvent::HealthCheck, "/health")]
   #[case(LidarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
+  #[case(LidarrEvent::TestIndexer(0), "/indexer/test")]
+  #[case(LidarrEvent::TestAllIndexers, "/indexer/testall")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }

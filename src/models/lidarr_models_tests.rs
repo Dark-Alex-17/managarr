@@ -10,7 +10,8 @@ mod tests {
     MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
-    DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag,
+    DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, QualityProfile, RootFolder,
+    SecurityConfig, Tag,
   };
   use crate::models::{
     Serdeable,
@@ -317,6 +318,48 @@ mod tests {
     assert_eq!(
       lidarr_serdeable,
       LidarrSerdeable::HistoryWrapper(history_wrapper)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_indexers() {
+    let indexers = vec![Indexer {
+      id: 1,
+      ..Indexer::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = indexers.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Indexers(indexers));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_indexer_settings() {
+    let indexer_settings = IndexerSettings {
+      id: 1,
+      ..IndexerSettings::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = indexer_settings.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::IndexerSettings(indexer_settings)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_indexer_test_results() {
+    let indexer_test_results = vec![IndexerTestResult {
+      id: 1,
+      ..IndexerTestResult::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = indexer_test_results.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::IndexerTestResults(indexer_test_results)
     );
   }
 

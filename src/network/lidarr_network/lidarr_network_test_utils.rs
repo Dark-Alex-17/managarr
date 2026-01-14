@@ -8,10 +8,13 @@ pub mod test_utils {
     LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, Member, MetadataProfile,
     NewItemMonitorType, Ratings, SystemStatus,
   };
-  use crate::models::servarr_models::{Quality, QualityProfile, QualityWrapper, RootFolder, Tag};
+  use crate::models::servarr_models::IndexerSettings;
+  use crate::models::servarr_models::{
+    Indexer, IndexerField, Quality, QualityProfile, QualityWrapper, RootFolder, Tag,
+  };
   use bimap::BiMap;
   use chrono::DateTime;
-  use serde_json::Number;
+  use serde_json::{Number, json};
 
   pub const ADD_ARTIST_SEARCH_RESULT_JSON: &str = r#"{
     "foreignArtistId": "test-foreign-id",
@@ -285,6 +288,49 @@ pub mod test_utils {
       dropped_path: Some("/nfs/nzbget/completed/music/Something/cool.mp3".to_owned()),
       imported_path: Some("/nfs/music/Something/Album 1/Cool.mp3".to_owned()),
       ..LidarrHistoryData::default()
+    }
+  }
+
+  pub fn indexer() -> Indexer {
+    Indexer {
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      supports_rss: true,
+      supports_search: true,
+      protocol: "torrent".to_owned(),
+      priority: 25,
+      download_client_id: 0,
+      name: Some("Test Indexer".to_owned()),
+      implementation_name: Some("Torznab".to_owned()),
+      implementation: Some("Torznab".to_owned()),
+      config_contract: Some("TorznabSettings".to_owned()),
+      tags: vec![Number::from(1)],
+      id: 1,
+      fields: Some(vec![
+        IndexerField {
+          name: Some("baseUrl".to_owned()),
+          value: Some(json!("https://test.com")),
+        },
+        IndexerField {
+          name: Some("apiKey".to_owned()),
+          value: Some(json!("")),
+        },
+        IndexerField {
+          name: Some("seedCriteria.seedRatio".to_owned()),
+          value: Some(json!("1.2")),
+        },
+      ]),
+    }
+  }
+
+  pub fn indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      id: 1,
+      minimum_age: 1,
+      retention: 1,
+      maximum_size: 12345,
+      rss_sync_interval: 60,
     }
   }
 }

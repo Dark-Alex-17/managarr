@@ -2,15 +2,19 @@ use serde_json::Number;
 
 use super::modals::{AddArtistModal, AddRootFolderModal, EditArtistModal};
 use crate::app::context_clues::{
-  DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+  DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+  ROOT_FOLDERS_CONTEXT_CLUES,
 };
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
+use crate::models::servarr_data::modals::EditIndexerModal;
+use crate::models::servarr_models::IndexerSettings;
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, TabRoute, TabState,
   lidarr_models::{AddArtistSearchResult, Album, Artist, DownloadRecord, LidarrHistoryItem},
-  servarr_models::{DiskSpace, RootFolder},
+  servarr_data::modals::IndexerTestResultModalItem,
+  servarr_models::{DiskSpace, Indexer, RootFolder},
   stateful_table::StatefulTable,
 };
 use crate::network::lidarr_network::LidarrEvent;
@@ -22,12 +26,14 @@ use strum::EnumIter;
 use {
   crate::models::lidarr_models::{MonitorType, NewItemMonitorType},
   crate::models::stateful_table::SortOption,
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::indexer_settings,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
-    add_artist_search_result, album, artist, download_record, lidarr_history_item,
+    add_artist_search_result, album, artist, download_record, indexer, lidarr_history_item,
     metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map,
   },
   crate::network::servarr_test_utils::diskspace,
+  crate::network::servarr_test_utils::indexer_test_result,
   strum::{Display, EnumString, IntoEnumIterator},
 };
 
@@ -48,7 +54,12 @@ pub struct LidarrData<'a> {
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
+  pub edit_indexer_modal: Option<EditIndexerModal>,
   pub history: StatefulTable<LidarrHistoryItem>,
+  pub indexers: StatefulTable<Indexer>,
+  pub indexer_settings: Option<IndexerSettings>,
+  pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
+  pub indexer_test_errors: Option<String>,
   pub main_tabs: TabState,
   pub metadata_profile_map: BiMap<i64, String>,
   pub prompt_confirm: bool,
@@ -118,7 +129,12 @@ impl<'a> Default for LidarrData<'a> {
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
+      edit_indexer_modal: None,
       history: StatefulTable::default(),
+      indexers: StatefulTable::default(),
+      indexer_settings: None,
+      indexer_test_all_results: None,
+      indexer_test_errors: None,
       metadata_profile_map: BiMap::new(),
       prompt_confirm: false,
       prompt_confirm_action: None,
@@ -151,6 +167,12 @@ impl<'a> Default for LidarrData<'a> {
           title: "Root Folders".to_string(),
           route: ActiveLidarrBlock::RootFolders.into(),
           contextual_help: Some(&ROOT_FOLDERS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "Indexers".to_string(),
+          route: ActiveLidarrBlock::Indexers.into(),
+          contextual_help: Some(&INDEXERS_CONTEXT_CLUES),
           config: None,
         },
       ]),
@@ -221,14 +243,33 @@ impl LidarrData<'_> {
       .metadata_profile_list
       .set_items(vec![metadata_profile().name]);
 
+    let edit_indexer_modal = EditIndexerModal {
+      name: "DrunkenSlug".into(),
+      enable_rss: Some(true),
+      enable_automatic_search: Some(true),
+      enable_interactive_search: Some(true),
+      url: "http://127.0.0.1:9696/1/".into(),
+      api_key: "someApiKey".into(),
+      seed_ratio: "ratio".into(),
+      tags: "25".into(),
+      priority: 1,
+    };
+
+    let mut indexer_test_all_results = StatefulTable::default();
+    indexer_test_all_results.set_items(vec![indexer_test_result()]);
+
     let mut lidarr_data = LidarrData {
       delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
       metadata_profile_map: metadata_profile_map(),
       edit_artist_modal: Some(edit_artist_modal),
+      edit_indexer_modal: Some(edit_indexer_modal),
       add_root_folder_modal: Some(add_root_folder_modal),
       add_artist_modal: Some(add_artist_modal),
+      indexer_settings: Some(indexer_settings()),
+      indexer_test_all_results: Some(indexer_test_all_results),
+      indexer_test_errors: Some("error".to_string()),
       tags_map: tags_map(),
       ..LidarrData::default()
     };
@@ -250,6 +291,7 @@ impl LidarrData<'_> {
     lidarr_data.history.search = Some("test search".into());
     lidarr_data.history.filter = Some("test filter".into());
     lidarr_data.root_folders.set_items(vec![root_folder()]);
+    lidarr_data.indexers.set_items(vec![indexer()]);
     lidarr_data.version = "1.0.0".to_owned();
     lidarr_data.add_artist_search = Some("Test Artist".into());
     let mut add_searched_artists = StatefulTable::default();
@@ -288,6 +330,7 @@ pub enum ActiveLidarrBlock {
   AddRootFolderSelectQualityProfile,
   AddRootFolderSelectMetadataProfile,
   AddRootFolderTagsInput,
+  AllIndexerSettingsPrompt,
   AutomaticallySearchArtistPrompt,
   DeleteAlbumPrompt,
   DeleteAlbumConfirmPrompt,
@@ -308,6 +351,18 @@ pub enum ActiveLidarrBlock {
   EditArtistSelectQualityProfile,
   EditArtistTagsInput,
   EditArtistToggleMonitored,
+  EditIndexerPrompt,
+  EditIndexerConfirmPrompt,
+  EditIndexerApiKeyInput,
+  EditIndexerNameInput,
+  EditIndexerSeedRatioInput,
+  EditIndexerToggleEnableRss,
+  EditIndexerToggleEnableAutomaticSearch,
+  EditIndexerToggleEnableInteractiveSearch,
+  EditIndexerUrlInput,
+  EditIndexerPriorityInput,
+  EditIndexerTagsInput,
+  DeleteIndexerPrompt,
   FilterArtists,
   FilterArtistsError,
   FilterHistory,
@@ -315,6 +370,14 @@ pub enum ActiveLidarrBlock {
   History,
   HistoryItemDetails,
   HistorySortPrompt,
+  Indexers,
+  IndexerSettingsConfirmPrompt,
+  IndexerSettingsMaximumSizeInput,
+  IndexerSettingsMinimumAgeInput,
+  IndexerSettingsRetentionInput,
+  IndexerSettingsRssSyncIntervalInput,
+  TestAllIndexers,
+  TestIndexer,
   RootFolders,
   SearchAlbums,
   SearchAlbumsError,
@@ -459,6 +522,93 @@ pub const ADD_ROOT_FOLDER_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
   &[ActiveLidarrBlock::AddRootFolderSelectMetadataProfile],
   &[ActiveLidarrBlock::AddRootFolderTagsInput],
   &[ActiveLidarrBlock::AddRootFolderConfirmPrompt],
+];
+
+pub static EDIT_INDEXER_BLOCKS: [ActiveLidarrBlock; 11] = [
+  ActiveLidarrBlock::EditIndexerPrompt,
+  ActiveLidarrBlock::EditIndexerConfirmPrompt,
+  ActiveLidarrBlock::EditIndexerApiKeyInput,
+  ActiveLidarrBlock::EditIndexerNameInput,
+  ActiveLidarrBlock::EditIndexerSeedRatioInput,
+  ActiveLidarrBlock::EditIndexerToggleEnableRss,
+  ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch,
+  ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveLidarrBlock::EditIndexerPriorityInput,
+  ActiveLidarrBlock::EditIndexerUrlInput,
+  ActiveLidarrBlock::EditIndexerTagsInput,
+];
+
+pub const EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[
+    ActiveLidarrBlock::EditIndexerNameInput,
+    ActiveLidarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableRss,
+    ActiveLidarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveLidarrBlock::EditIndexerSeedRatioInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveLidarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerPriorityInput,
+    ActiveLidarrBlock::EditIndexerConfirmPrompt,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerConfirmPrompt,
+    ActiveLidarrBlock::EditIndexerConfirmPrompt,
+  ],
+];
+
+pub const EDIT_INDEXER_NZB_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[
+    ActiveLidarrBlock::EditIndexerNameInput,
+    ActiveLidarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableRss,
+    ActiveLidarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveLidarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveLidarrBlock::EditIndexerPriorityInput,
+  ],
+  &[
+    ActiveLidarrBlock::EditIndexerConfirmPrompt,
+    ActiveLidarrBlock::EditIndexerConfirmPrompt,
+  ],
+];
+
+pub static INDEXER_SETTINGS_BLOCKS: [ActiveLidarrBlock; 6] = [
+  ActiveLidarrBlock::AllIndexerSettingsPrompt,
+  ActiveLidarrBlock::IndexerSettingsConfirmPrompt,
+  ActiveLidarrBlock::IndexerSettingsMaximumSizeInput,
+  ActiveLidarrBlock::IndexerSettingsMinimumAgeInput,
+  ActiveLidarrBlock::IndexerSettingsRetentionInput,
+  ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput,
+];
+
+pub const INDEXER_SETTINGS_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[ActiveLidarrBlock::IndexerSettingsMinimumAgeInput],
+  &[ActiveLidarrBlock::IndexerSettingsRetentionInput],
+  &[ActiveLidarrBlock::IndexerSettingsMaximumSizeInput],
+  &[ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput],
+  &[ActiveLidarrBlock::IndexerSettingsConfirmPrompt],
+];
+
+pub static INDEXERS_BLOCKS: [ActiveLidarrBlock; 3] = [
+  ActiveLidarrBlock::Indexers,
+  ActiveLidarrBlock::DeleteIndexerPrompt,
+  ActiveLidarrBlock::TestIndexer,
 ];
 
 impl From<ActiveLidarrBlock> for Route {

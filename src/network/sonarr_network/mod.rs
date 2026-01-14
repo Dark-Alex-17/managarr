@@ -5,10 +5,12 @@ use serde_json::{Value, json};
 use super::{Network, NetworkEvent, NetworkResource};
 use crate::{
   models::{
-    servarr_models::{AddRootFolderBody, EditIndexerParams, Language, QualityProfile, Tag},
+    servarr_models::{
+      AddRootFolderBody, EditIndexerParams, IndexerSettings, Language, QualityProfile, Tag,
+    },
     sonarr_models::{
-      AddSeriesBody, DeleteSeriesParams, EditSeriesParams, IndexerSettings,
-      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTaskName,
+      AddSeriesBody, DeleteSeriesParams, EditSeriesParams, SonarrReleaseDownloadBody,
+      SonarrSerdeable, SonarrTaskName,
     },
   },
   network::RequestMethod,

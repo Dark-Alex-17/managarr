@@ -42,6 +42,11 @@ pub enum LidarrDeleteCommand {
     #[arg(long, help = "The ID of the download to delete", required = true)]
     download_id: i64,
   },
+  #[command(about = "Delete the indexer with the given ID")]
+  Indexer {
+    #[arg(long, help = "The ID of the indexer to delete", required = true)]
+    indexer_id: i64,
+  },
   #[command(about = "Delete the root folder with the given ID")]
   RootFolder {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
@@ -117,6 +122,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrDeleteCommand> for LidarrDeleteComm
         let resp = self
           .network
           .handle_network_event(LidarrEvent::DeleteDownload(download_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrDeleteCommand::Indexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::DeleteIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

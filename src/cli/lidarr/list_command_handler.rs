@@ -39,6 +39,8 @@ pub enum LidarrListCommand {
     #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
     events: u64,
   },
+  #[command(about = "List all Lidarr indexers")]
+  Indexers,
   #[command(about = "List all Lidarr metadata profiles")]
   MetadataProfiles,
   #[command(about = "List all Lidarr quality profiles")]
@@ -101,6 +103,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetHistory(items).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Indexers => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

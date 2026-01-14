@@ -87,6 +87,15 @@ pub enum LidarrCommand {
     query: String,
   },
   #[command(
+    about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"
+  )]
+  TestIndexer {
+    #[arg(long, help = "The ID of the indexer to test", required = true)]
+    indexer_id: i64,
+  },
+  #[command(about = "Test all Lidarr indexers")]
+  TestAllIndexers,
+  #[command(
     about = "Toggle monitoring for the specified album corresponding to the given album ID"
   )]
   ToggleAlbumMonitoring {
@@ -187,6 +196,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(LidarrEvent::SearchNewArtist(query).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrCommand::TestIndexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::TestIndexer(indexer_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrCommand::TestAllIndexers => {
+        println!("Testing all Lidarr indexers. This may take a minute...");
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::TestAllIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

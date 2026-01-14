@@ -1,6 +1,9 @@
 use std::fmt::{Display, Formatter};
 
-use crate::{models::servarr_models::IndexerTestResult, serde_enum_from};
+use crate::{
+  models::servarr_models::{IndexerSettings, IndexerTestResult},
+  serde_enum_from,
+};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
@@ -219,21 +222,6 @@ pub struct EpisodeFile {
   pub quality: QualityWrapper,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct IndexerSettings {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub minimum_age: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub retention: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub maximum_size: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub rss_sync_interval: i64,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]

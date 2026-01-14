@@ -266,9 +266,10 @@ mod tests {
       },
       models::{
         Serdeable,
+        servarr_models::IndexerSettings,
         sonarr_models::{
-          BlocklistItem, BlocklistResponse, IndexerSettings, Series, SonarrReleaseDownloadBody,
-          SonarrSerdeable, SonarrTaskName,
+          BlocklistItem, BlocklistResponse, Series, SonarrReleaseDownloadBody, SonarrSerdeable,
+          SonarrTaskName,
         },
       },
       network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},

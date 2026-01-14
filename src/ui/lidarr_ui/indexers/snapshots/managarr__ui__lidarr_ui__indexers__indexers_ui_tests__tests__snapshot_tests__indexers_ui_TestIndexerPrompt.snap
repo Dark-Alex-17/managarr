@@ -1,0 +1,31 @@
+---
+source: src/ui/lidarr_ui/indexers/indexers_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Indexer                              RSS                   Automatic Search      Interactive Search    Priority              Tags                                 
+=> Test Indexer                         Enabled               Enabled               Enabled               25                    alex                                 
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                             ╭──────────────  Success  ──────────────╮                                                               
+                                                             │        Indexer test succeeded!        │                                                               
+                                                             │                                       │                                                               
+                                                             ╰───────────────────────────────────────╯

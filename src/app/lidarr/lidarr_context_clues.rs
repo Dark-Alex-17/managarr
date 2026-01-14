@@ -6,7 +6,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
-  EDIT_ARTIST_BLOCKS,
+  EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -71,10 +71,12 @@ impl ContextClueProvider for LidarrContextClueProvider {
         .lidarr_data
         .artist_info_tabs
         .get_active_route_contextual_help(),
-      ActiveLidarrBlock::AddArtistSearchInput | ActiveLidarrBlock::AddArtistEmptySearchResults => {
-        Some(&BARE_POPUP_CONTEXT_CLUES)
-      }
+      ActiveLidarrBlock::AddArtistSearchInput
+      | ActiveLidarrBlock::AddArtistEmptySearchResults
+      | ActiveLidarrBlock::TestAllIndexers => Some(&BARE_POPUP_CONTEXT_CLUES),
       _ if EDIT_ARTIST_BLOCKS.contains(&active_lidarr_block)
+        || EDIT_INDEXER_BLOCKS.contains(&active_lidarr_block)
+        || INDEXER_SETTINGS_BLOCKS.contains(&active_lidarr_block)
         || ADD_ROOT_FOLDER_BLOCKS.contains(&active_lidarr_block) =>
       {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)

@@ -6,11 +6,12 @@ use crate::models::lidarr_models::{
   AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams, LidarrSerdeable,
   MetadataProfile,
 };
-use crate::models::servarr_models::{QualityProfile, Tag};
+use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod root_folders;
 mod system;
@@ -31,16 +32,21 @@ pub enum LidarrEvent {
   DeleteAlbum(DeleteParams),
   DeleteArtist(DeleteParams),
   DeleteDownload(i64),
+  DeleteIndexer(i64),
   DeleteRootFolder(i64),
   DeleteTag(i64),
   EditArtist(EditArtistParams),
+  EditAllIndexerSettings(IndexerSettings),
+  EditIndexer(EditIndexerParams),
   GetAlbums(i64),
   GetAlbumDetails(i64),
+  GetAllIndexerSettings,
   GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
   GetHistory(u64),
   GetHostConfig,
+  GetIndexers,
   MarkHistoryItemAsFailed(i64),
   GetMetadataProfiles,
   GetQualityProfiles,
@@ -51,6 +57,8 @@ pub enum LidarrEvent {
   HealthCheck,
   ListArtists,
   SearchNewArtist(String),
+  TestIndexer(i64),
+  TestAllIndexers,
   ToggleAlbumMonitoring(i64),
   ToggleArtistMonitoring(i64),
   TriggerAutomaticArtistSearch(i64),
@@ -63,6 +71,9 @@ impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       LidarrEvent::AddTag(_) | LidarrEvent::DeleteTag(_) | LidarrEvent::GetTags => "/tag",
+      LidarrEvent::GetAllIndexerSettings | LidarrEvent::EditAllIndexerSettings(_) => {
+        "/config/indexer"
+      }
       LidarrEvent::DeleteArtist(_)
       | LidarrEvent::EditArtist(_)
       | LidarrEvent::GetArtistDetails(_)
@@ -78,6 +89,9 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetHistory(_) => "/history",
       LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
+      LidarrEvent::GetIndexers | LidarrEvent::DeleteIndexer(_) | LidarrEvent::EditIndexer(_) => {
+        "/indexer"
+      }
       LidarrEvent::TriggerAutomaticArtistSearch(_)
       | LidarrEvent::UpdateAllArtists
       | LidarrEvent::UpdateAndScanArtist(_)
@@ -87,6 +101,8 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetRootFolders
       | LidarrEvent::AddRootFolder(_)
       | LidarrEvent::DeleteRootFolder(_) => "/rootfolder",
+      LidarrEvent::TestIndexer(_) => "/indexer/test",
+      LidarrEvent::TestAllIndexers => "/indexer/testall",
       LidarrEvent::GetStatus => "/system/status",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
@@ -121,6 +137,18 @@ impl Network<'_, '_> {
         .delete_lidarr_download(download_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::EditAllIndexerSettings(params) => self
+        .edit_all_lidarr_indexer_settings(params)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::EditIndexer(params) => self
+        .edit_lidarr_indexer(params)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::DeleteIndexer(indexer_id) => self
+        .delete_lidarr_indexer(indexer_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::DeleteRootFolder(root_folder_id) => self
         .delete_lidarr_root_folder(root_folder_id)
         .await
@@ -132,6 +160,10 @@ impl Network<'_, '_> {
       LidarrEvent::GetAlbums(artist_id) => {
         self.get_albums(artist_id).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::GetAllIndexerSettings => self
+        .get_all_lidarr_indexer_settings()
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetArtistDetails(artist_id) => self
         .get_artist_details(artist_id)
         .await
@@ -145,6 +177,7 @@ impl Network<'_, '_> {
         .get_lidarr_downloads(count)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetIndexers => self.get_lidarr_indexers().await.map(LidarrSerdeable::from),
       LidarrEvent::GetHistory(events) => self
         .get_lidarr_history(events)
         .await
@@ -204,6 +237,14 @@ impl Network<'_, '_> {
       LidarrEvent::AddArtist(body) => self.add_artist(body).await.map(LidarrSerdeable::from),
       LidarrEvent::UpdateDownloads => self
         .update_lidarr_downloads()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::TestAllIndexers => self
+        .test_all_lidarr_indexers()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::TestIndexer(indexer_id) => self
+        .test_lidarr_indexer(indexer_id)
         .await
         .map(LidarrSerdeable::from),
     }

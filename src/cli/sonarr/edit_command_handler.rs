@@ -9,8 +9,8 @@ use crate::{
   cli::{CliCommandHandler, Command, mutex_flags_or_option},
   models::{
     Serdeable,
-    servarr_models::EditIndexerParams,
-    sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
+    servarr_models::{EditIndexerParams, IndexerSettings},
+    sonarr_models::{EditSeriesParams, SeriesType, SonarrSerdeable},
   },
   network::{NetworkTrait, sonarr_network::SonarrEvent},
 };

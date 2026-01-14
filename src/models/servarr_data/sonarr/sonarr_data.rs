@@ -12,10 +12,10 @@ use crate::{
   models::{
     BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
     servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
-    servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
+    servarr_models::{DiskSpace, Indexer, IndexerSettings, QueueEvent, RootFolder},
     sonarr_models::{
-      AddSeriesSearchResult, BlocklistItem, DownloadRecord, IndexerSettings, Season, Series,
-      SonarrHistoryItem, SonarrTask,
+      AddSeriesSearchResult, BlocklistItem, DownloadRecord, Season, Series, SonarrHistoryItem,
+      SonarrTask,
     },
     stateful_list::StatefulList,
     stateful_table::StatefulTable,
@@ -33,11 +33,12 @@ use {
   crate::models::sonarr_models::{SeriesMonitor, SeriesType},
   crate::models::stateful_table::SortOption,
   crate::network::servarr_test_utils::diskspace,
+  crate::network::servarr_test_utils::indexer_settings,
   crate::network::servarr_test_utils::indexer_test_result,
   crate::network::servarr_test_utils::queued_event,
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    add_series_search_result, blocklist_item, download_record, history_item, indexer,
-    indexer_settings, log_line, root_folder,
+    add_series_search_result, blocklist_item, download_record, history_item, indexer, log_line,
+    root_folder,
   },
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
     episode, episode_file, language_profiles_map, quality_profile_map, season, series, tags_map,

@@ -3,11 +3,9 @@ mod test {
   use crate::app::App;
   use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
   use crate::models::servarr_models::{
-    AddRootFolderBody, EditIndexerParams, Language, QualityProfile, Tag,
+    AddRootFolderBody, EditIndexerParams, IndexerSettings, Language, QualityProfile, Tag,
   };
-  use crate::models::sonarr_models::{
-    AddSeriesBody, EditSeriesParams, IndexerSettings, SonarrTaskName,
-  };
+  use crate::models::sonarr_models::{AddSeriesBody, EditSeriesParams, SonarrTaskName};
   use crate::models::sonarr_models::{DeleteSeriesParams, SonarrSerdeable};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::tag;

@@ -1,6 +1,6 @@
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
+use crate::models::servarr_models::IndexerSettings;
 use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
-use crate::models::sonarr_models::IndexerSettings;
 use crate::models::stateful_table::StatefulTable;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};

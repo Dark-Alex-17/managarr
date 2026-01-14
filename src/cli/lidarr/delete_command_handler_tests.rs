@@ -180,6 +180,39 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_indexer_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "delete", "indexer"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_indexer_success() {
+      let expected_args = LidarrDeleteCommand::Indexer { indexer_id: 1 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "lidarr",
+        "delete",
+        "indexer",
+        "--indexer-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
     fn test_delete_root_folder_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "delete", "root-folder"]);
@@ -348,6 +381,32 @@ mod tests {
 
       let result =
         LidarrDeleteCommandHandler::with(&app_arc, delete_download_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_indexer_command() {
+      let expected_indexer_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::DeleteIndexer(expected_indexer_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_indexer_command = LidarrDeleteCommand::Indexer { indexer_id: 1 };
+
+      let result =
+        LidarrDeleteCommandHandler::with(&app_arc, delete_indexer_command, &mut mock_network)
           .handle()
           .await;
 

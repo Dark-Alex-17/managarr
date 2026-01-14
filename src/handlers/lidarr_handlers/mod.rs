@@ -1,4 +1,5 @@
 use history::HistoryHandler;
+use indexers::IndexersHandler;
 use library::LibraryHandler;
 
 use super::KeyEventHandler;
@@ -9,10 +10,11 @@ use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
 
+mod downloads;
 mod history;
+mod indexers;
 mod library;
 
-mod downloads;
 #[cfg(test)]
 #[path = "lidarr_handler_tests.rs"]
 mod lidarr_handler_tests;
@@ -40,6 +42,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
       _ if RootFoldersHandler::accepts(self.active_lidarr_block) => {
         RootFoldersHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
           .handle();
+      }
+      _ if IndexersHandler::accepts(self.active_lidarr_block) => {
+        IndexersHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
       }
       _ => self.handle_key_event(),
     }

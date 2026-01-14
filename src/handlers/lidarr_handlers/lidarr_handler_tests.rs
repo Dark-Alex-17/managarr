@@ -52,10 +52,11 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
   #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
-  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Artists)]
+  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
+  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -84,10 +85,11 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
   #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
-  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Artists)]
+  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
+  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -120,6 +122,7 @@ mod tests {
   #[case(1, ActiveLidarrBlock::Downloads)]
   #[case(2, ActiveLidarrBlock::History)]
   #[case(3, ActiveLidarrBlock::RootFolders)]
+  #[case(4, ActiveLidarrBlock::Indexers)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveLidarrBlock,
@@ -224,6 +227,27 @@ mod tests {
       LidarrHandler,
       ActiveLidarrBlock::RootFolders,
       active_lidarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_indexers_blocks_to_indexers_handler(
+    #[values(
+      ActiveLidarrBlock::DeleteIndexerPrompt,
+      ActiveLidarrBlock::Indexers,
+      ActiveLidarrBlock::AllIndexerSettingsPrompt,
+      ActiveLidarrBlock::IndexerSettingsConfirmPrompt,
+      ActiveLidarrBlock::IndexerSettingsMaximumSizeInput,
+      ActiveLidarrBlock::IndexerSettingsMinimumAgeInput,
+      ActiveLidarrBlock::IndexerSettingsRetentionInput,
+      ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput
+    )]
+    active_sonarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::Indexers,
+      active_sonarr_block
     );
   }
 }

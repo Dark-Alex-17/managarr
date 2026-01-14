@@ -50,6 +50,14 @@ mod tests {
     }
 
     #[test]
+    fn test_all_indexer_settings_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "all-indexer-settings"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_artist_details_requires_artist_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "artist-details"]);
@@ -139,6 +147,34 @@ mod tests {
         LidarrGetCommandHandler::with(&app_arc, get_album_details_command, &mut mock_network)
           .handle()
           .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_all_indexer_settings_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_all_indexer_settings_command = LidarrGetCommand::AllIndexerSettings;
+
+      let result = LidarrGetCommandHandler::with(
+        &app_arc,
+        get_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert_ok!(&result);
     }

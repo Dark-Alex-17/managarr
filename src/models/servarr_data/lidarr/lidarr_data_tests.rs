@@ -1,17 +1,20 @@
 #[cfg(test)]
 mod tests {
   use crate::app::context_clues::{
-    DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+    DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+    ROOT_FOLDERS_CONTEXT_CLUES,
   };
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
   };
   use crate::models::lidarr_models::Album;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ARTIST_DETAILS_BLOCKS, DELETE_ALBUM_BLOCKS,
-    DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS,
-    DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, HISTORY_BLOCKS,
-    ROOT_FOLDERS_BLOCKS,
+    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS,
+    DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
+    DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
+    EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
+    EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -150,7 +153,7 @@ mod tests {
     assert_is_empty!(lidarr_data.tags_map);
     assert_is_empty!(lidarr_data.version);
 
-    assert_eq!(lidarr_data.main_tabs.tabs.len(), 4);
+    assert_eq!(lidarr_data.main_tabs.tabs.len(), 5);
 
     assert_str_eq!(lidarr_data.main_tabs.tabs[0].title, "Library");
     assert_eq!(
@@ -195,6 +198,17 @@ mod tests {
       &ROOT_FOLDERS_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[3].config);
+
+    assert_str_eq!(lidarr_data.main_tabs.tabs[4].title, "Indexers");
+    assert_eq!(
+      lidarr_data.main_tabs.tabs[4].route,
+      ActiveLidarrBlock::Indexers.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.main_tabs.tabs[4].contextual_help,
+      &INDEXERS_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.main_tabs.tabs[4].config);
 
     assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 1);
     assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
@@ -415,8 +429,167 @@ mod tests {
   }
 
   #[test]
+  fn test_edit_indexer_blocks_contents() {
+    assert_eq!(EDIT_INDEXER_BLOCKS.len(), 11);
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerPrompt));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerConfirmPrompt));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerApiKeyInput));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerNameInput));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerSeedRatioInput));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerToggleEnableRss));
+    assert!(
+      EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch)
+    );
+    assert!(
+      EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch)
+    );
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerUrlInput));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerTagsInput));
+    assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveLidarrBlock::EditIndexerPriorityInput));
+  }
+
+  #[test]
+  fn test_edit_indexer_nzb_selection_blocks_ordering() {
+    let mut edit_indexer_nzb_selection_block_iter = EDIT_INDEXER_NZB_SELECTION_BLOCKS.iter();
+
+    assert_eq!(
+      edit_indexer_nzb_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerNameInput,
+        ActiveLidarrBlock::EditIndexerUrlInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_nzb_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableRss,
+        ActiveLidarrBlock::EditIndexerApiKeyInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_nzb_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch,
+        ActiveLidarrBlock::EditIndexerTagsInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_nzb_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch,
+        ActiveLidarrBlock::EditIndexerPriorityInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_nzb_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerConfirmPrompt,
+        ActiveLidarrBlock::EditIndexerConfirmPrompt,
+      ]
+    );
+    assert_eq!(edit_indexer_nzb_selection_block_iter.next(), None);
+  }
+
+  #[test]
+  fn test_edit_indexer_torrent_selection_blocks_ordering() {
+    let mut edit_indexer_torrent_selection_block_iter =
+      EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.iter();
+
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerNameInput,
+        ActiveLidarrBlock::EditIndexerUrlInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableRss,
+        ActiveLidarrBlock::EditIndexerApiKeyInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableAutomaticSearch,
+        ActiveLidarrBlock::EditIndexerSeedRatioInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerToggleEnableInteractiveSearch,
+        ActiveLidarrBlock::EditIndexerTagsInput,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerPriorityInput,
+        ActiveLidarrBlock::EditIndexerConfirmPrompt,
+      ]
+    );
+    assert_eq!(
+      edit_indexer_torrent_selection_block_iter.next().unwrap(),
+      &[
+        ActiveLidarrBlock::EditIndexerConfirmPrompt,
+        ActiveLidarrBlock::EditIndexerConfirmPrompt,
+      ]
+    );
+    assert_eq!(edit_indexer_torrent_selection_block_iter.next(), None);
+  }
+
+  #[test]
+  fn test_indexer_settings_blocks_contents() {
+    assert_eq!(INDEXER_SETTINGS_BLOCKS.len(), 6);
+    assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::AllIndexerSettingsPrompt));
+    assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::IndexerSettingsConfirmPrompt));
+    assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::IndexerSettingsMaximumSizeInput));
+    assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::IndexerSettingsMinimumAgeInput));
+    assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::IndexerSettingsRetentionInput));
+    assert!(
+      INDEXER_SETTINGS_BLOCKS.contains(&ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput)
+    );
+  }
+
+  #[test]
+  fn test_indexer_settings_selection_blocks_ordering() {
+    let mut indexer_settings_block_iter = INDEXER_SETTINGS_SELECTION_BLOCKS.iter();
+
+    assert_eq!(
+      indexer_settings_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::IndexerSettingsMinimumAgeInput,]
+    );
+    assert_eq!(
+      indexer_settings_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::IndexerSettingsRetentionInput,]
+    );
+    assert_eq!(
+      indexer_settings_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::IndexerSettingsMaximumSizeInput,]
+    );
+    assert_eq!(
+      indexer_settings_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput,]
+    );
+    assert_eq!(
+      indexer_settings_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::IndexerSettingsConfirmPrompt,]
+    );
+    assert_eq!(indexer_settings_block_iter.next(), None);
+  }
+
+  #[test]
+  fn test_indexers_blocks_contents() {
+    assert_eq!(INDEXERS_BLOCKS.len(), 3);
+    assert!(INDEXERS_BLOCKS.contains(&ActiveLidarrBlock::Indexers));
+    assert!(INDEXERS_BLOCKS.contains(&ActiveLidarrBlock::DeleteIndexerPrompt));
+    assert!(INDEXERS_BLOCKS.contains(&ActiveLidarrBlock::TestIndexer));
+  }
+
+  #[test]
   fn test_add_root_folder_blocks_contents() {
-    use crate::models::servarr_data::lidarr::lidarr_data::ADD_ROOT_FOLDER_BLOCKS;
     assert_eq!(ADD_ROOT_FOLDER_BLOCKS.len(), 9);
     assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderPrompt));
     assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderConfirmPrompt));

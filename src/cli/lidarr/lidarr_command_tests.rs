@@ -21,6 +21,16 @@ mod tests {
     use super::*;
     use clap::error::ErrorKind;
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    #[rstest]
+    fn test_commands_that_have_no_arg_requirements(
+      #[values("test-all-indexers")] subcommand: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", subcommand]);
+
+      assert_ok!(&result);
+    }
 
     #[test]
     fn test_list_artists_has_no_arg_requirements() {
@@ -148,6 +158,30 @@ mod tests {
 
       assert_ok!(&result);
     }
+
+    #[test]
+    fn test_test_indexer_requires_indexer_id() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "test-indexer"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_test_indexer_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "test-indexer",
+        "--indexer-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
   }
 
   mod handler {
@@ -158,9 +192,11 @@ mod tests {
     use tokio::sync::Mutex;
 
     use crate::cli::lidarr::add_command_handler::LidarrAddCommand;
+    use crate::cli::lidarr::edit_command_handler::LidarrEditCommand;
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
+    use crate::models::servarr_models::IndexerSettings;
     use crate::{
       app::App,
       cli::{
@@ -260,6 +296,64 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_edit_commands_to_the_edit_command_handler() {
+      let expected_edit_all_indexer_settings = IndexerSettings {
+        id: 1,
+        maximum_size: 1,
+        minimum_age: 1,
+        retention: 1,
+        rss_sync_interval: 1,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::IndexerSettings(
+            IndexerSettings {
+              id: 1,
+              maximum_size: 2,
+              minimum_age: 2,
+              retention: 2,
+              rss_sync_interval: 2,
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_all_indexer_settings_command =
+        LidarrCommand::Edit(LidarrEditCommand::AllIndexerSettings {
+          maximum_size: Some(1),
+          minimum_age: Some(1),
+          retention: Some(1),
+          rss_sync_interval: Some(1),
+        });
+
+      let result = LidarrCliHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
     async fn test_lidarr_cli_handler_delegates_list_commands_to_the_list_command_handler() {
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -299,6 +393,38 @@ mod tests {
       let result = LidarrCliHandler::with(&app_arc, refresh_series_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
+     {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::TriggerAutomaticArtistSearch(1).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let trigger_automatic_search_command =
+        LidarrCommand::TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand::Artist {
+          artist_id: 1,
+        });
+
+      let result = LidarrCliHandler::with(
+        &app_arc,
+        trigger_automatic_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert_ok!(&result);
     }
@@ -359,13 +485,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_lidarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
-     {
+    async fn test_test_indexer_command() {
+      let expected_indexer_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          LidarrEvent::TriggerAutomaticArtistSearch(1).into(),
+          LidarrEvent::TestIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -374,18 +500,33 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
-      let trigger_automatic_search_command =
-        LidarrCommand::TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand::Artist {
-          artist_id: 1,
-        });
+      let test_indexer_command = LidarrCommand::TestIndexer { indexer_id: 1 };
 
-      let result = LidarrCliHandler::with(
-        &app_arc,
-        trigger_automatic_search_command,
-        &mut mock_network,
-      )
-      .handle()
-      .await;
+      let result = LidarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_test_all_indexers_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::TestAllIndexers.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let test_all_indexers_command = LidarrCommand::TestAllIndexers;
+
+      let result = LidarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

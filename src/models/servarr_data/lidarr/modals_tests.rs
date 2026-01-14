@@ -1,12 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use bimap::BiMap;
-  use pretty_assertions::{assert_eq, assert_str_eq};
-
   use crate::models::lidarr_models::{Artist, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
   use crate::models::servarr_data::lidarr::modals::{AddArtistModal, EditArtistModal};
-  use crate::models::servarr_models::RootFolder;
+  use crate::models::servarr_data::modals::EditIndexerModal;
+  use crate::models::servarr_models::{Indexer, IndexerField, RootFolder};
+  use bimap::BiMap;
+  use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
+  use serde_json::{Number, Value};
 
   #[test]
   fn test_add_artist_modal_from_lidarr_data() {
@@ -107,5 +109,103 @@ mod tests {
     );
     assert_str_eq!(edit_artist_modal.path.text, "/nfs/music/test_artist");
     assert_str_eq!(edit_artist_modal.tags.text, "usenet");
+  }
+
+  #[rstest]
+  fn test_edit_indexer_modal_from_lidarr_data(#[values(true, false)] seed_ratio_present: bool) {
+    let mut lidarr_data = LidarrData {
+      tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
+      ..LidarrData::default()
+    };
+    let mut fields = vec![
+      IndexerField {
+        name: Some("baseUrl".to_owned()),
+        value: Some(Value::String("https://test.com".to_owned())),
+      },
+      IndexerField {
+        name: Some("apiKey".to_owned()),
+        value: Some(Value::String("1234".to_owned())),
+      },
+    ];
+
+    if seed_ratio_present {
+      fields.push(IndexerField {
+        name: Some("seedCriteria.seedRatio".to_owned()),
+        value: Some(Value::from(1.2f64)),
+      });
+    }
+
+    let indexer = Indexer {
+      name: Some("Test".to_owned()),
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      tags: vec![Number::from(1), Number::from(2)],
+      fields: Some(fields),
+      priority: 1,
+      ..Indexer::default()
+    };
+    lidarr_data.indexers.set_items(vec![indexer]);
+
+    let edit_indexer_modal = EditIndexerModal::from(&lidarr_data);
+
+    assert_str_eq!(edit_indexer_modal.name.text, "Test");
+    assert_eq!(edit_indexer_modal.enable_rss, Some(true));
+    assert_eq!(edit_indexer_modal.enable_automatic_search, Some(true));
+    assert_eq!(edit_indexer_modal.enable_interactive_search, Some(true));
+    assert_eq!(edit_indexer_modal.priority, 1);
+    assert_str_eq!(edit_indexer_modal.url.text, "https://test.com");
+    assert_str_eq!(edit_indexer_modal.api_key.text, "1234");
+
+    if seed_ratio_present {
+      assert_str_eq!(edit_indexer_modal.seed_ratio.text, "1.2");
+    } else {
+      assert!(edit_indexer_modal.seed_ratio.text.is_empty());
+    }
+  }
+
+  #[test]
+  fn test_edit_indexer_modal_from_lidarr_data_seed_ratio_value_is_none() {
+    let mut lidarr_data = LidarrData {
+      tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
+      ..LidarrData::default()
+    };
+    let fields = vec![
+      IndexerField {
+        name: Some("baseUrl".to_owned()),
+        value: Some(Value::String("https://test.com".to_owned())),
+      },
+      IndexerField {
+        name: Some("apiKey".to_owned()),
+        value: Some(Value::String("1234".to_owned())),
+      },
+      IndexerField {
+        name: Some("seedCriteria.seedRatio".to_owned()),
+        value: None,
+      },
+    ];
+
+    let indexer = Indexer {
+      name: Some("Test".to_owned()),
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      tags: vec![Number::from(1), Number::from(2)],
+      fields: Some(fields),
+      priority: 1,
+      ..Indexer::default()
+    };
+    lidarr_data.indexers.set_items(vec![indexer]);
+
+    let edit_indexer_modal = EditIndexerModal::from(&lidarr_data);
+
+    assert_str_eq!(edit_indexer_modal.name.text, "Test");
+    assert_eq!(edit_indexer_modal.enable_rss, Some(true));
+    assert_eq!(edit_indexer_modal.enable_automatic_search, Some(true));
+    assert_eq!(edit_indexer_modal.enable_interactive_search, Some(true));
+    assert_eq!(edit_indexer_modal.priority, 1);
+    assert_str_eq!(edit_indexer_modal.url.text, "https://test.com");
+    assert_str_eq!(edit_indexer_modal.api_key.text, "1234");
+    assert!(edit_indexer_modal.seed_ratio.text.is_empty());
   }
 }

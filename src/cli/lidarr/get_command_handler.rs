@@ -27,6 +27,8 @@ pub enum LidarrGetCommand {
     )]
     album_id: i64,
   },
+  #[command(about = "Get the shared settings for all indexers")]
+  AllIndexerSettings,
   #[command(about = "Get detailed information for the artist with the given ID")]
   ArtistDetails {
     #[arg(
@@ -75,6 +77,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrGetCommand> for LidarrGetCommandHan
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetAlbumDetails(album_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrGetCommand::AllIndexerSettings => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetAllIndexerSettings.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

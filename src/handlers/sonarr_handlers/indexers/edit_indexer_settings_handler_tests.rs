@@ -15,7 +15,7 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
   };
-  use crate::models::sonarr_models::IndexerSettings;
+  use crate::models::servarr_models::IndexerSettings;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -23,7 +23,7 @@ mod tests {
 
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
-    use crate::models::sonarr_models::IndexerSettings;
+    use crate::models::servarr_models::IndexerSettings;
 
     use super::*;
 
@@ -242,7 +242,7 @@ mod tests {
       assert_navigation_popped,
       models::{
         BlockSelectionState, servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
-        sonarr_models::IndexerSettings,
+        servarr_models::IndexerSettings,
       },
       network::sonarr_network::SonarrEvent,
     };
@@ -415,7 +415,7 @@ mod tests {
   mod test_handle_esc {
     use rstest::rstest;
 
-    use crate::models::sonarr_models::IndexerSettings;
+    use crate::models::servarr_models::IndexerSettings;
 
     use super::*;
     use crate::assert_navigation_popped;

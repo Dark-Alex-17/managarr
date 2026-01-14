@@ -1,17 +1,18 @@
+use super::{
+  HorizontallyScrollableText, Serdeable,
+  servarr_models::{
+    DiskSpace, HostConfig, Indexer, IndexerTestResult, QualityProfile, QualityWrapper, RootFolder,
+    SecurityConfig, Tag,
+  },
+};
+use crate::models::servarr_models::IndexerSettings;
+use crate::serde_enum_from;
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use strum::{Display, EnumIter};
-
-use super::{
-  HorizontallyScrollableText, Serdeable,
-  servarr_models::{
-    DiskSpace, HostConfig, QualityProfile, QualityWrapper, RootFolder, SecurityConfig, Tag,
-  },
-};
-use crate::serde_enum_from;
 
 #[cfg(test)]
 #[path = "lidarr_models_tests.rs"]
@@ -442,6 +443,9 @@ serde_enum_from!(
     DownloadsResponse(DownloadsResponse),
     HistoryWrapper(LidarrHistoryWrapper),
     HostConfig(HostConfig),
+    IndexerSettings(IndexerSettings),
+    Indexers(Vec<Indexer>),
+    IndexerTestResults(Vec<IndexerTestResult>),
     MetadataProfiles(Vec<MetadataProfile>),
     QualityProfiles(Vec<QualityProfile>),
     RootFolders(Vec<RootFolder>),

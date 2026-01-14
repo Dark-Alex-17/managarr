@@ -55,6 +55,31 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::GetRootFolders.into())
           .await;
       }
+      ActiveLidarrBlock::Indexers => {
+        self
+          .dispatch_network_event(LidarrEvent::GetTags.into())
+          .await;
+        self
+          .dispatch_network_event(LidarrEvent::GetIndexers.into())
+          .await;
+      }
+      ActiveLidarrBlock::AllIndexerSettingsPrompt => {
+        self
+          .dispatch_network_event(LidarrEvent::GetAllIndexerSettings.into())
+          .await;
+      }
+      ActiveLidarrBlock::TestIndexer => {
+        self
+          .dispatch_network_event(
+            LidarrEvent::TestIndexer(self.extract_lidarr_indexer_id().await).into(),
+          )
+          .await;
+      }
+      ActiveLidarrBlock::TestAllIndexers => {
+        self
+          .dispatch_network_event(LidarrEvent::TestAllIndexers.into())
+          .await;
+      }
       _ => (),
     }
 
@@ -68,13 +93,17 @@ impl App<'_> {
       .lidarr_data
       .add_artist_search
       .as_ref()
-      .expect("add_artist_search should be set")
+      .expect("Add artist search is empty")
       .text
       .clone()
   }
 
   async fn extract_artist_id(&self) -> i64 {
     self.data.lidarr_data.artists.current_selection().id
+  }
+
+  async fn extract_lidarr_indexer_id(&self) -> i64 {
+    self.data.lidarr_data.indexers.current_selection().id
   }
 
   async fn check_for_lidarr_prompt_action(&mut self) {

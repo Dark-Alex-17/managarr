@@ -10,7 +10,8 @@ mod tests {
     LidarrContextClueProvider,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, LidarrData,
+    ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS,
+    INDEXER_SETTINGS_BLOCKS, LidarrData,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use rstest::rstest;
@@ -204,7 +205,8 @@ mod tests {
   fn test_lidarr_context_clue_provider_bare_popup_context_clues(
     #[values(
       ActiveLidarrBlock::AddArtistSearchInput,
-      ActiveLidarrBlock::AddArtistEmptySearchResults
+      ActiveLidarrBlock::AddArtistEmptySearchResults,
+      ActiveLidarrBlock::TestAllIndexers
     )]
     active_lidarr_block: ActiveLidarrBlock,
   ) {
@@ -220,6 +222,8 @@ mod tests {
   fn test_lidarr_context_clue_provider_confirmation_prompt_popup_clues_edit_indexer_blocks() {
     let mut blocks = EDIT_ARTIST_BLOCKS.to_vec();
     blocks.extend(ADD_ROOT_FOLDER_BLOCKS);
+    blocks.extend(INDEXER_SETTINGS_BLOCKS);
+    blocks.extend(EDIT_INDEXER_BLOCKS);
 
     for active_lidarr_block in blocks {
       let mut app = App::test_default();

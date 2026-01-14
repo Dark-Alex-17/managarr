@@ -124,7 +124,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditIndexerHandler<'
           .edit_indexer_modal
           .as_mut()
           .unwrap();
-        if edit_indexer_modal.priority > 0 {
+        if edit_indexer_modal.priority > 1 {
           edit_indexer_modal.priority -= 1;
         }
       }

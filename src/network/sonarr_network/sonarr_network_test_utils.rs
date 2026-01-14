@@ -5,10 +5,9 @@ pub mod test_utils {
   };
   use crate::models::sonarr_models::{
     AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
-    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating,
-    Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
-    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask,
-    SonarrTaskName,
+    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, MediaInfo, Rating, Season,
+    SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType, SonarrHistoryData,
+    SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask, SonarrTaskName,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
@@ -247,16 +246,6 @@ pub mod test_utils {
           value: Some(json!("1.2")),
         },
       ]),
-    }
-  }
-
-  pub fn indexer_settings() -> IndexerSettings {
-    IndexerSettings {
-      id: 1,
-      minimum_age: 1,
-      retention: 1,
-      maximum_size: 12345,
-      rss_sync_interval: 60,
     }
   }
 

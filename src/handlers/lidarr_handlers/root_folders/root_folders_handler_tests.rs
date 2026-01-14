@@ -105,9 +105,9 @@ mod tests {
 
       assert_eq!(
         app.data.lidarr_data.main_tabs.get_active_route(),
-        ActiveLidarrBlock::Artists.into()
+        ActiveLidarrBlock::Indexers.into()
       );
-      assert_navigation_pushed!(app, ActiveLidarrBlock::Artists.into());
+      assert_navigation_pushed!(app, ActiveLidarrBlock::Indexers.into());
     }
 
     #[rstest]

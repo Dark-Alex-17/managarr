@@ -5,7 +5,7 @@ use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
-use crate::models::sonarr_models::IndexerSettings;
+use crate::models::servarr_models::IndexerSettings;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_prompt_left_right_keys, matches_key};
 
