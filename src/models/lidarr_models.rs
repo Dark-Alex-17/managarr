@@ -488,6 +488,13 @@ pub struct LidarrRelease {
   pub quality: QualityWrapper,
 }
 
+#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: i64,
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)

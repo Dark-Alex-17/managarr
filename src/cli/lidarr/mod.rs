@@ -18,7 +18,7 @@ use super::{CliCommandHandler, Command};
 use crate::cli::lidarr::manual_search_command_handler::{
   LidarrManualSearchCommand, LidarrManualSearchCommandHandler,
 };
-use crate::models::lidarr_models::LidarrTaskName;
+use crate::models::lidarr_models::{LidarrReleaseDownloadBody, LidarrTaskName};
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
@@ -27,13 +27,13 @@ mod delete_command_handler;
 mod edit_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod manual_search_command_handler;
 mod refresh_command_handler;
 mod trigger_automatic_search_command_handler;
 
 #[cfg(test)]
 #[path = "lidarr_command_tests.rs"]
 mod lidarr_command_tests;
-mod manual_search_command_handler;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrCommand {
@@ -74,6 +74,17 @@ pub enum LidarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Lidarr instance"
   )]
   TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand),
+  #[command(about = "Manually download the given release")]
+  DownloadRelease {
+    #[arg(long, help = "The GUID of the release to download", required = true)]
+    guid: String,
+    #[arg(
+      long,
+      help = "The indexer ID to download the release from",
+      required = true
+    )]
+    indexer_id: i64,
+  },
   #[command(about = "Mark the Lidarr history item with the given ID as 'failed'")]
   MarkHistoryItemAsFailed {
     #[arg(
@@ -205,6 +216,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         )
         .handle()
         .await?
+      }
+      LidarrCommand::DownloadRelease { guid, indexer_id } => {
+        let params = LidarrReleaseDownloadBody { guid, indexer_id };
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::DownloadRelease(params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       LidarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
         let _ = self

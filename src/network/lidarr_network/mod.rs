@@ -3,8 +3,8 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
-  AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams, LidarrSerdeable,
-  LidarrTaskName, MetadataProfile,
+  AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams,
+  LidarrReleaseDownloadBody, LidarrSerdeable, LidarrTaskName, MetadataProfile,
 };
 use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
@@ -35,6 +35,7 @@ pub enum LidarrEvent {
   DeleteIndexer(i64),
   DeleteRootFolder(i64),
   DeleteTag(i64),
+  DownloadRelease(LidarrReleaseDownloadBody),
   EditArtist(EditArtistParams),
   EditAllIndexerSettings(IndexerSettings),
   EditIndexer(EditIndexerParams),
@@ -97,7 +98,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
       LidarrEvent::GetHistory(_) => "/history",
       LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
-      LidarrEvent::GetDiscographyReleases(_) => "/release",
+      LidarrEvent::GetDiscographyReleases(_) | LidarrEvent::DownloadRelease(_) => "/release",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::GetIndexers | LidarrEvent::DeleteIndexer(_) | LidarrEvent::EditIndexer(_) => {
         "/indexer"
@@ -169,6 +170,10 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::DeleteTag(tag_id) => self
         .delete_lidarr_tag(tag_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::DownloadRelease(lidarr_release_download_body) => self
+        .download_lidarr_release(lidarr_release_download_body)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetAlbums(artist_id) => {

@@ -1,10 +1,13 @@
 use crate::app::App;
 use crate::cli::lidarr::LidarrCommand;
 use crate::cli::{CliCommandHandler, Command};
+use crate::models::Serdeable;
+use crate::models::lidarr_models::{LidarrRelease, LidarrSerdeable};
 use crate::network::NetworkTrait;
 use crate::network::lidarr_network::LidarrEvent;
 use anyhow::Result;
 use clap::Subcommand;
+use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -15,7 +18,7 @@ mod manual_search_command_handler_tests;
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrManualSearchCommand {
   #[command(
-    about = "Trigger a manual search of discography releases for the given artist corresponding to the artist with the given ID.\nNote that when downloading a discography release, ensure that the release includes 'discography: true', otherwise you'll run into issues"
+    about = "Trigger a manual search of discography releases for the given artist corresponding to the artist with the given ID."
   )]
   Discography {
     #[arg(
@@ -58,11 +61,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrManualSearchCommand>
     let result = match self.command {
       LidarrManualSearchCommand::Discography { artist_id } => {
         println!("Searching for artist discography releases. This may take a minute...");
-        let resp = self
+        match self
           .network
           .handle_network_event(LidarrEvent::GetDiscographyReleases(artist_id).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
+          .await
+        {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Releases(releases_vec))) => {
+            let discography_vec: Vec<LidarrRelease> = releases_vec
+              .into_iter()
+              .filter(|release| release.discography)
+              .collect();
+            serde_json::to_string_pretty(&discography_vec)?
+          }
+          Err(e) => return Err(e),
+          _ => serde_json::to_string_pretty(&json!({"message": "Failed to parse response"}))?,
+        }
       }
     };
 

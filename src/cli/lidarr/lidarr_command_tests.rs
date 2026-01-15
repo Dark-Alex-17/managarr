@@ -61,6 +61,55 @@ mod tests {
     }
 
     #[test]
+    fn test_download_release_requires_guid() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "download-release",
+        "--indexer-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_release_requires_indexer_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "download-release",
+        "--guid",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_release_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "download-release",
+        "--guid",
+        "1",
+        "--indexer-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_toggle_artist_monitoring_requires_artist_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "toggle-artist-monitoring"]);
@@ -235,7 +284,7 @@ mod tests {
     use crate::cli::lidarr::manual_search_command_handler::LidarrManualSearchCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
-    use crate::models::lidarr_models::LidarrTaskName;
+    use crate::models::lidarr_models::{LidarrReleaseDownloadBody, LidarrTaskName};
     use crate::models::servarr_models::IndexerSettings;
     use crate::{
       app::App,
@@ -428,9 +477,9 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
-      let refresh_series_command = LidarrCommand::Refresh(LidarrRefreshCommand::AllArtists);
+      let refresh_artist_command = LidarrCommand::Refresh(LidarrRefreshCommand::AllArtists);
 
-      let result = LidarrCliHandler::with(&app_arc, refresh_series_command, &mut mock_network)
+      let result = LidarrCliHandler::with(&app_arc, refresh_artist_command, &mut mock_network)
         .handle()
         .await;
 
@@ -493,6 +542,37 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_download_release_command() {
+      let expected_release_download_body = LidarrReleaseDownloadBody {
+        guid: "guid".to_owned(),
+        indexer_id: 1,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::DownloadRelease(expected_release_download_body).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let download_release_command = LidarrCommand::DownloadRelease {
+        guid: "guid".to_owned(),
+        indexer_id: 1,
+      };
+
+      let result = LidarrCliHandler::with(&app_arc, download_release_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

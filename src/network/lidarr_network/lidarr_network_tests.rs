@@ -125,7 +125,13 @@ mod tests {
   }
 
   #[rstest]
-  fn test_resource_release(#[values(LidarrEvent::GetDiscographyReleases(0))] event: LidarrEvent) {
+  fn test_resource_release(
+    #[values(
+      LidarrEvent::GetDiscographyReleases(0),
+      LidarrEvent::DownloadRelease(Default::default())
+    )]
+    event: LidarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/release");
   }
 
