@@ -537,6 +537,7 @@ pub struct SonarrRelease {
   pub quality: QualityWrapper,
   pub full_season: bool,
 }
+
 #[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SonarrReleaseDownloadBody {

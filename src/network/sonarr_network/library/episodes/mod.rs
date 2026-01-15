@@ -370,6 +370,11 @@ impl Network<'_, '_> {
           app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
         }
 
+        let episode_releases_vec = release_vec
+          .into_iter()
+          .filter(|release| !release.full_season)
+          .collect();
+
         if app
           .data
           .sonarr_data
@@ -398,7 +403,7 @@ impl Network<'_, '_> {
           .as_mut()
           .unwrap()
           .episode_releases
-          .set_items(release_vec);
+          .set_items(episode_releases_vec);
       })
       .await
   }
