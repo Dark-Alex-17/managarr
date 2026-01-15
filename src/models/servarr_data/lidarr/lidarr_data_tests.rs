@@ -6,8 +6,9 @@ mod tests {
   };
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
+    MANUAL_ARTIST_SEARCH_CONTEXT_CLUES,
   };
-  use crate::models::lidarr_models::{Album, LidarrRelease};
+  use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS,
     DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
@@ -16,7 +17,6 @@ mod tests {
     EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
     INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
   };
-  use crate::models::stateful_table::StatefulTable;
   use crate::models::{
     BlockSelectionState, Route,
     servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS, LidarrData},
@@ -63,14 +63,16 @@ mod tests {
     lidarr_data
       .discography_releases
       .set_items(vec![LidarrRelease::default()]);
-    lidarr_data.artist_history = Some(StatefulTable::default());
+    lidarr_data
+      .artist_history
+      .set_items(vec![LidarrHistoryItem::default()]);
     lidarr_data.artist_info_tabs.index = 1;
 
     lidarr_data.reset_artist_info_tabs();
 
     assert_is_empty!(lidarr_data.albums);
     assert_is_empty!(lidarr_data.discography_releases);
-    assert_none!(lidarr_data.artist_history);
+    assert_is_empty!(lidarr_data.artist_history);
     assert_eq!(lidarr_data.artist_info_tabs.index, 0);
   }
 
@@ -144,7 +146,7 @@ mod tests {
     assert_none!(lidarr_data.add_searched_artists);
     assert_is_empty!(lidarr_data.albums);
     assert_is_empty!(lidarr_data.artists);
-    assert_none!(lidarr_data.artist_history);
+    assert_is_empty!(lidarr_data.artist_history);
     assert!(!lidarr_data.delete_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
     assert_is_empty!(lidarr_data.downloads);
@@ -235,7 +237,7 @@ mod tests {
     );
     assert_none!(lidarr_data.main_tabs.tabs[5].config);
 
-    assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 2);
+    assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 3);
     assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
     assert_eq!(
       lidarr_data.artist_info_tabs.tabs[0].route,
@@ -257,6 +259,17 @@ mod tests {
       &ARTIST_HISTORY_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.artist_info_tabs.tabs[1].config);
+
+    assert_str_eq!(lidarr_data.artist_info_tabs.tabs[2].title, "Manual Search");
+    assert_eq!(
+      lidarr_data.artist_info_tabs.tabs[2].route,
+      ActiveLidarrBlock::ManualArtistSearch.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.artist_info_tabs.tabs[2].contextual_help,
+      &MANUAL_ARTIST_SEARCH_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.artist_info_tabs.tabs[2].config);
   }
 
   #[test]
@@ -273,7 +286,7 @@ mod tests {
 
   #[test]
   fn test_artist_details_blocks_contains_expected_blocks() {
-    assert_eq!(ARTIST_DETAILS_BLOCKS.len(), 12);
+    assert_eq!(ARTIST_DETAILS_BLOCKS.len(), 15);
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ArtistDetails));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ArtistHistory));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ArtistHistoryDetails));
@@ -281,6 +294,9 @@ mod tests {
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AutomaticallySearchArtistPrompt));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterArtistHistory));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterArtistHistoryError));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualArtistSearch));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualArtistSearchConfirmPrompt));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualArtistSearchSortPrompt));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbums));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbumsError));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchArtistHistory));

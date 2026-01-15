@@ -5,13 +5,17 @@ use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbum
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::lidarr_models::{Album, LidarrHistoryItem};
+use crate::models::lidarr_models::{
+  Album, LidarrHistoryItem, LidarrRelease, LidarrReleaseDownloadBody,
+};
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_SELECTION_BLOCKS,
   EDIT_ARTIST_SELECTION_BLOCKS,
 };
+use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Route};
 use crate::network::lidarr_network::LidarrEvent;
+use serde_json::Number;
 
 #[cfg(test)]
 #[path = "artist_details_handler_tests.rs"]
@@ -53,21 +57,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
         .filter_error_block(ActiveLidarrBlock::FilterArtistHistoryError.into())
         .filter_field_fn(|history_item: &LidarrHistoryItem| &history_item.source_title.text);
 
+    let artist_releases_table_handling_config =
+      TableHandlingConfig::new(ActiveLidarrBlock::ManualArtistSearch.into())
+        .sorting_block(ActiveLidarrBlock::ManualArtistSearchSortPrompt.into())
+        .sort_options(releases_sorting_options());
+
     if !handle_table(
       self,
       |app| &mut app.data.lidarr_data.albums,
       albums_table_handling_config,
     ) && !handle_table(
       self,
-      |app| {
-        app
-          .data
-          .lidarr_data
-          .artist_history
-          .as_mut()
-          .expect("Artist history is undefined")
-      },
+      |app| &mut app.data.lidarr_data.artist_history,
       artist_history_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| &mut app.data.lidarr_data.discography_releases,
+      artist_releases_table_handling_config,
     ) {
       match self.active_lidarr_block {
         _ if DeleteAlbumHandler::accepts(self.active_lidarr_block) => {
@@ -106,10 +112,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   }
 
   fn is_ready(&self) -> bool {
-    if self.active_lidarr_block == ActiveLidarrBlock::ArtistHistory {
-      !self.app.is_loading && self.app.data.lidarr_data.artist_history.is_some()
-    } else {
-      !self.app.is_loading
+    if self.app.is_loading {
+      return false;
+    }
+
+    match self.active_lidarr_block {
+      ActiveLidarrBlock::ArtistHistory => !self.app.data.lidarr_data.artist_history.is_empty(),
+      ActiveLidarrBlock::ManualArtistSearch => {
+        !self.app.data.lidarr_data.discography_releases.is_empty()
+      }
+      _ => true,
     }
   }
 
@@ -133,7 +145,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_left_right_action(&mut self) {
     match self.active_lidarr_block {
-      ActiveLidarrBlock::ArtistDetails | ActiveLidarrBlock::ArtistHistory => match self.key {
+      ActiveLidarrBlock::ArtistDetails
+      | ActiveLidarrBlock::ArtistHistory
+      | ActiveLidarrBlock::ManualArtistSearch => match self.key {
         _ if matches_key!(left, self.key) => {
           self.app.data.lidarr_data.artist_info_tabs.previous();
           self.app.pop_and_push_navigation_stack(
@@ -159,7 +173,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
         _ => (),
       },
       ActiveLidarrBlock::UpdateAndScanArtistPrompt
-      | ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
+      | ActiveLidarrBlock::AutomaticallySearchArtistPrompt
+      | ActiveLidarrBlock::ManualArtistSearchConfirmPrompt => {
         handle_prompt_toggle(self.app, self.key);
       }
       _ => (),
@@ -168,19 +183,33 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_submit(&mut self) {
     match self.active_lidarr_block {
-      ActiveLidarrBlock::ArtistHistory
-        if !self
-          .app
-          .data
-          .lidarr_data
-          .artist_history
-          .as_ref()
-          .expect("Artist history should be Some")
-          .is_empty() =>
-      {
+      ActiveLidarrBlock::ArtistHistory if !self.app.data.lidarr_data.artist_history.is_empty() => {
         self
           .app
           .push_navigation_stack(ActiveLidarrBlock::ArtistHistoryDetails.into());
+      }
+      ActiveLidarrBlock::ManualArtistSearch => {
+        self
+          .app
+          .push_navigation_stack(ActiveLidarrBlock::ManualArtistSearchConfirmPrompt.into());
+      }
+      ActiveLidarrBlock::ManualArtistSearchConfirmPrompt => {
+        if self.app.data.lidarr_data.prompt_confirm {
+          let LidarrRelease {
+            guid, indexer_id, ..
+          } = self
+            .app
+            .data
+            .lidarr_data
+            .discography_releases
+            .current_selection()
+            .clone();
+          let params = LidarrReleaseDownloadBody { guid, indexer_id };
+          self.app.data.lidarr_data.prompt_confirm_action =
+            Some(LidarrEvent::DownloadRelease(params));
+        }
+
+        self.app.pop_navigation_stack();
       }
       ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
         if self.app.data.lidarr_data.prompt_confirm {
@@ -206,7 +235,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   fn handle_esc(&mut self) {
     match self.active_lidarr_block {
       ActiveLidarrBlock::UpdateAndScanArtistPrompt
-      | ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
+      | ActiveLidarrBlock::AutomaticallySearchArtistPrompt
+      | ActiveLidarrBlock::ManualArtistSearchConfirmPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.lidarr_data.prompt_confirm = false;
       }
@@ -219,25 +249,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
           .data
           .lidarr_data
           .artist_history
-          .as_ref()
-          .expect("Artist history is not populated")
           .filtered_items
           .is_some()
         {
-          self
-            .app
-            .data
-            .lidarr_data
-            .artist_history
-            .as_mut()
-            .expect("Artist history is not populated")
-            .reset_filter();
+          self.app.data.lidarr_data.artist_history.reset_filter();
         } else {
           self.app.pop_navigation_stack();
           self.app.data.lidarr_data.reset_artist_info_tabs();
         }
       }
-      ActiveLidarrBlock::ArtistDetails => {
+      ActiveLidarrBlock::ArtistDetails | ActiveLidarrBlock::ManualArtistSearch => {
         self.app.pop_navigation_stack();
         self.app.data.lidarr_data.reset_artist_info_tabs();
       }
@@ -287,7 +308,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
         }
         _ => (),
       },
-      ActiveLidarrBlock::ArtistHistory => match self.key {
+      ActiveLidarrBlock::ArtistHistory | ActiveLidarrBlock::ManualArtistSearch => match self.key {
         _ if matches_key!(refresh, key) => self
           .app
           .pop_and_push_navigation_stack(self.active_lidarr_block.into()),
@@ -334,6 +355,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
           self.app.pop_navigation_stack();
         }
       }
+      ActiveLidarrBlock::ManualArtistSearchConfirmPrompt => {
+        if matches_key!(confirm, key) {
+          self.app.data.lidarr_data.prompt_confirm = true;
+          let LidarrRelease {
+            guid, indexer_id, ..
+          } = self
+            .app
+            .data
+            .lidarr_data
+            .discography_releases
+            .current_selection()
+            .clone();
+          let params = LidarrReleaseDownloadBody { guid, indexer_id };
+          self.app.data.lidarr_data.prompt_confirm_action =
+            Some(LidarrEvent::DownloadRelease(params));
+
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }
@@ -345,4 +385,62 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
+}
+
+fn releases_sorting_options() -> Vec<SortOption<LidarrRelease>> {
+  vec![
+    SortOption {
+      name: "Source",
+      cmp_fn: Some(|a, b| a.protocol.cmp(&b.protocol)),
+    },
+    SortOption {
+      name: "Age",
+      cmp_fn: Some(|a, b| a.age.cmp(&b.age)),
+    },
+    SortOption {
+      name: "Rejected",
+      cmp_fn: Some(|a, b| a.rejected.cmp(&b.rejected)),
+    },
+    SortOption {
+      name: "Title",
+      cmp_fn: Some(|a, b| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
+    },
+    SortOption {
+      name: "Indexer",
+      cmp_fn: Some(|a, b| a.indexer.to_lowercase().cmp(&b.indexer.to_lowercase())),
+    },
+    SortOption {
+      name: "Size",
+      cmp_fn: Some(|a, b| a.size.cmp(&b.size)),
+    },
+    SortOption {
+      name: "Peers",
+      cmp_fn: Some(|a, b| {
+        let default_number = Number::from(i64::MAX);
+        let seeder_a = a
+          .seeders
+          .as_ref()
+          .unwrap_or(&default_number)
+          .as_u64()
+          .unwrap();
+        let seeder_b = b
+          .seeders
+          .as_ref()
+          .unwrap_or(&default_number)
+          .as_u64()
+          .unwrap();
+
+        seeder_a.cmp(&seeder_b)
+      }),
+    },
+    SortOption {
+      name: "Quality",
+      cmp_fn: Some(|a, b| a.quality.cmp(&b.quality)),
+    },
+  ]
 }

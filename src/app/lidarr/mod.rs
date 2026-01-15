@@ -45,6 +45,15 @@ impl App<'_> {
           )
           .await;
       }
+      ActiveLidarrBlock::ManualArtistSearch => {
+        if self.data.lidarr_data.discography_releases.is_empty() {
+          self
+            .dispatch_network_event(
+              LidarrEvent::GetDiscographyReleases(self.extract_artist_id().await).into(),
+            )
+            .await;
+        }
+      }
       ActiveLidarrBlock::AddArtistSearchResults => {
         self
           .dispatch_network_event(

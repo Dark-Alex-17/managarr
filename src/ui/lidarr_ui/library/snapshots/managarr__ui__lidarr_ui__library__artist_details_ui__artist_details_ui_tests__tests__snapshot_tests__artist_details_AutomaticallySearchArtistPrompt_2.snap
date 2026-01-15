@@ -18,14 +18,14 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                                                                                                                          │        
-        │Tracks: 15/15                             ╭────────────────────  Update and Scan  ────────────────────╮                                            │        
-        │Size on Disk: 0.00 GB                     │  Do you want to trigger an update and disk scan for the   │                                            │        
-        │╭  Artist Details  ───────────────────────│                       artist: Alex?                       │───────────────────────────────────────────╮│        
+        │Tracks: 15/15                             ╭────────────────  Automatic Artist Search  ────────────────╮                                            │        
+        │Size on Disk: 0.00 GB                     │Do you want to trigger an automatic search of your indexers│                                            │        
+        │╭  Artist Details  ───────────────────────│     for all monitored album(s) for the artist: Alex?      │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
-        ││   Source Title ▼                        │                                                           │        Date                               ││        
-        ││=> Test source title                     │                                                           │        2023-01-01 00:00:00 UTC            ││        
-        ││                                         │                                                           │                                           ││        
+        ││   Source ▼  Age        ⛔     Title      │                                                           │ Size         Peers        Quality         ││        
+        ││=> torrent   1 days     ⛔     Test Releas│                                                           │ 0.0 GB       2 / 1        Lossless        ││        
+        ││   usenet    1 days     ⛔     Test Releas│                                                           │ 0.0 GB                    Lossless        ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        

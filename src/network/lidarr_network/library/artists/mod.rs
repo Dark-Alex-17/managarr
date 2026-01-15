@@ -306,7 +306,7 @@ impl Network<'_, '_> {
           Route::Lidarr(ActiveLidarrBlock::ArtistHistorySortPrompt, _)
         );
 
-        let artist_history = app.data.lidarr_data.artist_history.get_or_insert_default();
+        let artist_history = &mut app.data.lidarr_data.artist_history;
 
         if !is_sorting {
           history_vec.sort_by(|a, b| a.id.cmp(&b.id));

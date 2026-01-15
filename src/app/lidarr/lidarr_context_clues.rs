@@ -65,6 +65,7 @@ pub static ARTIST_HISTORY_CONTEXT_CLUES: [ContextClue; 9] = [
   ),
   (DEFAULT_KEYBINDINGS.edit, "edit artist"),
   (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
@@ -72,8 +73,23 @@ pub static ARTIST_HISTORY_CONTEXT_CLUES: [ContextClue; 9] = [
     DEFAULT_KEYBINDINGS.auto_search,
     DEFAULT_KEYBINDINGS.auto_search.desc,
   ),
-  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.esc, "cancel filter/close"),
+];
+
+pub static MANUAL_ARTIST_SEARCH_CONTEXT_CLUES: [ContextClue; 7] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.edit, "edit artist"),
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
 pub(in crate::app) struct LidarrContextClueProvider;

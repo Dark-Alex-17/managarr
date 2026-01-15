@@ -9,11 +9,12 @@ use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
-use crate::models::lidarr_models::{Album, LidarrHistoryItem};
+use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
+use crate::ui::utils::decorate_peer_style;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
 };
@@ -26,6 +27,7 @@ use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 use ratatui::layout::Alignment;
 use ratatui::text::Text;
+use serde_json::Number;
 
 #[cfg(test)]
 #[path = "artist_details_ui_tests.rs"]
@@ -104,6 +106,9 @@ impl DrawUi for ArtistDetailsUi {
               Popup::new(confirmation_prompt).size(Size::MediumPrompt),
               f.area(),
             );
+          }
+          ActiveLidarrBlock::ManualArtistSearchConfirmPrompt => {
+            draw_manual_artist_search_confirm_prompt(f, app);
           }
           _ => (),
         }
@@ -241,6 +246,7 @@ fn draw_artist_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     match active_lidarr_block {
       ActiveLidarrBlock::ArtistDetails => draw_albums_table(f, app, area),
       ActiveLidarrBlock::ArtistHistory => draw_artist_history_table(f, app, area),
+      ActiveLidarrBlock::ManualArtistSearch => draw_artist_releases(f, app, area),
       _ => (),
     }
   }
@@ -338,98 +344,98 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_artist_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  match app.data.lidarr_data.artist_history.as_ref() {
-    Some(artist_history) if !app.is_loading => {
-      let current_selection = if artist_history.is_empty() {
-        LidarrHistoryItem::default()
-      } else {
-        artist_history.current_selection().clone()
+  if !app.is_loading {
+    let current_selection = if app.data.lidarr_data.artist_history.is_empty() {
+      LidarrHistoryItem::default()
+    } else {
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .current_selection()
+        .clone()
+    };
+
+    if let Route::Lidarr(active_lidarr_block, _) = app.get_current_route() {
+      let history_row_mapping = |history_item: &LidarrHistoryItem| {
+        let LidarrHistoryItem {
+          source_title,
+          quality,
+          event_type,
+          date,
+          ..
+        } = history_item;
+
+        source_title.scroll_left_or_reset(
+          get_width_from_percentage(area, 40),
+          current_selection == *history_item,
+          app.ui_scroll_tick_count == 0,
+        );
+
+        Row::new(vec![
+          Cell::from(source_title.to_string()),
+          Cell::from(event_type.to_string()),
+          Cell::from(quality.quality.name.to_owned()),
+          Cell::from(date.to_string()),
+        ])
+        .primary()
       };
+      let history_table = ManagarrTable::new(
+        Some(&mut app.data.lidarr_data.artist_history),
+        history_row_mapping,
+      )
+      .block(layout_block_top_border())
+      .loading(app.is_loading)
+      .sorting(active_lidarr_block == ActiveLidarrBlock::ArtistHistorySortPrompt)
+      .searching(active_lidarr_block == ActiveLidarrBlock::SearchArtistHistory)
+      .search_produced_empty_results(
+        active_lidarr_block == ActiveLidarrBlock::SearchArtistHistoryError,
+      )
+      .filtering(active_lidarr_block == ActiveLidarrBlock::FilterArtistHistory)
+      .filter_produced_empty_results(
+        active_lidarr_block == ActiveLidarrBlock::FilterArtistHistoryError,
+      )
+      .headers(["Source Title", "Event Type", "Quality", "Date"])
+      .constraints([
+        Constraint::Percentage(40),
+        Constraint::Percentage(20),
+        Constraint::Percentage(15),
+        Constraint::Percentage(25),
+      ]);
 
-      if let Route::Lidarr(active_lidarr_block, _) = app.get_current_route() {
-        let history_row_mapping = |history_item: &LidarrHistoryItem| {
-          let LidarrHistoryItem {
-            source_title,
-            quality,
-            event_type,
-            date,
-            ..
-          } = history_item;
-
-          source_title.scroll_left_or_reset(
-            get_width_from_percentage(area, 40),
-            current_selection == *history_item,
-            app.ui_scroll_tick_count == 0,
-          );
-
-          Row::new(vec![
-            Cell::from(source_title.to_string()),
-            Cell::from(event_type.to_string()),
-            Cell::from(quality.quality.name.to_owned()),
-            Cell::from(date.to_string()),
-          ])
-          .primary()
-        };
-        let mut artist_history_table = app
-          .data
-          .lidarr_data
-          .artist_history
-          .as_mut()
-          .expect("artist_history must be populated");
-        let history_table =
-          ManagarrTable::new(Some(&mut artist_history_table), history_row_mapping)
-            .block(layout_block_top_border())
-            .loading(app.is_loading)
-            .sorting(active_lidarr_block == ActiveLidarrBlock::ArtistHistorySortPrompt)
-            .searching(active_lidarr_block == ActiveLidarrBlock::SearchArtistHistory)
-            .search_produced_empty_results(
-              active_lidarr_block == ActiveLidarrBlock::SearchArtistHistoryError,
-            )
-            .filtering(active_lidarr_block == ActiveLidarrBlock::FilterArtistHistory)
-            .filter_produced_empty_results(
-              active_lidarr_block == ActiveLidarrBlock::FilterArtistHistoryError,
-            )
-            .headers(["Source Title", "Event Type", "Quality", "Date"])
-            .constraints([
-              Constraint::Percentage(40),
-              Constraint::Percentage(20),
-              Constraint::Percentage(15),
-              Constraint::Percentage(25),
-            ]);
-
-        if [
-          ActiveLidarrBlock::SearchArtistHistory,
-          ActiveLidarrBlock::FilterArtistHistory,
-        ]
-        .contains(&active_lidarr_block)
-        {
-          history_table.show_cursor(f, area);
-        }
-
-        f.render_widget(history_table, area);
+      if [
+        ActiveLidarrBlock::SearchArtistHistory,
+        ActiveLidarrBlock::FilterArtistHistory,
+      ]
+      .contains(&active_lidarr_block)
+      {
+        history_table.show_cursor(f, area);
       }
+
+      f.render_widget(history_table, area);
     }
-    _ => f.render_widget(
+  } else {
+    f.render_widget(
       LoadingBlock::new(
         app.is_loading || app.data.lidarr_data.albums.is_empty(),
         layout_block_top_border(),
       ),
       area,
-    ),
+    );
   }
 }
 
 fn draw_artist_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
-  let current_selection =
-    if let Some(artist_history_items) = app.data.lidarr_data.artist_history.as_ref() {
-      if artist_history_items.is_empty() {
-        LidarrHistoryItem::default()
-      } else {
-        artist_history_items.current_selection().clone()
-      }
-    } else {
-      LidarrHistoryItem::default()
-    };
+  let current_selection = if app.data.lidarr_data.artist_history.is_empty() {
+    LidarrHistoryItem::default()
+  } else {
+    app
+      .data
+      .lidarr_data
+      .artist_history
+      .current_selection()
+      .clone()
+  };
 
   let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
@@ -440,4 +446,159 @@ fn draw_artist_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) 
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
+}
+
+fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let (current_selection, is_empty) = if app.data.lidarr_data.discography_releases.is_empty() {
+    (LidarrRelease::default(), true)
+  } else {
+    (
+      app
+        .data
+        .lidarr_data
+        .discography_releases
+        .current_selection()
+        .clone(),
+      app.data.lidarr_data.discography_releases.is_empty(),
+    )
+  };
+
+  if let Route::Lidarr(active_lidarr_block, _) = app.get_current_route() {
+    let release_row_mapping = |release: &LidarrRelease| {
+      let LidarrRelease {
+        protocol,
+        age,
+        title,
+        indexer,
+        size,
+        rejected,
+        seeders,
+        leechers,
+        quality,
+        ..
+      } = release;
+
+      let age = format!("{age} days");
+      title.scroll_left_or_reset(
+        get_width_from_percentage(area, 35),
+        current_selection == *release
+          && active_lidarr_block != ActiveLidarrBlock::ManualArtistSearchConfirmPrompt,
+        app.ui_scroll_tick_count == 0,
+      );
+      let size = convert_to_gb(*size);
+      let rejected_str = if *rejected { "⛔" } else { "" };
+      let peers = if seeders.is_none() || leechers.is_none() {
+        Text::from("")
+      } else {
+        let seeders = seeders
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
+        let leechers = leechers
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
+
+        decorate_peer_style(
+          seeders,
+          leechers,
+          Text::from(format!("{seeders} / {leechers}")),
+        )
+      };
+
+      let quality_name = quality.quality.name.clone();
+
+      Row::new(vec![
+        Cell::from(protocol.clone()),
+        Cell::from(age),
+        Cell::from(rejected_str),
+        Cell::from(title.to_string()),
+        Cell::from(indexer.clone()),
+        Cell::from(format!("{size:.1} GB")),
+        Cell::from(peers),
+        Cell::from(quality_name),
+      ])
+      .primary()
+    };
+    let mut release_table = &mut app.data.lidarr_data.discography_releases;
+    let artist_release_table = ManagarrTable::new(Some(&mut release_table), release_row_mapping)
+      .block(layout_block_top_border())
+      .loading(app.is_loading || is_empty)
+      .sorting(active_lidarr_block == ActiveLidarrBlock::ManualArtistSearchSortPrompt)
+      .headers([
+        "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Quality",
+      ])
+      .constraints([
+        Constraint::Length(9),
+        Constraint::Length(10),
+        Constraint::Length(5),
+        Constraint::Percentage(35),
+        Constraint::Percentage(15),
+        Constraint::Length(12),
+        Constraint::Length(12),
+        Constraint::Percentage(10),
+      ]);
+
+    f.render_widget(artist_release_table, area);
+  }
+}
+
+fn draw_manual_artist_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let current_selection = app
+    .data
+    .lidarr_data
+    .discography_releases
+    .current_selection();
+  let title = if current_selection.rejected {
+    "Download Rejected Release"
+  } else {
+    "Download Release"
+  };
+  let prompt = if current_selection.rejected {
+    format!(
+      "Do you really want to download the rejected release: {}?",
+      &current_selection.title.text
+    )
+  } else {
+    format!(
+      "Do you want to download the release: {}?",
+      &current_selection.title.text
+    )
+  };
+
+  if current_selection.rejected {
+    let mut lines_vec = vec![Line::from("Rejection reasons: ".primary().bold())];
+    let mut rejections_spans = current_selection
+      .rejections
+      .clone()
+      .unwrap_or_default()
+      .iter()
+      .map(|item| Line::from(format!("• {item}").primary().bold()))
+      .collect::<Vec<Line<'_>>>();
+    lines_vec.append(&mut rejections_spans);
+
+    let content_paragraph = Paragraph::new(lines_vec)
+      .block(borderless_block())
+      .wrap(Wrap { trim: false })
+      .left_aligned();
+    let confirmation_prompt = ConfirmationPrompt::new()
+      .title(title)
+      .prompt(&prompt)
+      .content(content_paragraph)
+      .yes_no_value(app.data.lidarr_data.prompt_confirm);
+
+    f.render_widget(Popup::new(confirmation_prompt).size(Size::Small), f.area());
+  } else {
+    let confirmation_prompt = ConfirmationPrompt::new()
+      .title(title)
+      .prompt(&prompt)
+      .yes_no_value(app.data.lidarr_data.prompt_confirm);
+
+    f.render_widget(
+      Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+      f.area(),
+    );
+  }
 }

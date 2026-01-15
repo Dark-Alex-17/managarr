@@ -8,10 +8,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
+  use crate::models::lidarr_models::LidarrHistoryItem;
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
   };
-  use crate::models::stateful_table::StatefulTable;
 
   mod test_handle_delete {
     use super::*;
@@ -86,7 +86,6 @@ mod tests {
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
     use crate::models::lidarr_models::LidarrHistoryItem;
     use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
-    use crate::models::stateful_table::StatefulTable;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::artist;
     use crate::{assert_navigation_popped, assert_navigation_pushed};
@@ -145,9 +144,11 @@ mod tests {
     #[test]
     fn test_artist_history_submit() {
       let mut app = App::test_default();
-      let mut artist_history = StatefulTable::default();
-      artist_history.set_items(vec![LidarrHistoryItem::default()]);
-      app.data.lidarr_data.artist_history = Some(artist_history);
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .set_items(vec![LidarrHistoryItem::default()]);
 
       ArtistDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None)
         .handle();
@@ -159,7 +160,6 @@ mod tests {
     fn test_artist_history_submit_no_op_when_artist_history_is_empty() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
-      app.data.lidarr_data.artist_history = Some(StatefulTable::default());
 
       ArtistDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None)
         .handle();
@@ -218,13 +218,12 @@ mod tests {
     #[test]
     fn test_artist_history_esc_resets_filter_if_one_is_set_instead_of_closing_the_window() {
       let mut app = App::test_default();
-      let artist_history = StatefulTable {
+      app.data.lidarr_data.artist_history = StatefulTable {
         filter: Some("Test".into()),
         filtered_items: Some(vec![LidarrHistoryItem::default()]),
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
-      app.data.lidarr_data.artist_history = Some(artist_history);
       app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
       app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
 
@@ -234,25 +233,9 @@ mod tests {
         app.get_current_route(),
         ActiveLidarrBlock::ArtistHistory.into()
       );
-      assert_none!(app.data.lidarr_data.artist_history.as_ref().unwrap().filter);
-      assert_none!(
-        app
-          .data
-          .lidarr_data
-          .artist_history
-          .as_ref()
-          .unwrap()
-          .filtered_items
-      );
-      assert_none!(
-        app
-          .data
-          .lidarr_data
-          .artist_history
-          .as_ref()
-          .unwrap()
-          .filtered_state
-      );
+      assert_none!(app.data.lidarr_data.artist_history.filter);
+      assert_none!(app.data.lidarr_data.artist_history.filtered_items);
+      assert_none!(app.data.lidarr_data.artist_history.filtered_state);
     }
 
     #[rstest]
@@ -691,10 +674,14 @@ mod tests {
   }
 
   #[test]
-  fn test_artist_details_handler_ready_when_not_loading_and_artist_history_is_some() {
+  fn test_artist_details_handler_ready_when_not_loading_and_artist_history_is_non_empty() {
     let mut app = App::test_default();
     app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
-    app.data.lidarr_data.artist_history = Some(StatefulTable::default());
+    app
+      .data
+      .lidarr_data
+      .artist_history
+      .set_items(vec![LidarrHistoryItem::default()]);
 
     let handler = ArtistDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

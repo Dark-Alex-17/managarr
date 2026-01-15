@@ -23,9 +23,9 @@ expression: output
         │╭  Artist Details  ───────────────────────│                       artist: Alex?                       │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
-        ││   Source Title ▼                        │                                                           │        Date                               ││        
-        ││=> Test source title                     │                                                           │        2023-01-01 00:00:00 UTC            ││        
-        ││                                         │                                                           │                                           ││        
+        ││   Source ▼  Age        ⛔     Title      │                                                           │ Size         Peers        Quality         ││        
+        ││=> torrent   1 days     ⛔     Test Releas│                                                           │ 0.0 GB       2 / 1        Lossless        ││        
+        ││   usenet    1 days     ⛔     Test Releas│                                                           │ 0.0 GB                    Lossless        ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        

@@ -21,7 +21,7 @@ expression: output
         │Tracks: 15/15                             ╭────────────────  Automatic Artist Search  ────────────────╮                                            │        
         │Size on Disk: 0.00 GB                     │Do you want to trigger an automatic search of your indexers│                                            │        
         │╭  Artist Details  ───────────────────────│     for all monitored album(s) for the artist: Alex?      │───────────────────────────────────────────╮│        
-        ││ Albums │ History                        │                                                           │                                           ││        
+        ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
         ││   Source Title ▼                        │                                                           │        Date                               ││        
         ││=> Test source title                     │                                                           │        2023-01-01 00:00:00 UTC            ││        

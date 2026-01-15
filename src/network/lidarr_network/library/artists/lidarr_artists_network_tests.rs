@@ -5,7 +5,7 @@ mod tests {
     LidarrHistoryItem, LidarrRelease, LidarrSerdeable, MonitorType, NewItemMonitorType,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
-  use crate::models::stateful_table::{SortOption, StatefulTable};
+  use crate::models::stateful_table::SortOption;
   use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
@@ -156,10 +156,6 @@ mod tests {
       .query("artistId=1")
       .build_for(LidarrEvent::GetArtistHistory(1))
       .await;
-    let mut artist_history_table = StatefulTable {
-      sort_asc: true,
-      ..StatefulTable::default()
-    };
     if use_custom_sorting {
       let cmp_fn = |a: &LidarrHistoryItem, b: &LidarrHistoryItem| {
         a.source_title
@@ -173,7 +169,13 @@ mod tests {
         name: "Source Title",
         cmp_fn: Some(cmp_fn),
       };
-      artist_history_table.sorting(vec![history_sort_option]);
+      app
+        .lock()
+        .await
+        .data
+        .lidarr_data
+        .artist_history
+        .sorting(vec![history_sort_option]);
     }
     app
       .lock()
@@ -182,7 +184,7 @@ mod tests {
       .lidarr_data
       .artists
       .set_items(vec![artist()]);
-    app.lock().await.data.lidarr_data.artist_history = Some(artist_history_table);
+    app.lock().await.data.lidarr_data.artist_history.sort_asc = true;
     app.lock().await.server_tabs.set_index(2);
     let mut network = test_network(&app);
 
@@ -195,20 +197,11 @@ mod tests {
     };
     async_server.assert_async().await;
     let app = app.lock().await;
-    assert_some!(&app.data.lidarr_data.artist_history);
     assert_eq!(
-      app.data.lidarr_data.artist_history.as_ref().unwrap().items,
+      app.data.lidarr_data.artist_history.items,
       expected_history_items
     );
-    assert!(
-      app
-        .data
-        .lidarr_data
-        .artist_history
-        .as_ref()
-        .unwrap()
-        .sort_asc
-    );
+    assert!(app.data.lidarr_data.artist_history.sort_asc);
     assert_eq!(history_items, response);
   }
 
@@ -281,20 +274,11 @@ mod tests {
     };
     async_server.assert_async().await;
     let app = app.lock().await;
-    assert_some!(&app.data.lidarr_data.artist_history);
     assert_eq!(
-      app.data.lidarr_data.artist_history.as_ref().unwrap().items,
+      app.data.lidarr_data.artist_history.items,
       expected_history_items
     );
-    assert!(
-      !app
-        .data
-        .lidarr_data
-        .artist_history
-        .as_ref()
-        .unwrap()
-        .sort_asc
-    );
+    assert!(!app.data.lidarr_data.artist_history.sort_asc);
     assert_eq!(history_items, response);
   }
 
@@ -342,12 +326,14 @@ mod tests {
       name: "Source Title",
       cmp_fn: Some(cmp_fn),
     };
-    let mut artist_history_table = StatefulTable {
-      sort_asc: true,
-      ..StatefulTable::default()
-    };
-    artist_history_table.sorting(vec![history_sort_option]);
-    app.lock().await.data.lidarr_data.artist_history = Some(artist_history_table);
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .artist_history
+      .sorting(vec![history_sort_option]);
+    app.lock().await.data.lidarr_data.artist_history.sort_asc = true;
     app
       .lock()
       .await
@@ -371,25 +357,8 @@ mod tests {
     };
     async_server.assert_async().await;
     let app = app.lock().await;
-    assert_some!(&app.data.lidarr_data.artist_history);
-    assert!(
-      app
-        .data
-        .lidarr_data
-        .artist_history
-        .as_ref()
-        .unwrap()
-        .is_empty()
-    );
-    assert!(
-      app
-        .data
-        .lidarr_data
-        .artist_history
-        .as_ref()
-        .unwrap()
-        .sort_asc
-    );
+    assert!(app.data.lidarr_data.artist_history.is_empty());
+    assert!(app.data.lidarr_data.artist_history.sort_asc);
     assert_eq!(history_items, response);
   }
 

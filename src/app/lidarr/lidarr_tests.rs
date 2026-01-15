@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::app::App;
-  use crate::models::lidarr_models::Artist;
+  use crate::models::lidarr_models::{Artist, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_models::Indexer;
   use crate::network::NetworkEvent;
@@ -74,6 +74,48 @@ mod tests {
       rx.recv().await.unwrap(),
       LidarrEvent::GetArtistHistory(1).into()
     );
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_manual_artist_search_block() {
+    let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
+    let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
+    app.network_tx = Some(tx);
+    app.data.lidarr_data.artists.set_items(vec![Artist {
+      id: 1,
+      ..Artist::default()
+    }]);
+
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualArtistSearch)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      rx.recv().await.unwrap(),
+      LidarrEvent::GetDiscographyReleases(1).into()
+    );
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_manual_artist_search_block_discography_releases_non_empty() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .discography_releases
+      .set_items(vec![LidarrRelease::default()]);
+
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualArtistSearch)
+      .await;
+
+    assert!(!app.is_loading);
     assert!(!app.data.lidarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);
   }

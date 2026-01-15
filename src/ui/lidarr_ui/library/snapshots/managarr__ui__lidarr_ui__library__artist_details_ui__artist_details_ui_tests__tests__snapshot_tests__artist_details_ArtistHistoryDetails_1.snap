@@ -21,7 +21,7 @@ expression: output
         │Tracks: 15/15                   ╭───────────────────────────────────  Details  ───────────────────────────────────╮                                │        
         │Size on Disk: 0.00 GB           │Source Title: Test source title                                                  │                                │        
         │╭  Artist Details  ─────────────│Event Type: grabbed                                                              │───────────────────────────────╮│        
-        ││ Albums │ History              │Quality: Lossless                                                                │                               ││        
+        ││ Albums │ History │ Manual Sear│Quality: Lossless                                                                │                               ││        
         ││───────────────────────────────│Date: 2023-01-01 00:00:00 UTC                                                    │───────────────────────────────││        
         ││   Source Title ▼              │Indexer:                                                                         │                               ││        
         ││=> Test source title           │NZB Info URL:                                                                    │-01-01 00:00:00 UTC            ││        

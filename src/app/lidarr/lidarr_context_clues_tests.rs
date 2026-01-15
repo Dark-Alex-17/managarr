@@ -9,6 +9,7 @@ mod tests {
   use crate::app::lidarr::lidarr_context_clues::{
     ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ARTIST_DETAILS_CONTEXT_CLUES,
     ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider,
+    MANUAL_ARTIST_SEARCH_CONTEXT_CLUES,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS,
@@ -166,6 +167,10 @@ mod tests {
     );
     assert_some_eq_x!(
       artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
     );
     assert_some_eq_x!(
@@ -185,17 +190,56 @@ mod tests {
     );
     assert_some_eq_x!(
       artist_history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
-    );
-    assert_some_eq_x!(
-      artist_history_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.esc, "cancel filter/close")
     );
     assert_none!(artist_history_context_clues_iter.next());
   }
 
+  #[test]
+  fn test_manual_artist_search_context_clues() {
+    let mut manual_artist_search_context_clues_iter = MANUAL_ARTIST_SEARCH_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, "edit artist")
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.auto_search,
+        DEFAULT_KEYBINDINGS.auto_search.desc
+      )
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      manual_artist_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(manual_artist_search_context_clues_iter.next());
+  }
+
   #[rstest]
   #[case(0, ActiveLidarrBlock::ArtistDetails, &ARTIST_DETAILS_CONTEXT_CLUES)]
+  #[case(1, ActiveLidarrBlock::ArtistHistory, &ARTIST_HISTORY_CONTEXT_CLUES)]
+  #[case(2, ActiveLidarrBlock::ManualArtistSearch, &MANUAL_ARTIST_SEARCH_CONTEXT_CLUES)]
   fn test_lidarr_context_clue_provider_artist_info_tabs(
     #[case] index: usize,
     #[case] active_lidarr_block: ActiveLidarrBlock,

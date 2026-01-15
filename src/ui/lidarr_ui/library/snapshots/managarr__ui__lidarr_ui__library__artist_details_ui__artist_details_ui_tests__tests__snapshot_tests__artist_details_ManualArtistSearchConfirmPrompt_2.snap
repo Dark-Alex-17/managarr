@@ -17,26 +17,26 @@ expression: output
         │Quality Profile: Lossless                                                                                                                          │        
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
-        │Albums: 1                                                                                                                                          │        
-        │Tracks: 15/15                             ╭────────────────────  Update and Scan  ────────────────────╮                                            │        
-        │Size on Disk: 0.00 GB                     │  Do you want to trigger an update and disk scan for the   │                                            │        
-        │╭  Artist Details  ───────────────────────│                       artist: Alex?                       │───────────────────────────────────────────╮│        
-        ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
-        ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
-        ││   Source Title ▼                        │                                                           │        Date                               ││        
-        ││=> Test source title                     │                                                           │        2023-01-01 00:00:00 UTC            ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │                                                           │                                           ││        
-        ││                                         │╭────────────────────────────╮╭───────────────────────────╮│                                           ││        
-        ││                                         ││             Yes            ││            No             ││                                           ││        
-        ││                                         │╰────────────────────────────╯╰───────────────────────────╯│                                           ││        
-        ││                                         ╰───────────────────────────────────────────────────────────╯                                           ││        
-        ││                                                                                                                                                 ││        
+        │Albums: 1                                ╭─────────────────  Download Rejected Release  ──────────────────╮                                        │        
+        │Tracks: 15/15                            │    Do you really want to download the rejected release: Test   │                                        │        
+        │Size on Disk: 0.00 GB                    │                            Release?                            │                                        │        
+        │╭  Artist Details  ──────────────────────│                                                                │───────────────────────────────────────╮│        
+        ││ Albums │ History │ Manual Search       │                                                                │                                       ││        
+        ││────────────────────────────────────────│Rejection reasons:                                              │───────────────────────────────────────││        
+        ││   Source ▼  Age        ⛔     Title     │• Unknown quality profile                                       │e         Peers        Quality         ││        
+        ││=> torrent   1 days     ⛔     Test Relea│• Release is already mapped                                     │ GB       2 / 1        Lossless        ││        
+        ││   usenet    1 days     ⛔     Test Relea│                                                                │ GB                    Lossless        ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │╭──────────────────────────────╮╭──────────────────────────────╮│                                       ││        
+        ││                                        ││              Yes             ││              No              ││                                       ││        
+        ││                                        │╰──────────────────────────────╯╰──────────────────────────────╯│                                       ││        
+        ││                                        ╰────────────────────────────────────────────────────────────────╯                                       ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        

@@ -38,18 +38,23 @@ mod tests {
     #[rstest]
     #[case(ActiveLidarrBlock::ArtistDetails, 0)]
     #[case(ActiveLidarrBlock::ArtistHistory, 1)]
+    #[case(ActiveLidarrBlock::ManualArtistSearch, 2)]
     #[case(ActiveLidarrBlock::SearchAlbums, 0)]
     #[case(ActiveLidarrBlock::SearchAlbumsError, 0)]
     #[case(ActiveLidarrBlock::UpdateAndScanArtistPrompt, 0)]
     #[case(ActiveLidarrBlock::UpdateAndScanArtistPrompt, 1)]
+    #[case(ActiveLidarrBlock::UpdateAndScanArtistPrompt, 2)]
     #[case(ActiveLidarrBlock::AutomaticallySearchArtistPrompt, 0)]
     #[case(ActiveLidarrBlock::AutomaticallySearchArtistPrompt, 1)]
+    #[case(ActiveLidarrBlock::AutomaticallySearchArtistPrompt, 2)]
     #[case(ActiveLidarrBlock::SearchArtistHistory, 1)]
     #[case(ActiveLidarrBlock::SearchArtistHistoryError, 1)]
     #[case(ActiveLidarrBlock::FilterArtistHistory, 1)]
     #[case(ActiveLidarrBlock::FilterArtistHistoryError, 1)]
     #[case(ActiveLidarrBlock::ArtistHistorySortPrompt, 1)]
     #[case(ActiveLidarrBlock::ArtistHistoryDetails, 1)]
+    #[case(ActiveLidarrBlock::ManualArtistSearchConfirmPrompt, 2)]
+    #[case(ActiveLidarrBlock::ManualArtistSearchSortPrompt, 2)]
     fn test_artist_details_ui_renders(
       #[case] active_lidarr_block: ActiveLidarrBlock,
       #[case] index: usize,
@@ -71,6 +76,7 @@ mod tests {
     #[rstest]
     #[case(ActiveLidarrBlock::ArtistDetails, 0)]
     #[case(ActiveLidarrBlock::ArtistHistory, 1)]
+    #[case(ActiveLidarrBlock::ManualArtistSearch, 2)]
     fn test_artist_details_ui_renders_artist_details_loading(
       #[case] active_lidarr_block: ActiveLidarrBlock,
       #[case] index: usize,
@@ -94,12 +100,14 @@ mod tests {
     #[case(ActiveLidarrBlock::ArtistDetails, 0)]
     #[case(ActiveLidarrBlock::ArtistHistory, 1)]
     #[case(ActiveLidarrBlock::ArtistHistoryDetails, 1)]
+    #[case(ActiveLidarrBlock::ManualArtistSearch, 2)]
     fn test_artist_details_ui_renders_artist_details_empty(
       #[case] active_lidarr_block: ActiveLidarrBlock,
       #[case] index: usize,
     ) {
       let mut app = App::test_default_fully_populated();
       app.data.lidarr_data.albums = StatefulTable::default();
+      app.data.lidarr_data.discography_releases = StatefulTable::default();
       app.push_navigation_stack(active_lidarr_block.into());
       app.data.lidarr_data.artist_info_tabs.set_index(index);
 

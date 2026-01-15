@@ -7,6 +7,7 @@ use crate::app::context_clues::{
 };
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
+  MANUAL_ARTIST_SEARCH_CONTEXT_CLUES,
 };
 use crate::models::lidarr_models::{LidarrRelease, LidarrTask};
 use crate::models::servarr_data::modals::EditIndexerModal;
@@ -57,7 +58,7 @@ pub struct LidarrData<'a> {
   pub add_root_folder_modal: Option<AddRootFolderModal>,
   pub add_searched_artists: Option<StatefulTable<AddArtistSearchResult>>,
   pub albums: StatefulTable<Album>,
-  pub artist_history: Option<StatefulTable<LidarrHistoryItem>>,
+  pub artist_history: StatefulTable<LidarrHistoryItem>,
   pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
   pub delete_files: bool,
@@ -97,7 +98,7 @@ impl LidarrData<'_> {
   pub fn reset_artist_info_tabs(&mut self) {
     self.albums = StatefulTable::default();
     self.discography_releases = StatefulTable::default();
-    self.artist_history = None;
+    self.artist_history = StatefulTable::default();
     self.artist_info_tabs.index = 0;
   }
 
@@ -142,7 +143,7 @@ impl<'a> Default for LidarrData<'a> {
       add_root_folder_modal: None,
       add_searched_artists: None,
       albums: StatefulTable::default(),
-      artist_history: None,
+      artist_history: StatefulTable::default(),
       artists: StatefulTable::default(),
       delete_files: false,
       discography_releases: StatefulTable::default(),
@@ -218,6 +219,12 @@ impl<'a> Default for LidarrData<'a> {
           title: "History".to_string(),
           route: ActiveLidarrBlock::ArtistHistory.into(),
           contextual_help: Some(&ARTIST_HISTORY_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "Manual Search".to_string(),
+          route: ActiveLidarrBlock::ManualArtistSearch.into(),
+          contextual_help: Some(&MANUAL_ARTIST_SEARCH_CONTEXT_CLUES),
           config: None,
         },
       ]),
@@ -297,14 +304,7 @@ impl LidarrData<'_> {
     let mut indexer_test_all_results = StatefulTable::default();
     indexer_test_all_results.set_items(vec![indexer_test_result()]);
 
-    let mut artist_history = StatefulTable::default();
-    artist_history.set_items(vec![lidarr_history_item()]);
-    artist_history.sorting(vec![sort_option!(id)]);
-    artist_history.search = Some("artist history search".into());
-    artist_history.filter = Some("artist history filter".into());
-
     let mut lidarr_data = LidarrData {
-      artist_history: Some(artist_history),
       delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
@@ -322,6 +322,12 @@ impl LidarrData<'_> {
       version: "1.2.3.4".to_owned(),
       ..LidarrData::default()
     };
+    lidarr_data
+      .artist_history
+      .set_items(vec![lidarr_history_item()]);
+    lidarr_data.artist_history.sorting(vec![sort_option!(id)]);
+    lidarr_data.artist_history.search = Some("artist history search".into());
+    lidarr_data.artist_history.filter = Some("artist history filter".into());
     lidarr_data.albums.set_items(vec![album()]);
     lidarr_data.albums.search = Some("album search".into());
     lidarr_data.artists.set_items(vec![artist()]);
@@ -370,6 +376,9 @@ pub enum ActiveLidarrBlock {
   ArtistHistoryDetails,
   ArtistHistorySortPrompt,
   ArtistsSortPrompt,
+  ManualArtistSearch,
+  ManualArtistSearchConfirmPrompt,
+  ManualArtistSearchSortPrompt,
   AddArtistAlreadyInLibrary,
   AddArtistConfirmPrompt,
   AddArtistEmptySearchResults,
@@ -471,7 +480,7 @@ pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
   ActiveLidarrBlock::UpdateAllArtistsPrompt,
 ];
 
-pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 12] = [
+pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
   ActiveLidarrBlock::ArtistDetails,
   ActiveLidarrBlock::ArtistHistory,
   ActiveLidarrBlock::ArtistHistoryDetails,
@@ -479,6 +488,9 @@ pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 12] = [
   ActiveLidarrBlock::AutomaticallySearchArtistPrompt,
   ActiveLidarrBlock::FilterArtistHistory,
   ActiveLidarrBlock::FilterArtistHistoryError,
+  ActiveLidarrBlock::ManualArtistSearch,
+  ActiveLidarrBlock::ManualArtistSearchConfirmPrompt,
+  ActiveLidarrBlock::ManualArtistSearchSortPrompt,
   ActiveLidarrBlock::SearchAlbums,
   ActiveLidarrBlock::SearchAlbumsError,
   ActiveLidarrBlock::SearchArtistHistory,

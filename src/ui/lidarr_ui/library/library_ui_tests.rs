@@ -280,19 +280,34 @@ mod tests {
       insta::assert_snapshot!(output);
     }
 
-    #[test]
-    fn test_library_ui_renders_edit_artist_over_artist_details() {
+    #[rstest]
+    #[case(ActiveLidarrBlock::ArtistDetails, 0)]
+    #[case(ActiveLidarrBlock::ArtistHistory, 1)]
+    #[case(ActiveLidarrBlock::ManualArtistSearch, 2)]
+    fn test_library_ui_renders_edit_artist_over_artist_details(
+      #[case] active_lidarr_block: ActiveLidarrBlock,
+      #[case] index: usize,
+    ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
-      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
-      app.push_navigation_stack(ActiveLidarrBlock::EditArtistPrompt.into());
+      app.push_navigation_stack(
+        (
+          ActiveLidarrBlock::EditArtistPrompt,
+          Some(active_lidarr_block),
+        )
+          .into(),
+      );
+      app.data.lidarr_data.artist_info_tabs.set_index(index);
       app.data.lidarr_data.selected_block = BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(
+        format!("edit_artist_renders_over_{active_lidarr_block}"),
+        output
+      );
     }
 
     #[test]
