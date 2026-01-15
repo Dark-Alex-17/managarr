@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::lidarr_models::{
   AddArtistBody, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams, LidarrCommandBody,
-  LidarrHistoryItem,
+  LidarrHistoryItem, LidarrRelease,
 };
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -313,6 +313,39 @@ impl Network<'_, '_> {
           artist_history.set_items(history_vec);
           artist_history.apply_sorting_toggle(false);
         }
+      })
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_artist_discography_releases(
+    &mut self,
+    artist_id: i64,
+  ) -> Result<Vec<LidarrRelease>> {
+    let event = LidarrEvent::GetDiscographyReleases(artist_id);
+    info!("Fetching discography releases for artist with ID: {artist_id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("artistId={artist_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<LidarrRelease>>(request_props, |release_vec, mut app| {
+        let artist_releases_vec = release_vec
+          .into_iter()
+          .filter(|release| release.discography)
+          .collect();
+
+        app
+          .data
+          .lidarr_data
+          .discography_releases
+          .set_items(artist_releases_vec);
       })
       .await
   }

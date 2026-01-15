@@ -4,8 +4,8 @@ pub mod test_utils {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
     DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, LidarrHistoryData,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrTask, LidarrTaskName,
-    Member, MetadataProfile, NewItemMonitorType, Ratings, SystemStatus,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrRelease, LidarrTask,
+    LidarrTaskName, Member, MetadataProfile, NewItemMonitorType, Ratings, SystemStatus,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
@@ -376,5 +376,52 @@ pub mod test_utils {
       * Killed bug 1
       * Fixed bug 2"
     ))
+  }
+
+  pub fn rejections() -> Vec<String> {
+    vec![
+      "Unknown quality profile".to_owned(),
+      "Release is already mapped".to_owned(),
+    ]
+  }
+
+  pub fn torrent_release() -> LidarrRelease {
+    LidarrRelease {
+      guid: "1234".to_owned(),
+      protocol: "torrent".to_owned(),
+      age: 1,
+      title: HorizontallyScrollableText::from("Test Release"),
+      discography: false,
+      artist_name: Some("Alex".to_owned()),
+      album_title: Some("Something".to_owned()),
+      indexer: "kickass torrents".to_owned(),
+      indexer_id: 2,
+      size: 1234,
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: Some(Number::from(2)),
+      leechers: Some(Number::from(1)),
+      quality: quality_wrapper(),
+    }
+  }
+
+  pub fn usenet_release() -> LidarrRelease {
+    LidarrRelease {
+      guid: "1234".to_owned(),
+      protocol: "usenet".to_owned(),
+      age: 1,
+      title: HorizontallyScrollableText::from("Test Release"),
+      discography: false,
+      artist_name: Some("Alex".to_owned()),
+      album_title: Some("Something".to_owned()),
+      indexer: "DrunkenSlug".to_owned(),
+      indexer_id: 1,
+      size: 1234,
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: None,
+      leechers: None,
+      quality: quality_wrapper(),
+    }
   }
 }

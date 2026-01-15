@@ -125,6 +125,11 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_release(#[values(LidarrEvent::GetDiscographyReleases(0))] event: LidarrEvent) {
+    assert_str_eq!(event.resource(), "/release");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]

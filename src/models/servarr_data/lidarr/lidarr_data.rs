@@ -8,7 +8,7 @@ use crate::app::context_clues::{
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
-use crate::models::lidarr_models::LidarrTask;
+use crate::models::lidarr_models::{LidarrRelease, LidarrTask};
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_models::{IndexerSettings, QueueEvent};
 use crate::models::stateful_list::StatefulList;
@@ -35,6 +35,9 @@ use {
     metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map,
   },
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{log_line, task},
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
+    torrent_release, usenet_release,
+  },
   crate::network::servarr_test_utils::diskspace,
   crate::network::servarr_test_utils::indexer_test_result,
   crate::network::servarr_test_utils::queued_event,
@@ -58,6 +61,7 @@ pub struct LidarrData<'a> {
   pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
   pub delete_files: bool,
+  pub discography_releases: StatefulTable<LidarrRelease>,
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
@@ -92,6 +96,7 @@ impl LidarrData<'_> {
 
   pub fn reset_artist_info_tabs(&mut self) {
     self.albums = StatefulTable::default();
+    self.discography_releases = StatefulTable::default();
     self.artist_history = None;
     self.artist_info_tabs.index = 0;
   }
@@ -140,6 +145,7 @@ impl<'a> Default for LidarrData<'a> {
       artist_history: None,
       artists: StatefulTable::default(),
       delete_files: false,
+      discography_releases: StatefulTable::default(),
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
@@ -333,6 +339,12 @@ impl LidarrData<'_> {
     }]);
     lidarr_data.history.search = Some("test search".into());
     lidarr_data.history.filter = Some("test filter".into());
+    lidarr_data
+      .discography_releases
+      .set_items(vec![torrent_release(), usenet_release()]);
+    lidarr_data
+      .discography_releases
+      .sorting(vec![sort_option!(indexer_id)]);
     lidarr_data.root_folders.set_items(vec![root_folder()]);
     lidarr_data.indexers.set_items(vec![indexer()]);
     lidarr_data.queued_events.set_items(vec![queued_event()]);

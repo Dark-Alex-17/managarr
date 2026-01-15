@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_start_task_requires_task_name() {
-      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "start-task"]);
 
       assert_err!(&result);
       assert_eq!(
@@ -232,6 +232,7 @@ mod tests {
     use crate::cli::lidarr::add_command_handler::LidarrAddCommand;
     use crate::cli::lidarr::edit_command_handler::LidarrEditCommand;
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
+    use crate::cli::lidarr::manual_search_command_handler::LidarrManualSearchCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
     use crate::models::lidarr_models::LidarrTaskName;
@@ -432,6 +433,34 @@ mod tests {
       let result = LidarrCliHandler::with(&app_arc, refresh_series_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler()
+     {
+      let expected_artist_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetDiscographyReleases(expected_artist_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let manual_episode_search_command =
+        LidarrCommand::ManualSearch(LidarrManualSearchCommand::Discography { artist_id: 1 });
+
+      let result =
+        LidarrCliHandler::with(&app_arc, manual_episode_search_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

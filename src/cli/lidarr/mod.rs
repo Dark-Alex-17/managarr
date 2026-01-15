@@ -15,6 +15,9 @@ use trigger_automatic_search_command_handler::{
 };
 
 use super::{CliCommandHandler, Command};
+use crate::cli::lidarr::manual_search_command_handler::{
+  LidarrManualSearchCommand, LidarrManualSearchCommandHandler,
+};
 use crate::models::lidarr_models::LidarrTaskName;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{app::App, network::NetworkTrait};
@@ -30,6 +33,7 @@ mod trigger_automatic_search_command_handler;
 #[cfg(test)]
 #[path = "lidarr_command_tests.rs"]
 mod lidarr_command_tests;
+mod manual_search_command_handler;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrCommand {
@@ -63,6 +67,8 @@ pub enum LidarrCommand {
     about = "Commands to refresh the data in your Lidarr instance"
   )]
   Refresh(LidarrRefreshCommand),
+  #[command(subcommand, about = "Commands to manually search for releases")]
+  ManualSearch(LidarrManualSearchCommand),
   #[command(
     subcommand,
     about = "Commands to trigger automatic searches for releases of different resources in your Lidarr instance"
@@ -183,6 +189,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
       }
       LidarrCommand::Refresh(refresh_command) => {
         LidarrRefreshCommandHandler::with(self.app, refresh_command, self.network)
+          .handle()
+          .await?
+      }
+      LidarrCommand::ManualSearch(manual_search_command) => {
+        LidarrManualSearchCommandHandler::with(self.app, manual_search_command, self.network)
           .handle()
           .await?
       }

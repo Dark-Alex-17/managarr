@@ -43,6 +43,7 @@ pub enum LidarrEvent {
   GetArtistHistory(i64),
   GetAllIndexerSettings,
   GetArtistDetails(i64),
+  GetDiscographyReleases(i64),
   GetDiskSpace,
   GetDownloads(u64),
   GetHistory(u64),
@@ -96,6 +97,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
       LidarrEvent::GetHistory(_) => "/history",
       LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
+      LidarrEvent::GetDiscographyReleases(_) => "/release",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::GetIndexers | LidarrEvent::DeleteIndexer(_) | LidarrEvent::EditIndexer(_) => {
         "/indexer"
@@ -182,6 +184,10 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::GetAlbumDetails(album_id) => self
         .get_album_details(album_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetDiscographyReleases(artist_id) => self
+        .get_artist_discography_releases(artist_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),

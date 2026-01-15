@@ -6,8 +6,8 @@ mod tests {
 
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrTask, Member,
-    MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrRelease, LidarrTask,
+    Member, MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
@@ -458,6 +458,18 @@ mod tests {
     let lidarr_serdeable: LidarrSerdeable = root_folders.clone().into();
 
     assert_eq!(lidarr_serdeable, LidarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_releases() {
+    let releases = vec![LidarrRelease {
+      guid: "test".to_owned(),
+      ..LidarrRelease::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = releases.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Releases(releases));
   }
 
   #[test]

@@ -7,7 +7,7 @@ mod tests {
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
   };
-  use crate::models::lidarr_models::Album;
+  use crate::models::lidarr_models::{Album, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS,
     DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
@@ -60,12 +60,16 @@ mod tests {
   fn test_reset_artist_info_tabs() {
     let mut lidarr_data = LidarrData::default();
     lidarr_data.albums.set_items(vec![Album::default()]);
+    lidarr_data
+      .discography_releases
+      .set_items(vec![LidarrRelease::default()]);
     lidarr_data.artist_history = Some(StatefulTable::default());
     lidarr_data.artist_info_tabs.index = 1;
 
     lidarr_data.reset_artist_info_tabs();
 
     assert_is_empty!(lidarr_data.albums);
+    assert_is_empty!(lidarr_data.discography_releases);
     assert_none!(lidarr_data.artist_history);
     assert_eq!(lidarr_data.artist_info_tabs.index, 0);
   }
@@ -146,6 +150,7 @@ mod tests {
     assert_is_empty!(lidarr_data.downloads);
     assert_none!(lidarr_data.edit_artist_modal);
     assert_none!(lidarr_data.add_root_folder_modal);
+    assert_is_empty!(lidarr_data.discography_releases);
     assert_is_empty!(lidarr_data.history);
     assert_is_empty!(lidarr_data.logs);
     assert_is_empty!(lidarr_data.log_details);

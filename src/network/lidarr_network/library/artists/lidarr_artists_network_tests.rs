@@ -2,14 +2,14 @@
 mod tests {
   use crate::models::lidarr_models::{
     AddArtistBody, AddArtistOptions, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams,
-    LidarrHistoryItem, LidarrSerdeable, MonitorType, NewItemMonitorType,
+    LidarrHistoryItem, LidarrRelease, LidarrSerdeable, MonitorType, NewItemMonitorType,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::stateful_table::{SortOption, StatefulTable};
   use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
-    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON, artist, lidarr_history_item,
+    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON, artist, lidarr_history_item, torrent_release,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use bimap::BiMap;
@@ -391,6 +391,87 @@ mod tests {
         .sort_asc
     );
     assert_eq!(history_items, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_artist_discography_releases_event() {
+    let release_json = json!([
+      {
+        "guid": "1234",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "artistName": "Alex",
+        "albumTitle": "Something",
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "quality": { "quality": { "name": "Lossless" }},
+        "discography": true
+      },
+      {
+        "guid": "4567",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "artistName": "Alex",
+        "albumTitle": "Something",
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "quality": { "quality": { "name": "Lossless" }},
+      }
+    ]);
+    let expected_filtered_lidarr_release = LidarrRelease {
+      discography: true,
+      ..torrent_release()
+    };
+    let expected_raw_lidarr_releases = vec![
+      LidarrRelease {
+        discography: true,
+        ..torrent_release()
+      },
+      LidarrRelease {
+        guid: "4567".to_owned(),
+        ..torrent_release()
+      },
+    ];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(release_json)
+      .query("artistId=1")
+      .build_for(LidarrEvent::GetDiscographyReleases(1))
+      .await;
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![artist()]);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let LidarrSerdeable::Releases(releases_vec) = network
+      .handle_lidarr_event(LidarrEvent::GetDiscographyReleases(1))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected Releases")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.lidarr_data.discography_releases.items,
+      vec![expected_filtered_lidarr_release]
+    );
+    assert_eq!(releases_vec, expected_raw_lidarr_releases);
   }
 
   #[tokio::test]

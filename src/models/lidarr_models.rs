@@ -464,6 +464,30 @@ impl Display for LidarrTaskName {
   }
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct LidarrRelease {
+  pub guid: String,
+  pub protocol: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub age: i64,
+  pub title: HorizontallyScrollableText,
+  pub discography: bool,
+  pub artist_name: Option<String>,
+  pub album_title: Option<String>,
+  pub indexer: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub indexer_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  pub rejected: bool,
+  pub rejections: Option<Vec<String>>,
+  pub seeders: Option<Number>,
+  pub leechers: Option<Number>,
+  pub quality: QualityWrapper,
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -489,6 +513,7 @@ serde_enum_from!(
     MetadataProfiles(Vec<MetadataProfile>),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
+    Releases(Vec<LidarrRelease>),
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
