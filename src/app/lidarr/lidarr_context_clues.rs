@@ -6,8 +6,8 @@ use crate::app::context_clues::{
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
-  ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
-  EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+  ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS,
+  ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -92,6 +92,55 @@ pub static MANUAL_ARTIST_SEARCH_CONTEXT_CLUES: [ContextClue; 7] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
+pub static ALBUM_DETAILS_CONTEXT_CLUES: [ContextClue; 7] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (
+    DEFAULT_KEYBINDINGS.toggle_monitoring,
+    DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+  (DEFAULT_KEYBINDINGS.submit, "episode details"),
+  (DEFAULT_KEYBINDINGS.delete, "delete episode"),
+];
+
+pub static ALBUM_HISTORY_CONTEXT_CLUES: [ContextClue; 7] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.esc, "cancel filter/close"),
+];
+
+pub static MANUAL_ALBUM_SEARCH_CONTEXT_CLUES: [ContextClue; 5] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
 pub(in crate::app) struct LidarrContextClueProvider;
 
 impl ContextClueProvider for LidarrContextClueProvider {
@@ -105,6 +154,14 @@ impl ContextClueProvider for LidarrContextClueProvider {
         .data
         .lidarr_data
         .artist_info_tabs
+        .get_active_route_contextual_help(),
+      _ if ALBUM_DETAILS_BLOCKS.contains(&active_lidarr_block) => app
+        .data
+        .lidarr_data
+        .album_details_modal
+        .as_ref()
+        .unwrap()
+        .album_details_tabs
         .get_active_route_contextual_help(),
       ActiveLidarrBlock::AddArtistSearchInput
       | ActiveLidarrBlock::AddArtistEmptySearchResults

@@ -1,4 +1,7 @@
-use crate::models::lidarr_models::{Album, DeleteParams};
+use crate::models::lidarr_models::{
+  Album, DeleteParams, LidarrCommandBody, LidarrHistoryItem, LidarrRelease,
+};
+use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -54,6 +57,88 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Album>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_lidarr_album_history(
+    &mut self,
+    artist_id: i64,
+    album_id: i64,
+  ) -> Result<Vec<LidarrHistoryItem>> {
+    let event = LidarrEvent::GetAlbumHistory(artist_id, album_id);
+    info!("Fetching history for artist with ID: {artist_id} and album with ID: {album_id}");
+
+    let params = format!("artistId={artist_id}&albumId={album_id}");
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), Vec<LidarrHistoryItem>>(request_props, |history_items, mut app| {
+        if app.data.lidarr_data.album_details_modal.is_none() {
+          app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
+        }
+
+        let mut history_vec = history_items;
+        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        app
+          .data
+          .lidarr_data
+          .album_details_modal
+          .as_mut()
+          .unwrap()
+          .album_history
+          .set_items(history_vec);
+        app
+          .data
+          .lidarr_data
+          .album_details_modal
+          .as_mut()
+          .unwrap()
+          .album_history
+          .apply_sorting_toggle(false);
+      })
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_album_releases(
+    &mut self,
+    artist_id: i64,
+    album_id: i64,
+  ) -> Result<Vec<LidarrRelease>> {
+    let event = LidarrEvent::GetAlbumReleases(artist_id, album_id);
+    info!("Fetching releases for artist with ID: {artist_id} and album with ID: {album_id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("artistId={artist_id}&albumId={album_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<LidarrRelease>>(request_props, |release_vec, mut app| {
+        if app.data.lidarr_data.album_details_modal.is_none() {
+          app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
+        }
+
+        let album_releases_vec = release_vec
+          .into_iter()
+          .filter(|release| !release.discography)
+          .collect();
+
+        app
+          .data
+          .lidarr_data
+          .album_details_modal
+          .as_mut()
+          .unwrap()
+          .album_releases
+          .set_items(album_releases_vec);
+      })
       .await
   }
 
@@ -149,5 +234,27 @@ impl Network<'_, '_> {
         Ok(())
       }
     }
+  }
+
+  pub(in crate::network::lidarr_network) async fn trigger_automatic_album_search(
+    &mut self,
+    album_id: i64,
+  ) -> Result<Value> {
+    let event = LidarrEvent::TriggerAutomaticAlbumSearch(album_id);
+    info!("Searching indexers for album with ID: {album_id}");
+
+    let body = LidarrCommandBody {
+      name: "AlbumSearch".to_owned(),
+      album_ids: Some(vec![album_id]),
+      ..LidarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<LidarrCommandBody, Value>(request_props, |_, _| ())
+      .await
   }
 }

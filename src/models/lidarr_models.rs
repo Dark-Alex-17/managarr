@@ -256,6 +256,8 @@ pub struct LidarrCommandBody {
   pub name: String,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub artist_id: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub album_ids: Option<Vec<i64>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
@@ -495,6 +497,67 @@ pub struct LidarrReleaseDownloadBody {
   pub indexer_id: i64,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackFile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub path: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  pub quality: QualityWrapper,
+  pub date_added: DateTime<Utc>,
+  pub media_info: Option<MediaInfo>,
+  pub audio_tags: Option<AudioTags>,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+  pub audio_bitrate: Option<String>,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub audio_channels: i64,
+  pub audio_codec: Option<String>,
+  pub audio_bits: Option<String>,
+  pub audio_sample_rate: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AudioTags {
+  pub title: String,
+  pub artist_title: String,
+  pub album_title: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub disc_number: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub disc_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub year: i64,
+  pub duration: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Track {
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub artist_id: i64,
+  pub foreign_track_id: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub track_file_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub album_id: i64,
+  pub explicit: bool,
+  pub track_number: String,
+  pub title: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub duration: i64,
+  pub has_file: bool,
+  pub ratings: Ratings,
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -527,6 +590,9 @@ serde_enum_from!(
     Tag(Tag),
     Tags(Vec<Tag>),
     Tasks(Vec<LidarrTask>),
+    Track(Track),
+    Tracks(Vec<Track>),
+    TrackFiles(Vec<TrackFile>),
     Updates(Vec<Update>),
     Value(Value),
   }

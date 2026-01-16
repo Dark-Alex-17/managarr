@@ -3,9 +3,10 @@
 pub mod test_utils {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
-    DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, LidarrHistoryData,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrRelease, LidarrTask,
-    LidarrTaskName, Member, MetadataProfile, NewItemMonitorType, Ratings, SystemStatus,
+    AudioTags, DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams,
+    LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper,
+    LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member, MetadataProfile,
+    NewItemMonitorType, Ratings, SystemStatus, Track, TrackFile,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
@@ -422,6 +423,56 @@ pub mod test_utils {
       seeders: None,
       leechers: None,
       quality: quality_wrapper(),
+    }
+  }
+
+  pub fn audio_tags() -> AudioTags {
+    AudioTags {
+      title: "When I Get There".to_string(),
+      artist_title: "P!nk".to_string(),
+      album_title: "Trustfall".to_string(),
+      disc_number: 1,
+      disc_count: 1,
+      year: 2023,
+      duration: "00:03:20.1802267".to_string(),
+    }
+  }
+
+  pub fn media_info() -> MediaInfo {
+    MediaInfo {
+      audio_bitrate: Some("1563 kbps".to_owned()),
+      audio_channels: 2,
+      audio_codec: Some("FLAC".to_owned()),
+      audio_bits: Some("24bit".to_owned()),
+      audio_sample_rate: Some("44.1kHz".to_owned()),
+    }
+  }
+
+  pub fn track_file() -> TrackFile {
+    TrackFile {
+      id: 1,
+      path: "/music/P!nk/TRUSTFALL/01 - When I Get There.flac".to_string(),
+      size: 39216378,
+      quality: quality_wrapper(),
+      date_added: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      media_info: Some(media_info()),
+      audio_tags: Some(audio_tags()),
+    }
+  }
+
+  pub fn track() -> Track {
+    Track {
+      id: 1,
+      artist_id: 1,
+      foreign_track_id: "test-foreign-track-id".to_string(),
+      track_file_id: 1,
+      album_id: 1,
+      explicit: false,
+      track_number: "1".to_string(),
+      title: "Test title".to_string(),
+      duration: 200173,
+      has_file: false,
+      ratings: ratings(),
     }
   }
 }

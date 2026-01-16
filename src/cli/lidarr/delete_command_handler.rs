@@ -28,6 +28,11 @@ pub enum LidarrDeleteCommand {
     #[arg(long, help = "Add a list exclusion for this album")]
     add_list_exclusion: bool,
   },
+  #[command(about = "Delete the specified track file from disk")]
+  TrackFile {
+    #[arg(long, help = "The ID of the track file to delete", required = true)]
+    track_file_id: i64,
+  },
   #[command(about = "Delete an artist from your Lidarr library")]
   Artist {
     #[arg(long, help = "The ID of the artist to delete", required = true)]
@@ -99,6 +104,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrDeleteCommand> for LidarrDeleteComm
         let resp = self
           .network
           .handle_network_event(LidarrEvent::DeleteAlbum(delete_album_params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrDeleteCommand::TrackFile { track_file_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::DeleteTrackFile(track_file_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

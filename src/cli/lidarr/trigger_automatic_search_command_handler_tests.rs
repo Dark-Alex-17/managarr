@@ -29,6 +29,36 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn test_trigger_automatic_album_search_requires_album_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "trigger-automatic-search",
+        "album",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_trigger_automatic_album_search_with_album_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "trigger-automatic-search",
+        "album",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_trigger_automatic_artist_search_requires_artist_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -74,6 +104,35 @@ mod tests {
       models::{Serdeable, lidarr_models::LidarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_trigger_automatic_album_search_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::TriggerAutomaticAlbumSearch(1).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let trigger_automatic_search_command =
+        LidarrTriggerAutomaticSearchCommand::Album { album_id: 1 };
+
+      let result = LidarrTriggerAutomaticSearchCommandHandler::with(
+        &app_arc,
+        trigger_automatic_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_trigger_automatic_artist_search_command() {

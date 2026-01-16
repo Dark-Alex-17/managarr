@@ -5,9 +5,10 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse,
+    AddArtistSearchResult, Album, AudioTags, DownloadRecord, DownloadStatus, DownloadsResponse,
     LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrRelease, LidarrTask,
-    Member, MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
+    MediaInfo, Member, MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus, Track,
+    TrackFile,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
@@ -575,6 +576,50 @@ mod tests {
     let lidarr_serdeable: LidarrSerdeable = updates.clone().into();
 
     assert_eq!(lidarr_serdeable, LidarrSerdeable::Updates(updates));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_track_file() {
+    let track_files = vec![TrackFile {
+      id: 1,
+      media_info: Some(MediaInfo {
+        audio_channels: 2,
+        ..MediaInfo::default()
+      }),
+      audio_tags: Some(AudioTags {
+        disc_number: 1,
+        ..AudioTags::default()
+      }),
+      ..TrackFile::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = track_files.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::TrackFiles(track_files));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_track() {
+    let track = Track {
+      id: 1,
+      ..Track::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = track.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Track(track));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_tracks() {
+    let tracks = vec![Track {
+      id: 1,
+      ..Track::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = tracks.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Tracks(tracks));
   }
 
   #[test]

@@ -70,6 +70,58 @@ mod tests {
     }
 
     #[test]
+    fn test_album_history_requires_artist_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "album-history",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_album_history_requires_album_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "album-history",
+        "--artist-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_album_history_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "album-history",
+        "--artist-id",
+        "1",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_list_artist_history_requires_artist_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "artist-history"]);
@@ -172,6 +224,101 @@ mod tests {
       };
       assert_eq!(logs_command, expected_args);
     }
+
+    #[test]
+    fn test_list_tracks_requires_artist_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "tracks",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_tracks_requires_album_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "tracks",
+        "--artist-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_tracks_success() {
+      let expected_args = LidarrListCommand::Tracks {
+        artist_id: 1,
+        album_id: 1,
+      };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "tracks",
+        "--artist-id",
+        "1",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(tracks_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(tracks_command, expected_args);
+    }
+
+    #[test]
+    fn test_list_track_files_requires_album_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "track-files"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_track_files_success() {
+      let expected_args = LidarrListCommand::TrackFiles { album_id: 1 };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "track-files",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(track_files_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(track_files_command, expected_args);
+    }
   }
 
   mod handler {
@@ -244,6 +391,36 @@ mod tests {
       let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_list_album_history_command() {
+      let expected_artist_id = 1;
+      let expected_album_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetAlbumHistory(expected_artist_id, expected_album_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_album_history_command = LidarrListCommand::AlbumHistory {
+        artist_id: 1,
+        album_id: 1,
+      };
+
+      let result =
+        LidarrListCommandHandler::with(&app_arc, list_album_history_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }
@@ -350,6 +527,61 @@ mod tests {
       let result = LidarrListCommandHandler::with(&app_arc, list_logs_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_tracks_command() {
+      let expected_artist_id = 1;
+      let expected_album_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetTracks(expected_artist_id, expected_album_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_tracks_command = LidarrListCommand::Tracks {
+        artist_id: 1,
+        album_id: 1,
+      };
+
+      let result = LidarrListCommandHandler::with(&app_arc, list_tracks_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_track_files_command() {
+      let expected_album_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetTrackFiles(expected_album_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_track_files_command = LidarrListCommand::TrackFiles { album_id: 1 };
+
+      let result =
+        LidarrListCommandHandler::with(&app_arc, list_track_files_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

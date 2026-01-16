@@ -10,9 +10,9 @@ mod tests {
   };
   use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ARTIST_DETAILS_BLOCKS,
-    DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
-    DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
+    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS,
+    ARTIST_DETAILS_BLOCKS, DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS,
+    DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
     EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
     EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
     INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
@@ -145,6 +145,7 @@ mod tests {
     assert!(!lidarr_data.add_import_list_exclusion);
     assert_none!(lidarr_data.add_searched_artists);
     assert_is_empty!(lidarr_data.albums);
+    assert_none!(lidarr_data.album_details_modal);
     assert_is_empty!(lidarr_data.artists);
     assert_is_empty!(lidarr_data.artist_history);
     assert!(!lidarr_data.delete_files);
@@ -302,6 +303,26 @@ mod tests {
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchArtistHistory));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchArtistHistoryError));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::UpdateAndScanArtistPrompt));
+  }
+
+  #[test]
+  fn test_album_details_blocks_contents() {
+    assert_eq!(ALBUM_DETAILS_BLOCKS.len(), 15);
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AlbumDetails));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AlbumHistory));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchTracks));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchTracksError));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AutomaticallySearchAlbumPrompt));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbumHistory));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbumHistoryError));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterAlbumHistory));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterAlbumHistoryError));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AlbumHistorySortPrompt));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AlbumHistoryDetails));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualAlbumSearch));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualAlbumSearchConfirmPrompt));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualAlbumSearchSortPrompt));
+    assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::DeleteTrackFilePrompt));
   }
 
   #[test]

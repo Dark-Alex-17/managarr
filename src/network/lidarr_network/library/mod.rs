@@ -7,6 +7,7 @@ use serde_json::Value;
 
 mod albums;
 mod artists;
+mod tracks;
 
 #[cfg(test)]
 #[path = "lidarr_library_network_tests.rs"]

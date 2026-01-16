@@ -54,6 +54,19 @@ impl App<'_> {
             .await;
         }
       }
+      ActiveLidarrBlock::AlbumDetails => {
+        let artist_id = self.extract_artist_id().await;
+        let album_id = self.extract_album_id().await;
+        self
+          .dispatch_network_event(LidarrEvent::GetTracks(artist_id, album_id).into())
+          .await;
+        self
+          .dispatch_network_event(LidarrEvent::GetTrackFiles(album_id).into())
+          .await;
+        self
+          .dispatch_network_event(LidarrEvent::GetDownloads(500).into())
+          .await;
+      }
       ActiveLidarrBlock::AddArtistSearchResults => {
         self
           .dispatch_network_event(
@@ -132,6 +145,10 @@ impl App<'_> {
 
   async fn extract_artist_id(&self) -> i64 {
     self.data.lidarr_data.artists.current_selection().id
+  }
+
+  async fn extract_album_id(&self) -> i64 {
+    self.data.lidarr_data.albums.current_selection().id
   }
 
   async fn extract_lidarr_indexer_id(&self) -> i64 {

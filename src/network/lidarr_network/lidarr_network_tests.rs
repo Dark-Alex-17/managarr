@@ -61,8 +61,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_resource_history(#[values(LidarrEvent::GetHistory(0))] event: LidarrEvent) {
-    assert_str_eq!(event.resource(), "/history");
+  fn test_resource_artist_history(
+    #[values(LidarrEvent::GetArtistHistory(0), LidarrEvent::GetAlbumHistory(0, 0))]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/history/artist");
   }
 
   #[rstest]
@@ -89,6 +92,7 @@ mod tests {
     #[values(
       LidarrEvent::UpdateAllArtists,
       LidarrEvent::TriggerAutomaticArtistSearch(0),
+      LidarrEvent::TriggerAutomaticAlbumSearch(0),
       LidarrEvent::UpdateAndScanArtist(0),
       LidarrEvent::UpdateDownloads,
       LidarrEvent::GetQueuedEvents,
@@ -128,11 +132,19 @@ mod tests {
   fn test_resource_release(
     #[values(
       LidarrEvent::GetDiscographyReleases(0),
-      LidarrEvent::DownloadRelease(Default::default())
+      LidarrEvent::DownloadRelease(Default::default()),
+      LidarrEvent::GetAlbumReleases(0, 0)
     )]
     event: LidarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/release");
+  }
+
+  #[rstest]
+  fn test_resource_track_file(
+    #[values(LidarrEvent::DeleteTrackFile(0), LidarrEvent::GetTrackFiles(0))] event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/trackfile");
   }
 
   #[rstest]
@@ -146,9 +158,10 @@ mod tests {
   #[case(LidarrEvent::GetUpdates, "/update")]
   #[case(LidarrEvent::HealthCheck, "/health")]
   #[case(LidarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
-  #[case(LidarrEvent::GetArtistHistory(0), "/history/artist")]
+  #[case(LidarrEvent::GetHistory(0), "/history")]
   #[case(LidarrEvent::TestIndexer(0), "/indexer/test")]
   #[case(LidarrEvent::TestAllIndexers, "/indexer/testall")]
+  #[case(LidarrEvent::GetTracks(0, 0), "/track")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }

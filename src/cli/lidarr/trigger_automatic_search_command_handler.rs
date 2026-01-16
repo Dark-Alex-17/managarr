@@ -18,6 +18,15 @@ mod trigger_automatic_search_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrTriggerAutomaticSearchCommand {
+  #[command(about = "Trigger an automatic search for the album with the specified ID")]
+  Album {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the album you want to trigger an automatic search for",
+      required = true
+    )]
+    album_id: i64,
+  },
   #[command(about = "Trigger an automatic search for the artist with the specified ID")]
   Artist {
     #[arg(
@@ -58,6 +67,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrTriggerAutomaticSearchCommand>
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      LidarrTriggerAutomaticSearchCommand::Album { album_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::TriggerAutomaticAlbumSearch(album_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       LidarrTriggerAutomaticSearchCommand::Artist { artist_id } => {
         let resp = self
           .network

@@ -24,6 +24,58 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn test_manual_album_search_requires_artist_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "manual-search",
+        "album",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_manual_album_search_requires_album_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "manual-search",
+        "album",
+        "--artist-id",
+        "1",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_manual_album_search_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "manual-search",
+        "album",
+        "--artist-id",
+        "1",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_manual_discography_search_requires_artist_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "manual-search", "discography"]);
@@ -64,6 +116,39 @@ mod tests {
     use serde_json::json;
     use std::sync::Arc;
     use tokio::sync::Mutex;
+
+    #[tokio::test]
+    async fn test_manual_album_search_command() {
+      let expected_artist_id = 1;
+      let expected_album_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetAlbumReleases(expected_artist_id, expected_album_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let manual_album_search_command = LidarrManualSearchCommand::Album {
+        artist_id: 1,
+        album_id: 1,
+      };
+
+      let result = LidarrManualSearchCommandHandler::with(
+        &app_arc,
+        manual_album_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_manual_discography_search_command() {

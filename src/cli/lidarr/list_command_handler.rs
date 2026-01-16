@@ -27,6 +27,23 @@ pub enum LidarrListCommand {
     )]
     artist_id: i64,
   },
+  #[command(
+    about = "Fetch all history events for the given album corresponding to the artist with the given ID."
+  )]
+  AlbumHistory {
+    #[arg(
+      long,
+      help = "The Lidarr artist ID of the artist whose history you wish to fetch and list",
+      required = true
+    )]
+    artist_id: i64,
+    #[arg(
+      long,
+      help = "The Lidarr album ID to fetch history events for",
+      required = true
+    )]
+    album_id: i64,
+  },
   #[command(about = "Fetch all history events for the artist with the given ID")]
   ArtistHistory {
     #[arg(
@@ -72,6 +89,32 @@ pub enum LidarrListCommand {
   Tags,
   #[command(about = "List all Lidarr tasks")]
   Tasks,
+  #[command(
+    about = "List the tracks for the album that corresponds to the artist with the given ID"
+  )]
+  Tracks {
+    #[arg(
+      long,
+      help = "The Lidarr artist ID of the artist whose tracks you wish to fetch",
+      required = true
+    )]
+    artist_id: i64,
+    #[arg(
+      long,
+      help = "The Lidarr album ID whose tracks you wish to fetch",
+      required = true
+    )]
+    album_id: i64,
+  },
+  #[command(about = "List the track files for the album with the given ID")]
+  TrackFiles {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the album whose track files you wish to fetch",
+      required = true
+    )]
+    album_id: i64,
+  },
   #[command(about = "List all Lidarr updates")]
   Updates,
 }
@@ -107,6 +150,16 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetAlbums(artist_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::AlbumHistory {
+        artist_id,
+        album_id,
+      } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetAlbumHistory(artist_id, album_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
@@ -201,6 +254,23 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetTasks.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Tracks {
+        artist_id,
+        album_id,
+      } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetTracks(artist_id, album_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::TrackFiles { album_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetTrackFiles(album_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

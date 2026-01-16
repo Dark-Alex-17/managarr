@@ -35,12 +35,15 @@ pub enum LidarrEvent {
   DeleteIndexer(i64),
   DeleteRootFolder(i64),
   DeleteTag(i64),
+  DeleteTrackFile(i64),
   DownloadRelease(LidarrReleaseDownloadBody),
   EditArtist(EditArtistParams),
   EditAllIndexerSettings(IndexerSettings),
   EditIndexer(EditIndexerParams),
   GetAlbums(i64),
   GetAlbumDetails(i64),
+  GetAlbumHistory(i64, i64),
+  GetAlbumReleases(i64, i64),
   GetArtistHistory(i64),
   GetAllIndexerSettings,
   GetArtistDetails(i64),
@@ -58,6 +61,8 @@ pub enum LidarrEvent {
   GetRootFolders,
   GetSecurityConfig,
   GetStatus,
+  GetTracks(i64, i64),
+  GetTrackFiles(i64),
   GetUpdates,
   GetTags,
   GetTasks,
@@ -70,6 +75,7 @@ pub enum LidarrEvent {
   ToggleAlbumMonitoring(i64),
   ToggleArtistMonitoring(i64),
   TriggerAutomaticArtistSearch(i64),
+  TriggerAutomaticAlbumSearch(i64),
   UpdateAllArtists,
   UpdateAndScanArtist(i64),
   UpdateDownloads,
@@ -79,6 +85,7 @@ impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       LidarrEvent::AddTag(_) | LidarrEvent::DeleteTag(_) | LidarrEvent::GetTags => "/tag",
+      LidarrEvent::DeleteTrackFile(_) | LidarrEvent::GetTrackFiles(_) => "/trackfile",
       LidarrEvent::GetAllIndexerSettings | LidarrEvent::EditAllIndexerSettings(_) => {
         "/config/indexer"
       }
@@ -92,13 +99,15 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ToggleAlbumMonitoring(_)
       | LidarrEvent::GetAlbumDetails(_)
       | LidarrEvent::DeleteAlbum(_) => "/album",
-      LidarrEvent::GetArtistHistory(_) => "/history/artist",
+      LidarrEvent::GetArtistHistory(_) | LidarrEvent::GetAlbumHistory(_, _) => "/history/artist",
       LidarrEvent::GetLogs(_) => "/log",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
       LidarrEvent::GetHistory(_) => "/history",
       LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
-      LidarrEvent::GetDiscographyReleases(_) | LidarrEvent::DownloadRelease(_) => "/release",
+      LidarrEvent::GetDiscographyReleases(_)
+      | LidarrEvent::DownloadRelease(_)
+      | LidarrEvent::GetAlbumReleases(_, _) => "/release",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::GetIndexers | LidarrEvent::DeleteIndexer(_) | LidarrEvent::EditIndexer(_) => {
         "/indexer"
@@ -108,7 +117,8 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::UpdateAndScanArtist(_)
       | LidarrEvent::UpdateDownloads
       | LidarrEvent::GetQueuedEvents
-      | LidarrEvent::StartTask(_) => "/command",
+      | LidarrEvent::StartTask(_)
+      | LidarrEvent::TriggerAutomaticAlbumSearch(_) => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders
@@ -118,6 +128,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::TestAllIndexers => "/indexer/testall",
       LidarrEvent::GetStatus => "/system/status",
       LidarrEvent::GetTasks => "/system/task",
+      LidarrEvent::GetTracks(_, _) => "/track",
       LidarrEvent::GetUpdates => "/update",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
@@ -150,6 +161,10 @@ impl Network<'_, '_> {
       }
       LidarrEvent::DeleteDownload(download_id) => self
         .delete_lidarr_download(download_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::DeleteTrackFile(track_file_id) => self
+        .delete_lidarr_track_file(track_file_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::EditAllIndexerSettings(params) => self
@@ -189,6 +204,14 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::GetAlbumDetails(album_id) => self
         .get_album_details(album_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetAlbumHistory(artist_id, album_id) => self
+        .get_lidarr_album_history(artist_id, album_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetAlbumReleases(artist_id, album_id) => self
+        .get_album_releases(artist_id, album_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetDiscographyReleases(artist_id) => self
@@ -244,6 +267,14 @@ impl Network<'_, '_> {
       LidarrEvent::GetStatus => self.get_lidarr_status().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTags => self.get_lidarr_tags().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTasks => self.get_lidarr_tasks().await.map(LidarrSerdeable::from),
+      LidarrEvent::GetTracks(artist_id, album_id) => self
+        .get_tracks(artist_id, album_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetTrackFiles(album_id) => self
+        .get_track_files(album_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetUpdates => self.get_lidarr_updates().await.map(LidarrSerdeable::from),
       LidarrEvent::HealthCheck => self
         .get_lidarr_healthcheck()
@@ -267,6 +298,10 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::TriggerAutomaticArtistSearch(artist_id) => self
         .trigger_automatic_artist_search(artist_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::TriggerAutomaticAlbumSearch(album_id) => self
+        .trigger_automatic_album_search(album_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::UpdateAllArtists => self.update_all_artists().await.map(LidarrSerdeable::from),

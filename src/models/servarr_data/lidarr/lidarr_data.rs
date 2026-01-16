@@ -1,6 +1,6 @@
 use serde_json::Number;
 
-use super::modals::{AddArtistModal, AddRootFolderModal, EditArtistModal};
+use super::modals::{AddArtistModal, AddRootFolderModal, AlbumDetailsModal, EditArtistModal};
 use crate::app::context_clues::{
   DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
   ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
@@ -39,6 +39,7 @@ use {
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
     torrent_release, usenet_release,
   },
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{track, track_file},
   crate::network::servarr_test_utils::diskspace,
   crate::network::servarr_test_utils::indexer_test_result,
   crate::network::servarr_test_utils::queued_event,
@@ -58,6 +59,7 @@ pub struct LidarrData<'a> {
   pub add_root_folder_modal: Option<AddRootFolderModal>,
   pub add_searched_artists: Option<StatefulTable<AddArtistSearchResult>>,
   pub albums: StatefulTable<Album>,
+  pub album_details_modal: Option<AlbumDetailsModal>,
   pub artist_history: StatefulTable<LidarrHistoryItem>,
   pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
@@ -143,6 +145,7 @@ impl<'a> Default for LidarrData<'a> {
       add_root_folder_modal: None,
       add_searched_artists: None,
       albums: StatefulTable::default(),
+      album_details_modal: None,
       artist_history: StatefulTable::default(),
       artists: StatefulTable::default(),
       delete_files: false,
@@ -289,6 +292,27 @@ impl LidarrData<'_> {
       .metadata_profile_list
       .set_items(vec![metadata_profile().name]);
 
+    let mut album_details_modal = AlbumDetailsModal::default();
+    album_details_modal.tracks.set_items(vec![track()]);
+    album_details_modal.tracks.search = Some("album search".into());
+    album_details_modal
+      .track_files
+      .set_items(vec![track_file()]);
+    album_details_modal
+      .album_history
+      .set_items(vec![lidarr_history_item()]);
+    album_details_modal.album_history.search = Some("album history search".into());
+    album_details_modal.album_history.filter = Some("album history filter".into());
+    album_details_modal
+      .album_history
+      .sorting(vec![sort_option!(id)]);
+    album_details_modal
+      .album_releases
+      .set_items(vec![torrent_release(), usenet_release()]);
+    album_details_modal
+      .album_releases
+      .sorting(vec![sort_option!(indexer_id)]);
+
     let edit_indexer_modal = EditIndexerModal {
       name: "DrunkenSlug".into(),
       enable_rss: Some(true),
@@ -305,6 +329,7 @@ impl LidarrData<'_> {
     indexer_test_all_results.set_items(vec![indexer_test_result()]);
 
     let mut lidarr_data = LidarrData {
+      album_details_modal: Some(album_details_modal),
       delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
@@ -376,9 +401,6 @@ pub enum ActiveLidarrBlock {
   ArtistHistoryDetails,
   ArtistHistorySortPrompt,
   ArtistsSortPrompt,
-  ManualArtistSearch,
-  ManualArtistSearchConfirmPrompt,
-  ManualArtistSearchSortPrompt,
   AddArtistAlreadyInLibrary,
   AddArtistConfirmPrompt,
   AddArtistEmptySearchResults,
@@ -400,7 +422,12 @@ pub enum ActiveLidarrBlock {
   AddRootFolderSelectQualityProfile,
   AddRootFolderSelectMetadataProfile,
   AddRootFolderTagsInput,
+  AlbumDetails,
+  AlbumHistory,
+  AlbumHistoryDetails,
+  AlbumHistorySortPrompt,
   AllIndexerSettingsPrompt,
+  AutomaticallySearchAlbumPrompt,
   AutomaticallySearchArtistPrompt,
   DeleteAlbumPrompt,
   DeleteAlbumConfirmPrompt,
@@ -410,6 +437,7 @@ pub enum ActiveLidarrBlock {
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
   DeleteArtistToggleAddListExclusion,
+  DeleteTrackFilePrompt,
   DeleteDownloadPrompt,
   DeleteRootFolderPrompt,
   Downloads,
@@ -433,6 +461,8 @@ pub enum ActiveLidarrBlock {
   EditIndexerPriorityInput,
   EditIndexerTagsInput,
   DeleteIndexerPrompt,
+  FilterAlbumHistory,
+  FilterAlbumHistoryError,
   FilterArtists,
   FilterArtistsError,
   FilterHistory,
@@ -448,9 +478,17 @@ pub enum ActiveLidarrBlock {
   IndexerSettingsMinimumAgeInput,
   IndexerSettingsRetentionInput,
   IndexerSettingsRssSyncIntervalInput,
+  ManualAlbumSearch,
+  ManualAlbumSearchConfirmPrompt,
+  ManualAlbumSearchSortPrompt,
+  ManualArtistSearch,
+  ManualArtistSearchConfirmPrompt,
+  ManualArtistSearchSortPrompt,
   TestAllIndexers,
   TestIndexer,
   RootFolders,
+  SearchAlbumHistory,
+  SearchAlbumHistoryError,
   SearchAlbums,
   SearchAlbumsError,
   SearchArtists,
@@ -459,6 +497,8 @@ pub enum ActiveLidarrBlock {
   SearchHistoryError,
   SearchArtistHistory,
   SearchArtistHistoryError,
+  SearchTracks,
+  SearchTracksError,
   System,
   SystemLogs,
   SystemQueuedEvents,
@@ -496,6 +536,24 @@ pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
   ActiveLidarrBlock::SearchArtistHistory,
   ActiveLidarrBlock::SearchArtistHistoryError,
   ActiveLidarrBlock::UpdateAndScanArtistPrompt,
+];
+
+pub static ALBUM_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
+  ActiveLidarrBlock::AlbumDetails,
+  ActiveLidarrBlock::AlbumHistory,
+  ActiveLidarrBlock::SearchTracks,
+  ActiveLidarrBlock::SearchTracksError,
+  ActiveLidarrBlock::AutomaticallySearchAlbumPrompt,
+  ActiveLidarrBlock::SearchAlbumHistory,
+  ActiveLidarrBlock::SearchAlbumHistoryError,
+  ActiveLidarrBlock::FilterAlbumHistory,
+  ActiveLidarrBlock::FilterAlbumHistoryError,
+  ActiveLidarrBlock::AlbumHistorySortPrompt,
+  ActiveLidarrBlock::AlbumHistoryDetails,
+  ActiveLidarrBlock::ManualAlbumSearch,
+  ActiveLidarrBlock::ManualAlbumSearchConfirmPrompt,
+  ActiveLidarrBlock::ManualAlbumSearchSortPrompt,
+  ActiveLidarrBlock::DeleteTrackFilePrompt,
 ];
 
 pub static DOWNLOADS_BLOCKS: [ActiveLidarrBlock; 3] = [
