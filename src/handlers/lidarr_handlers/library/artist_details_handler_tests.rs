@@ -14,12 +14,11 @@ mod tests {
   };
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
-  use crate::models::servarr_data::lidarr::lidarr_data::{
-    ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
-  };
+  use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, ALBUM_DETAILS_BLOCKS};
   use crate::models::servarr_models::{Quality, QualityWrapper};
+	use crate::test_handler_delegation;
 
-  mod test_handle_delete {
+	mod test_handle_delete {
     use super::*;
     use crate::assert_delete_prompt;
     use crate::event::Key;
@@ -813,6 +812,7 @@ mod tests {
   fn test_artist_details_handler_accepts() {
     let mut artist_details_blocks = ARTIST_DETAILS_BLOCKS.clone().to_vec();
     artist_details_blocks.extend(DELETE_ALBUM_BLOCKS);
+    artist_details_blocks.extend(ALBUM_DETAILS_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
       if artist_details_blocks.contains(&active_lidarr_block) {
@@ -997,6 +997,33 @@ mod tests {
     assert_eq!(
       app.get_current_route(),
       ActiveLidarrBlock::ArtistDetails.into()
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_album_details_blocks_to_album_details_handler(
+    #[values(
+      ActiveLidarrBlock::AlbumDetails,
+      ActiveLidarrBlock::AlbumHistory,
+      ActiveLidarrBlock::SearchTracks,
+      ActiveLidarrBlock::SearchTracksError,
+      ActiveLidarrBlock::AutomaticallySearchAlbumPrompt,
+      ActiveLidarrBlock::SearchAlbumHistory,
+      ActiveLidarrBlock::SearchAlbumHistoryError,
+      ActiveLidarrBlock::FilterAlbumHistory,
+      ActiveLidarrBlock::FilterAlbumHistoryError,
+      ActiveLidarrBlock::AlbumHistorySortPrompt,
+      ActiveLidarrBlock::AlbumHistoryDetails,
+      ActiveLidarrBlock::ManualAlbumSearch,
+      ActiveLidarrBlock::ManualAlbumSearchSortPrompt,
+      ActiveLidarrBlock::DeleteTrackFilePrompt
+    )]
+    active_sonarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      ArtistDetailsHandler,
+      ActiveLidarrBlock::Artists,
+      active_sonarr_block
     );
   }
 

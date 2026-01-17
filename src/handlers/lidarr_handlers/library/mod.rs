@@ -1,22 +1,22 @@
 use crate::{
-  app::App,
-  event::Key,
-  handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
-  matches_key,
-  models::{
-    BlockSelectionState, HorizontallyScrollableText,
-    lidarr_models::Artist,
-    servarr_data::lidarr::lidarr_data::{
-      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
-      LIBRARY_BLOCKS,
-    },
-    stateful_table::SortOption,
-  },
-  network::lidarr_network::LidarrEvent,
+	app::App,
+	event::Key,
+	handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler},
+	matches_key,
+	models::{
+		lidarr_models::Artist, servarr_data::lidarr::lidarr_data::{
+			ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+			LIBRARY_BLOCKS,
+		},
+		stateful_table::SortOption,
+		BlockSelectionState,
+		HorizontallyScrollableText,
+	},
+	network::lidarr_network::LidarrEvent,
 };
 
 use super::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::handlers::table_handler::{handle_table, TableHandlingConfig};
 
 mod add_artist_handler;
 mod artist_details_handler;
@@ -33,6 +33,7 @@ pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHand
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
+mod album_details_handler;
 
 pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,

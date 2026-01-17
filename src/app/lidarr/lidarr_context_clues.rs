@@ -92,14 +92,10 @@ pub static MANUAL_ARTIST_SEARCH_CONTEXT_CLUES: [ContextClue; 7] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static ALBUM_DETAILS_CONTEXT_CLUES: [ContextClue; 7] = [
+pub static ALBUM_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (
-    DEFAULT_KEYBINDINGS.toggle_monitoring,
-    DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
   ),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (

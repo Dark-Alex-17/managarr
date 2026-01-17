@@ -251,13 +251,6 @@ mod tests {
     );
     assert_some_eq_x!(
       album_details_context_clues_iter.next(),
-      &(
-        DEFAULT_KEYBINDINGS.toggle_monitoring,
-        DEFAULT_KEYBINDINGS.toggle_monitoring.desc
-      )
-    );
-    assert_some_eq_x!(
-      album_details_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
     );
     assert_some_eq_x!(

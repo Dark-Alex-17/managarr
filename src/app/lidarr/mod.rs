@@ -2,7 +2,6 @@ use crate::{
   models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
   network::lidarr_network::LidarrEvent,
 };
-
 use super::App;
 
 pub mod lidarr_context_clues;
@@ -66,6 +65,29 @@ impl App<'_> {
         self
           .dispatch_network_event(LidarrEvent::GetDownloads(500).into())
           .await;
+      }
+      ActiveLidarrBlock::AlbumHistory => {
+        if !self.data.lidarr_data.albums.is_empty() {
+          self
+            .dispatch_network_event(
+              LidarrEvent::GetAlbumHistory(self.extract_artist_id().await, self.extract_album_id().await)
+                .into(),
+            )
+            .await;
+        }
+      }
+      ActiveLidarrBlock::ManualAlbumSearch => {
+        match self.data.lidarr_data.album_details_modal.as_ref() {
+          Some(album_details_modal) if album_details_modal.album_releases.is_empty() => {
+            self
+              .dispatch_network_event(
+                LidarrEvent::GetAlbumReleases(self.extract_artist_id().await, self.extract_album_id().await)
+                  .into(),
+              )
+              .await;
+          }
+          _ => (),
+        }
       }
       ActiveLidarrBlock::AddArtistSearchResults => {
         self

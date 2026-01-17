@@ -16,6 +16,7 @@ use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Route};
 use crate::network::lidarr_network::LidarrEvent;
 use serde_json::Number;
+use crate::handlers::lidarr_handlers::library::album_details_handler::AlbumDetailsHandler;
 
 #[cfg(test)]
 #[path = "artist_details_handler_tests.rs"]
@@ -80,13 +81,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
           DeleteAlbumHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
             .handle();
         }
+        _ if AlbumDetailsHandler::accepts(self.active_lidarr_block) => {
+          AlbumDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
         _ => self.handle_key_event(),
       };
     }
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    DeleteAlbumHandler::accepts(active_block) || ARTIST_DETAILS_BLOCKS.contains(&active_block)
+    DeleteAlbumHandler::accepts(active_block) || AlbumDetailsHandler::accepts(active_block) || ARTIST_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -183,6 +188,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_submit(&mut self) {
     match self.active_lidarr_block {
+      ActiveLidarrBlock::ArtistDetails if !self.app.data.lidarr_data.albums.is_empty() => {
+        self
+          .app
+          .push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+      }
       ActiveLidarrBlock::ArtistHistory if !self.app.data.lidarr_data.artist_history.is_empty() => {
         self
           .app
