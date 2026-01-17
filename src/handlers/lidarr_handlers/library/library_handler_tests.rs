@@ -12,10 +12,17 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Album, Artist, ArtistStatistics, ArtistStatus};
-  use crate::models::servarr_data::lidarr::lidarr_data::{ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS, ALBUM_DETAILS_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ADD_ARTIST_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
+    DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+    LIBRARY_BLOCKS,
+  };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
-  use crate::{assert_modal_absent, assert_modal_present, assert_navigation_popped, assert_navigation_pushed, test_handler_delegation};
+  use crate::{
+    assert_modal_absent, assert_modal_present, assert_navigation_popped, assert_navigation_pushed,
+    test_handler_delegation,
+  };
 
   #[test]
   fn test_library_handler_accepts() {

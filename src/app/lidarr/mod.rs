@@ -1,8 +1,8 @@
+use super::App;
 use crate::{
   models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
   network::lidarr_network::LidarrEvent,
 };
-use super::App;
 
 pub mod lidarr_context_clues;
 
@@ -70,8 +70,11 @@ impl App<'_> {
         if !self.data.lidarr_data.albums.is_empty() {
           self
             .dispatch_network_event(
-              LidarrEvent::GetAlbumHistory(self.extract_artist_id().await, self.extract_album_id().await)
-                .into(),
+              LidarrEvent::GetAlbumHistory(
+                self.extract_artist_id().await,
+                self.extract_album_id().await,
+              )
+              .into(),
             )
             .await;
         }
@@ -81,8 +84,11 @@ impl App<'_> {
           Some(album_details_modal) if album_details_modal.album_releases.is_empty() => {
             self
               .dispatch_network_event(
-                LidarrEvent::GetAlbumReleases(self.extract_artist_id().await, self.extract_album_id().await)
-                  .into(),
+                LidarrEvent::GetAlbumReleases(
+                  self.extract_artist_id().await,
+                  self.extract_album_id().await,
+                )
+                .into(),
               )
               .await;
           }

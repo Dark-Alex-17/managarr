@@ -3,13 +3,13 @@ mod tests {
   use crate::app::App;
   use crate::models::lidarr_models::{Album, Artist, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+  use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
   use crate::models::servarr_models::Indexer;
   use crate::network::NetworkEvent;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::artist;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
-  use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
 
   #[tokio::test]
   async fn test_dispatch_by_lidarr_block_artists() {
@@ -158,7 +158,7 @@ mod tests {
   }
 
   #[tokio::test]
-    async fn test_dispatch_by_album_history_block() {
+  async fn test_dispatch_by_album_history_block() {
     let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
     let mut app = App::test_default();
     app.data.lidarr_data.prompt_confirm = true;
@@ -172,101 +172,101 @@ mod tests {
       ..Album::default()
     }]);
 
-      app
-        .dispatch_by_lidarr_block(&ActiveLidarrBlock::AlbumHistory)
-        .await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::AlbumHistory)
+      .await;
 
-      assert!(app.is_loading);
-      assert_eq!(
-        rx.recv().await.unwrap(),
-        LidarrEvent::GetAlbumHistory(1, 1).into()
-      );
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert_eq!(app.tick_count, 0);
-    }
+    assert!(app.is_loading);
+    assert_eq!(
+      rx.recv().await.unwrap(),
+      LidarrEvent::GetAlbumHistory(1, 1).into()
+    );
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
 
-    #[tokio::test]
-    async fn test_dispatch_by_album_history_block_no_op_when_albums_table_is_empty() {
-      let (tx, _) = mpsc::channel::<NetworkEvent>(500);
-      let mut app = App::test_default();
-      app.data.lidarr_data.prompt_confirm = true;
-      app.network_tx = Some(tx);
-      app.data.lidarr_data.artists.set_items(vec![Artist {
-        id: 1,
-        ..Artist::default()
-      }]);
+  #[tokio::test]
+  async fn test_dispatch_by_album_history_block_no_op_when_albums_table_is_empty() {
+    let (tx, _) = mpsc::channel::<NetworkEvent>(500);
+    let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
+    app.network_tx = Some(tx);
+    app.data.lidarr_data.artists.set_items(vec![Artist {
+      id: 1,
+      ..Artist::default()
+    }]);
 
-      app
-        .dispatch_by_lidarr_block(&ActiveLidarrBlock::AlbumHistory)
-        .await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::AlbumHistory)
+      .await;
 
-      assert!(!app.is_loading);
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert_eq!(app.tick_count, 0);
-    }
+    assert!(!app.is_loading);
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
 
-    #[tokio::test]
-    async fn test_dispatch_by_manual_album_search_block() {
-      let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
-      let mut app = App::test_default();
-      app.data.lidarr_data.prompt_confirm = true;
-      app.network_tx = Some(tx);
-      app.data.lidarr_data.artists.set_items(vec![Artist {
-        id: 1,
-        ..Artist::default()
-      }]);
-      app.data.lidarr_data.albums.set_items(vec![Album {
-        id: 1,
-        ..Album::default()
-      }]);
-      app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
+  #[tokio::test]
+  async fn test_dispatch_by_manual_album_search_block() {
+    let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
+    let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
+    app.network_tx = Some(tx);
+    app.data.lidarr_data.artists.set_items(vec![Artist {
+      id: 1,
+      ..Artist::default()
+    }]);
+    app.data.lidarr_data.albums.set_items(vec![Album {
+      id: 1,
+      ..Album::default()
+    }]);
+    app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
 
-      app
-        .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
-        .await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
+      .await;
 
-      assert!(app.is_loading);
-      assert_eq!(
-        rx.recv().await.unwrap(),
-        LidarrEvent::GetAlbumReleases(1, 1).into()
-      );
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert_eq!(app.tick_count, 0);
-    }
+    assert!(app.is_loading);
+    assert_eq!(
+      rx.recv().await.unwrap(),
+      LidarrEvent::GetAlbumReleases(1, 1).into()
+    );
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
 
-    #[tokio::test]
-    async fn test_dispatch_by_manual_album_search_block_is_loading() {
-      let mut app = App {
-        is_loading: true,
-        ..App::test_default()
-      };
+  #[tokio::test]
+  async fn test_dispatch_by_manual_album_search_block_is_loading() {
+    let mut app = App {
+      is_loading: true,
+      ..App::test_default()
+    };
 
-      app
-        .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
-        .await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
+      .await;
 
-      assert!(app.is_loading);
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert_eq!(app.tick_count, 0);
-    }
+    assert!(app.is_loading);
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
 
-    #[tokio::test]
-    async fn test_dispatch_by_manual_album_search_block_album_releases_non_empty() {
-      let mut app = App::test_default();
-      let mut album_details_modal = AlbumDetailsModal::default();
-      album_details_modal
-        .album_releases
-        .set_items(vec![LidarrRelease::default()]);
-      app.data.lidarr_data.album_details_modal = Some(album_details_modal);
+  #[tokio::test]
+  async fn test_dispatch_by_manual_album_search_block_album_releases_non_empty() {
+    let mut app = App::test_default();
+    let mut album_details_modal = AlbumDetailsModal::default();
+    album_details_modal
+      .album_releases
+      .set_items(vec![LidarrRelease::default()]);
+    app.data.lidarr_data.album_details_modal = Some(album_details_modal);
 
-      app
-        .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
-        .await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::ManualAlbumSearch)
+      .await;
 
-      assert!(!app.is_loading);
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert_eq!(app.tick_count, 0);
-    }
+    assert!(!app.is_loading);
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
 
   #[tokio::test]
   async fn test_dispatch_by_downloads_block() {

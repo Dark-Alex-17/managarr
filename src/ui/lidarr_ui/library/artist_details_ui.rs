@@ -11,6 +11,7 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
+use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
@@ -40,7 +41,9 @@ impl DrawUi for ArtistDetailsUi {
     let Route::Lidarr(active_lidarr_block, _) = route else {
       return false;
     };
-    DeleteAlbumUi::accepts(route) || ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
+    AlbumDetailsUi::accepts(route)
+      || DeleteAlbumUi::accepts(route)
+      || ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -115,6 +118,10 @@ impl DrawUi for ArtistDetailsUi {
       };
 
       draw_popup(f, app, draw_artist_details_popup, Size::XXLarge);
+
+      if AlbumDetailsUi::accepts(route) {
+        AlbumDetailsUi::draw(f, app, area);
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::lidarr_handlers::history::history_sorting_options;
+use crate::handlers::lidarr_handlers::library::album_details_handler::AlbumDetailsHandler;
 use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbumHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
@@ -16,7 +17,6 @@ use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Route};
 use crate::network::lidarr_network::LidarrEvent;
 use serde_json::Number;
-use crate::handlers::lidarr_handlers::library::album_details_handler::AlbumDetailsHandler;
 
 #[cfg(test)]
 #[path = "artist_details_handler_tests.rs"]
@@ -91,7 +91,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    DeleteAlbumHandler::accepts(active_block) || AlbumDetailsHandler::accepts(active_block) || ARTIST_DETAILS_BLOCKS.contains(&active_block)
+    DeleteAlbumHandler::accepts(active_block)
+      || AlbumDetailsHandler::accepts(active_block)
+      || ARTIST_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {

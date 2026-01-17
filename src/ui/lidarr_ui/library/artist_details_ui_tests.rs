@@ -3,7 +3,7 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
+    ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::artist_details_ui::ArtistDetailsUi;
@@ -12,6 +12,7 @@ mod tests {
   fn test_artist_details_ui_accepts() {
     let mut blocks = ARTIST_DETAILS_BLOCKS.clone().to_vec();
     blocks.extend(DELETE_ALBUM_BLOCKS);
+    blocks.extend(ALBUM_DETAILS_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
       if blocks.contains(&active_lidarr_block) {

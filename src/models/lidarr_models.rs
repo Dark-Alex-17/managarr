@@ -515,7 +515,7 @@ pub struct TrackFile {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
-  pub audio_bitrate: Option<String>,
+  pub audio_bit_rate: Option<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub audio_channels: i64,
   pub audio_codec: Option<String>,

@@ -440,7 +440,7 @@ pub mod test_utils {
 
   pub fn media_info() -> MediaInfo {
     MediaInfo {
-      audio_bitrate: Some("1563 kbps".to_owned()),
+      audio_bit_rate: Some("1563 kbps".to_owned()),
       audio_channels: 2,
       audio_codec: Some("FLAC".to_owned()),
       audio_bits: Some("24bit".to_owned()),

@@ -14,11 +14,13 @@ mod tests {
   };
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
-  use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, ALBUM_DETAILS_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
+  };
   use crate::models::servarr_models::{Quality, QualityWrapper};
-	use crate::test_handler_delegation;
+  use crate::test_handler_delegation;
 
-	mod test_handle_delete {
+  mod test_handle_delete {
     use super::*;
     use crate::assert_delete_prompt;
     use crate::event::Key;
