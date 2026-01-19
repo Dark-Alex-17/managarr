@@ -8,12 +8,18 @@ mod tests {
   use serde_json::json;
   use tokio::sync::Mutex;
 
+  use crate::cli::lidarr::LidarrCommand;
+  use crate::network::lidarr_network::LidarrEvent;
   use crate::{
     Cli,
     app::App,
     cli::{handle_command, mutex_flags_or_option, radarr::RadarrCommand, sonarr::SonarrCommand},
     models::{
       Serdeable,
+      lidarr_models::{
+        BlocklistItem as LidarrBlocklistItem, BlocklistResponse as LidarrBlocklistResponse,
+        LidarrSerdeable,
+      },
       radarr_models::{
         BlocklistItem as RadarrBlocklistItem, BlocklistResponse as RadarrBlocklistResponse,
         RadarrSerdeable,
@@ -182,5 +188,34 @@ mod tests {
     assert_ok!(&result);
   }
 
-  // TODO: Implement test_cli_handler_delegates_lidarr_commands_to_the_lidarr_cli_handler
+  #[tokio::test]
+  async fn test_cli_handler_delegates_lidarr_commands_to_the_lidarr_cli_handler() {
+    let mut mock_network = MockNetworkTrait::new();
+    mock_network
+      .expect_handle_network_event()
+      .with(eq::<NetworkEvent>(LidarrEvent::GetBlocklist.into()))
+      .times(1)
+      .returning(|_| {
+        Ok(Serdeable::Lidarr(LidarrSerdeable::BlocklistResponse(
+          LidarrBlocklistResponse {
+            records: vec![LidarrBlocklistItem::default()],
+          },
+        )))
+      });
+    mock_network
+      .expect_handle_network_event()
+      .with(eq::<NetworkEvent>(LidarrEvent::ClearBlocklist.into()))
+      .times(1)
+      .returning(|_| {
+        Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+          json!({"testResponse": "response"}),
+        )))
+      });
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let clear_blocklist_command = LidarrCommand::ClearBlocklist.into();
+
+    let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
+
+    assert_ok!(&result);
+  }
 }

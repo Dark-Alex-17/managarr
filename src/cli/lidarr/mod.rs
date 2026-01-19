@@ -74,6 +74,8 @@ pub enum LidarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Lidarr instance"
   )]
   TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand),
+  #[command(about = "Clear the Lidarr blocklist")]
+  ClearBlocklist,
   #[command(about = "Manually download the given release")]
   DownloadRelease {
     #[arg(long, help = "The GUID of the release to download", required = true)]
@@ -216,6 +218,17 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         )
         .handle()
         .await?
+      }
+      LidarrCommand::ClearBlocklist => {
+        self
+          .network
+          .handle_network_event(LidarrEvent::GetBlocklist.into())
+          .await?;
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::ClearBlocklist.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       LidarrCommand::DownloadRelease { guid, indexer_id } => {
         let params = LidarrReleaseDownloadBody { guid, indexer_id };

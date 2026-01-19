@@ -501,6 +501,28 @@ pub struct LidarrReleaseDownloadBody {
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct BlocklistItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub artist_id: i64,
+  pub album_ids: Option<Vec<Number>>,
+  pub source_title: String,
+  pub quality: QualityWrapper,
+  pub date: DateTime<Utc>,
+  pub protocol: String,
+  pub indexer: String,
+  pub message: String,
+  pub artist: Artist,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct BlocklistResponse {
+  pub records: Vec<BlocklistItem>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct TrackFile {
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
@@ -574,6 +596,7 @@ serde_enum_from!(
     Album(Album),
     Artist(Artist),
     Artists(Vec<Artist>),
+    BlocklistResponse(BlocklistResponse),
     DiskSpaces(Vec<DiskSpace>),
     DownloadsResponse(DownloadsResponse),
     LidarrHistoryWrapper(LidarrHistoryWrapper),

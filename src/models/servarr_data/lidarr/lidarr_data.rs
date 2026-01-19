@@ -2,14 +2,14 @@ use serde_json::Number;
 
 use super::modals::{AddArtistModal, AddRootFolderModal, AlbumDetailsModal, EditArtistModal};
 use crate::app::context_clues::{
-  DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+  BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
   ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
 };
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
   MANUAL_ARTIST_SEARCH_CONTEXT_CLUES,
 };
-use crate::models::lidarr_models::{LidarrRelease, LidarrTask};
+use crate::models::lidarr_models::{BlocklistItem, LidarrRelease, LidarrTask};
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_models::{IndexerSettings, QueueEvent};
 use crate::models::stateful_list::StatefulList;
@@ -30,6 +30,7 @@ use {
   super::modals::TrackDetailsModal,
   crate::models::lidarr_models::{MonitorType, NewItemMonitorType},
   crate::models::stateful_table::SortOption,
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::blocklist_item,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::indexer_settings,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
@@ -64,6 +65,7 @@ pub struct LidarrData<'a> {
   pub artist_history: StatefulTable<LidarrHistoryItem>,
   pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
+  pub blocklist: StatefulTable<BlocklistItem>,
   pub delete_files: bool,
   pub discography_releases: StatefulTable<LidarrRelease>,
   pub disk_space_vec: Vec<DiskSpace>,
@@ -149,6 +151,7 @@ impl<'a> Default for LidarrData<'a> {
       album_details_modal: None,
       artist_history: StatefulTable::default(),
       artists: StatefulTable::default(),
+      blocklist: StatefulTable::default(),
       delete_files: false,
       discography_releases: StatefulTable::default(),
       disk_space_vec: Vec::new(),
@@ -185,6 +188,12 @@ impl<'a> Default for LidarrData<'a> {
           title: "Downloads".to_string(),
           route: ActiveLidarrBlock::Downloads.into(),
           contextual_help: Some(&DOWNLOADS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "Blocklist".to_string(),
+          route: ActiveLidarrBlock::Blocklist.into(),
+          contextual_help: Some(&BLOCKLIST_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
@@ -377,6 +386,8 @@ impl LidarrData<'_> {
     }]);
     lidarr_data.artists.search = Some("artist search".into());
     lidarr_data.artists.filter = Some("artist filter".into());
+    lidarr_data.blocklist.set_items(vec![blocklist_item()]);
+    lidarr_data.blocklist.sorting(vec![sort_option!(id)]);
     lidarr_data.downloads.set_items(vec![download_record()]);
     lidarr_data.history.set_items(vec![lidarr_history_item()]);
     lidarr_data.history.sorting(vec![SortOption {
@@ -444,6 +455,11 @@ pub enum ActiveLidarrBlock {
   AllIndexerSettingsPrompt,
   AutomaticallySearchAlbumPrompt,
   AutomaticallySearchArtistPrompt,
+  Blocklist,
+  BlocklistItemDetails,
+  DeleteBlocklistItemPrompt,
+  BlocklistClearAllItemsPrompt,
+  BlocklistSortPrompt,
   DeleteAlbumPrompt,
   DeleteAlbumConfirmPrompt,
   DeleteAlbumToggleDeleteFile,
@@ -577,6 +593,14 @@ pub static ALBUM_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
   ActiveLidarrBlock::ManualAlbumSearchConfirmPrompt,
   ActiveLidarrBlock::ManualAlbumSearchSortPrompt,
   ActiveLidarrBlock::DeleteTrackFilePrompt,
+];
+
+pub static BLOCKLIST_BLOCKS: [ActiveLidarrBlock; 5] = [
+  ActiveLidarrBlock::Blocklist,
+  ActiveLidarrBlock::BlocklistItemDetails,
+  ActiveLidarrBlock::DeleteBlocklistItemPrompt,
+  ActiveLidarrBlock::BlocklistClearAllItemsPrompt,
+  ActiveLidarrBlock::BlocklistSortPrompt,
 ];
 
 pub static DOWNLOADS_BLOCKS: [ActiveLidarrBlock; 3] = [

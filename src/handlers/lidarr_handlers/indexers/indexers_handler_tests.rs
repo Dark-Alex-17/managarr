@@ -67,7 +67,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::Indexers.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(4);
+      app.data.lidarr_data.main_tabs.set_index(5);
 
       IndexersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -89,7 +89,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::Indexers.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(4);
+      app.data.lidarr_data.main_tabs.set_index(5);
 
       IndexersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,

@@ -27,6 +27,11 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::ListArtists.into())
           .await;
       }
+      ActiveLidarrBlock::Blocklist => {
+        self
+          .dispatch_network_event(LidarrEvent::GetBlocklist.into())
+          .await;
+      }
       ActiveLidarrBlock::Downloads => {
         self
           .dispatch_network_event(LidarrEvent::GetDownloads(500).into())

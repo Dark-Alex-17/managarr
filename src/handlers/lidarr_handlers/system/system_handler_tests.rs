@@ -27,7 +27,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::System.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(5);
+      app.data.lidarr_data.main_tabs.set_index(6);
 
       SystemHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -49,7 +49,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::System.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(5);
+      app.data.lidarr_data.main_tabs.set_index(6);
 
       SystemHandler::new(
         DEFAULT_KEYBINDINGS.right.key,

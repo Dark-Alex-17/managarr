@@ -99,9 +99,9 @@ mod tests {
 
       assert_eq!(
         app.data.lidarr_data.main_tabs.get_active_route(),
-        ActiveLidarrBlock::History.into()
+        ActiveLidarrBlock::Blocklist.into()
       );
-      assert_navigation_pushed!(app, ActiveLidarrBlock::History.into());
+      assert_navigation_pushed!(app, ActiveLidarrBlock::Blocklist.into());
     }
 
     #[rstest]

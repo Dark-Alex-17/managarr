@@ -53,11 +53,12 @@ mod tests {
 
   #[rstest]
   #[case(0, ActiveLidarrBlock::System, ActiveLidarrBlock::Downloads)]
-  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
-  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
-  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
-  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
-  #[case(5, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
+  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::Blocklist)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::History)]
+  #[case(3, ActiveLidarrBlock::Blocklist, ActiveLidarrBlock::RootFolders)]
+  #[case(4, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
+  #[case(5, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
+  #[case(6, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -87,11 +88,12 @@ mod tests {
 
   #[rstest]
   #[case(0, ActiveLidarrBlock::System, ActiveLidarrBlock::Downloads)]
-  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
-  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
-  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
-  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
-  #[case(5, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
+  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::Blocklist)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::History)]
+  #[case(3, ActiveLidarrBlock::Blocklist, ActiveLidarrBlock::RootFolders)]
+  #[case(4, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
+  #[case(5, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
+  #[case(6, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -122,10 +124,11 @@ mod tests {
   #[rstest]
   #[case(0, ActiveLidarrBlock::Artists)]
   #[case(1, ActiveLidarrBlock::Downloads)]
-  #[case(2, ActiveLidarrBlock::History)]
-  #[case(3, ActiveLidarrBlock::RootFolders)]
-  #[case(4, ActiveLidarrBlock::Indexers)]
-  #[case(5, ActiveLidarrBlock::System)]
+  #[case(2, ActiveLidarrBlock::Blocklist)]
+  #[case(3, ActiveLidarrBlock::History)]
+  #[case(4, ActiveLidarrBlock::RootFolders)]
+  #[case(5, ActiveLidarrBlock::Indexers)]
+  #[case(6, ActiveLidarrBlock::System)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveLidarrBlock,
@@ -193,6 +196,24 @@ mod tests {
     test_handler_delegation!(
       LidarrHandler,
       ActiveLidarrBlock::Downloads,
+      active_lidarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_blocklist_blocks_to_blocklist_handler(
+    #[values(
+      ActiveLidarrBlock::Blocklist,
+      ActiveLidarrBlock::BlocklistItemDetails,
+      ActiveLidarrBlock::DeleteBlocklistItemPrompt,
+      ActiveLidarrBlock::BlocklistClearAllItemsPrompt,
+      ActiveLidarrBlock::BlocklistSortPrompt
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::Blocklist,
       active_lidarr_block
     );
   }

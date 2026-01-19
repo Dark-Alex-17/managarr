@@ -159,6 +159,9 @@ mod tests {
   }
 
   #[rstest]
+  #[case(LidarrEvent::ClearBlocklist, "/blocklist/bulk")]
+  #[case(LidarrEvent::DeleteBlocklistItem(0), "/blocklist")]
+  #[case(LidarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]

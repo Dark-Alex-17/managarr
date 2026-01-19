@@ -3,6 +3,7 @@ use indexers::IndexersHandler;
 use library::LibraryHandler;
 
 use super::KeyEventHandler;
+use crate::handlers::lidarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::lidarr_handlers::downloads::DownloadsHandler;
 use crate::handlers::lidarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::lidarr_handlers::system::SystemHandler;
@@ -11,6 +12,7 @@ use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
 
+mod blocklist;
 mod downloads;
 mod history;
 mod indexers;
@@ -37,6 +39,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
       }
       _ if DownloadsHandler::accepts(self.active_lidarr_block) => {
         DownloadsHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+      }
+      _ if BlocklistHandler::accepts(self.active_lidarr_block) => {
+        BlocklistHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
       }
       _ if HistoryHandler::accepts(self.active_lidarr_block) => {
         HistoryHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();

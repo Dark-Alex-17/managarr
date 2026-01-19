@@ -9,6 +9,7 @@ use crate::models::lidarr_models::{
 use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
+mod blocklist;
 mod downloads;
 mod history;
 mod indexers;
@@ -29,8 +30,10 @@ pub enum LidarrEvent {
   AddArtist(AddArtistBody),
   AddRootFolder(AddLidarrRootFolderBody),
   AddTag(String),
+  ClearBlocklist,
   DeleteAlbum(DeleteParams),
   DeleteArtist(DeleteParams),
+  DeleteBlocklistItem(i64),
   DeleteDownload(i64),
   DeleteIndexer(i64),
   DeleteRootFolder(i64),
@@ -47,6 +50,7 @@ pub enum LidarrEvent {
   GetArtistHistory(i64),
   GetAllIndexerSettings,
   GetArtistDetails(i64),
+  GetBlocklist,
   GetDiscographyReleases(i64),
   GetDiskSpace,
   GetDownloads(u64),
@@ -87,7 +91,9 @@ impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       LidarrEvent::AddTag(_) | LidarrEvent::DeleteTag(_) | LidarrEvent::GetTags => "/tag",
+      LidarrEvent::ClearBlocklist => "/blocklist/bulk",
       LidarrEvent::DeleteTrackFile(_) | LidarrEvent::GetTrackFiles(_) => "/trackfile",
+      LidarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       LidarrEvent::GetAllIndexerSettings | LidarrEvent::EditAllIndexerSettings(_) => {
         "/config/indexer"
       }
@@ -104,6 +110,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetArtistHistory(_)
       | LidarrEvent::GetAlbumHistory(_, _)
       | LidarrEvent::GetTrackHistory(_, _, _) => "/history/artist",
+      LidarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       LidarrEvent::GetLogs(_) => "/log",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
@@ -157,12 +164,20 @@ impl Network<'_, '_> {
         .add_lidarr_root_folder(path)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::ClearBlocklist => self
+        .clear_lidarr_blocklist()
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::DeleteAlbum(params) => {
         self.delete_album(params).await.map(LidarrSerdeable::from)
       }
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
+        .delete_lidarr_blocklist_item(blocklist_item_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::DeleteDownload(download_id) => self
         .delete_lidarr_download(download_id)
         .await
@@ -218,6 +233,7 @@ impl Network<'_, '_> {
         .get_album_releases(artist_id, album_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetBlocklist => self.get_lidarr_blocklist().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDiscographyReleases(artist_id) => self
         .get_artist_discography_releases(artist_id)
         .await

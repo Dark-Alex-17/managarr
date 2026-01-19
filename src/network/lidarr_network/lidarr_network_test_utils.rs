@@ -3,10 +3,10 @@
 pub mod test_utils {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
-    AudioTags, DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams,
-    LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper,
-    LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member, MetadataProfile,
-    NewItemMonitorType, Ratings, SystemStatus, Track, TrackFile,
+    AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus, DownloadsResponse,
+    EditArtistParams, LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem,
+    LidarrHistoryWrapper, LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member,
+    MetadataProfile, NewItemMonitorType, Ratings, SystemStatus, Track, TrackFile,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
@@ -475,6 +475,27 @@ pub mod test_utils {
       has_file: false,
       ratings: ratings(),
       track_file: Some(track_file()),
+    }
+  }
+
+  pub fn blocklist_item() -> BlocklistItem {
+    BlocklistItem {
+      id: 1,
+      artist_id: 1,
+      album_ids: Some(vec![1.into()]),
+      source_title: "Alex - Something".to_string(),
+      quality: quality_wrapper(),
+      date: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      protocol: "usenet".to_string(),
+      indexer: "NZBgeek (Prowlarr)".to_string(),
+      message: "test message".to_string(),
+      artist: artist(),
+    }
+  }
+
+  pub fn blocklist_response() -> BlocklistResponse {
+    BlocklistResponse {
+      records: vec![blocklist_item()],
     }
   }
 }

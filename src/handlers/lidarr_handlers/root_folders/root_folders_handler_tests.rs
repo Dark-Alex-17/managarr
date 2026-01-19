@@ -71,7 +71,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(3);
+      app.data.lidarr_data.main_tabs.set_index(4);
 
       RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -93,7 +93,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(3);
+      app.data.lidarr_data.main_tabs.set_index(4);
 
       RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,

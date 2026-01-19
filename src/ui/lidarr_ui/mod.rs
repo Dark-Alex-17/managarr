@@ -23,6 +23,7 @@ use super::{
   },
   widgets::loading_block::LoadingBlock,
 };
+use crate::ui::lidarr_ui::blocklist::BlocklistUi;
 use crate::ui::lidarr_ui::downloads::DownloadsUi;
 use crate::ui::lidarr_ui::indexers::IndexersUi;
 use crate::ui::lidarr_ui::root_folders::RootFoldersUi;
@@ -39,6 +40,7 @@ use crate::{
   utils::convert_to_gb,
 };
 
+mod blocklist;
 mod downloads;
 mod history;
 mod indexers;
@@ -65,6 +67,7 @@ impl DrawUi for LidarrUi {
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
       _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
+      _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),

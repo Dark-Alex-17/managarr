@@ -25,7 +25,7 @@ mod tests {
 
     #[rstest]
     fn test_commands_that_have_no_arg_requirements(
-      #[values("test-all-indexers")] subcommand: &str,
+      #[values("clear-blocklist", "test-all-indexers")] subcommand: &str,
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", subcommand]);
 
@@ -284,7 +284,9 @@ mod tests {
     use crate::cli::lidarr::manual_search_command_handler::LidarrManualSearchCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
-    use crate::models::lidarr_models::{LidarrReleaseDownloadBody, LidarrTaskName};
+    use crate::models::lidarr_models::{
+      BlocklistItem, BlocklistResponse, LidarrReleaseDownloadBody, LidarrTaskName,
+    };
     use crate::models::servarr_models::IndexerSettings;
     use crate::{
       app::App,
@@ -542,6 +544,39 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_clear_blocklist_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::GetBlocklist.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::BlocklistResponse(
+            BlocklistResponse {
+              records: vec![BlocklistItem::default()],
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::ClearBlocklist.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let claer_blocklist_command = LidarrCommand::ClearBlocklist;
+
+      let result = LidarrCliHandler::with(&app_arc, claer_blocklist_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

@@ -5,10 +5,10 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, Album, AudioTags, DownloadRecord, DownloadStatus, DownloadsResponse,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrRelease, LidarrTask,
-    MediaInfo, Member, MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus, Track,
-    TrackFile,
+    AddArtistSearchResult, Album, AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord,
+    DownloadStatus, DownloadsResponse, LidarrHistoryEventType, LidarrHistoryItem,
+    LidarrHistoryWrapper, LidarrRelease, LidarrTask, MediaInfo, Member, MetadataProfile,
+    MonitorType, NewItemMonitorType, SystemStatus, Track, TrackFile,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
@@ -274,6 +274,23 @@ mod tests {
     let lidarr_serdeable: LidarrSerdeable = artist.clone().into();
 
     assert_eq!(lidarr_serdeable, LidarrSerdeable::Artist(artist));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_blocklist_response() {
+    let blocklist_response = BlocklistResponse {
+      records: vec![BlocklistItem {
+        id: 1,
+        ..BlocklistItem::default()
+      }],
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = blocklist_response.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::BlocklistResponse(blocklist_response)
+    );
   }
 
   #[test]

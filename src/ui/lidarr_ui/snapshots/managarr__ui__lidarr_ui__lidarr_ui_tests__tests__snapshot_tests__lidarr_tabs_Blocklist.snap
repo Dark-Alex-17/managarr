@@ -5,8 +5,8 @@ expression: output
 ╭  Artists  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Library │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                                      │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-│   Source Title ▼                                                                Event Type                    Quality             Date                            │
-│=> Test source title                                                             grabbed                       Lossless            2023-01-01 00:00:00 UTC         │
+│   Artist Name ▼                               Source Title                                                       Quality               Date                       │
+│=> Alex                                        Alex - Something                                                   Lossless              2023-05-20 21:29:16 UTC    │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │

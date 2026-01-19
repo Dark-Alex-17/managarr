@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::app::context_clues::{
-    DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-    ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
+    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
   };
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
@@ -11,7 +11,7 @@ mod tests {
   use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS,
-    ARTIST_DETAILS_BLOCKS, DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS,
+    ARTIST_DETAILS_BLOCKS, BLOCKLIST_BLOCKS, DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS,
     DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
     EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
     EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
@@ -149,6 +149,7 @@ mod tests {
     assert_none!(lidarr_data.album_details_modal);
     assert_is_empty!(lidarr_data.artists);
     assert_is_empty!(lidarr_data.artist_history);
+    assert_is_empty!(lidarr_data.blocklist);
     assert!(!lidarr_data.delete_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
     assert_is_empty!(lidarr_data.downloads);
@@ -171,7 +172,7 @@ mod tests {
     assert_is_empty!(lidarr_data.updates);
     assert_is_empty!(lidarr_data.version);
 
-    assert_eq!(lidarr_data.main_tabs.tabs.len(), 6);
+    assert_eq!(lidarr_data.main_tabs.tabs.len(), 7);
 
     assert_str_eq!(lidarr_data.main_tabs.tabs[0].title, "Library");
     assert_eq!(
@@ -195,49 +196,60 @@ mod tests {
     );
     assert_none!(lidarr_data.main_tabs.tabs[1].config);
 
-    assert_str_eq!(lidarr_data.main_tabs.tabs[2].title, "History");
+    assert_str_eq!(lidarr_data.main_tabs.tabs[2].title, "Blocklist");
     assert_eq!(
       lidarr_data.main_tabs.tabs[2].route,
-      ActiveLidarrBlock::History.into()
+      ActiveLidarrBlock::Blocklist.into()
     );
     assert_some_eq_x!(
       &lidarr_data.main_tabs.tabs[2].contextual_help,
-      &HISTORY_CONTEXT_CLUES
+      &BLOCKLIST_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[2].config);
 
-    assert_str_eq!(lidarr_data.main_tabs.tabs[3].title, "Root Folders");
+    assert_str_eq!(lidarr_data.main_tabs.tabs[3].title, "History");
     assert_eq!(
       lidarr_data.main_tabs.tabs[3].route,
-      ActiveLidarrBlock::RootFolders.into()
+      ActiveLidarrBlock::History.into()
     );
     assert_some_eq_x!(
       &lidarr_data.main_tabs.tabs[3].contextual_help,
-      &ROOT_FOLDERS_CONTEXT_CLUES
+      &HISTORY_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[3].config);
 
-    assert_str_eq!(lidarr_data.main_tabs.tabs[4].title, "Indexers");
+    assert_str_eq!(lidarr_data.main_tabs.tabs[4].title, "Root Folders");
     assert_eq!(
       lidarr_data.main_tabs.tabs[4].route,
-      ActiveLidarrBlock::Indexers.into()
+      ActiveLidarrBlock::RootFolders.into()
     );
     assert_some_eq_x!(
       &lidarr_data.main_tabs.tabs[4].contextual_help,
-      &INDEXERS_CONTEXT_CLUES
+      &ROOT_FOLDERS_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[4].config);
 
-    assert_str_eq!(lidarr_data.main_tabs.tabs[5].title, "System");
+    assert_str_eq!(lidarr_data.main_tabs.tabs[5].title, "Indexers");
     assert_eq!(
       lidarr_data.main_tabs.tabs[5].route,
-      ActiveLidarrBlock::System.into()
+      ActiveLidarrBlock::Indexers.into()
     );
     assert_some_eq_x!(
       &lidarr_data.main_tabs.tabs[5].contextual_help,
-      &SYSTEM_CONTEXT_CLUES
+      &INDEXERS_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[5].config);
+
+    assert_str_eq!(lidarr_data.main_tabs.tabs[6].title, "System");
+    assert_eq!(
+      lidarr_data.main_tabs.tabs[6].route,
+      ActiveLidarrBlock::System.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.main_tabs.tabs[6].contextual_help,
+      &SYSTEM_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.main_tabs.tabs[6].config);
 
     assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 3);
     assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
@@ -324,6 +336,16 @@ mod tests {
     assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualAlbumSearchConfirmPrompt));
     assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ManualAlbumSearchSortPrompt));
     assert!(ALBUM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::DeleteTrackFilePrompt));
+  }
+
+  #[test]
+  fn test_blocklist_blocks_contents() {
+    assert_eq!(BLOCKLIST_BLOCKS.len(), 5);
+    assert!(BLOCKLIST_BLOCKS.contains(&ActiveLidarrBlock::Blocklist));
+    assert!(BLOCKLIST_BLOCKS.contains(&ActiveLidarrBlock::BlocklistItemDetails));
+    assert!(BLOCKLIST_BLOCKS.contains(&ActiveLidarrBlock::DeleteBlocklistItemPrompt));
+    assert!(BLOCKLIST_BLOCKS.contains(&ActiveLidarrBlock::BlocklistClearAllItemsPrompt));
+    assert!(BLOCKLIST_BLOCKS.contains(&ActiveLidarrBlock::BlocklistSortPrompt));
   }
 
   #[test]

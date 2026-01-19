@@ -3,7 +3,7 @@ source: src/ui/lidarr_ui/lidarr_ui_tests.rs
 expression: output
 ---
 ╭  Artists  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Library │ Downloads │ History │ Root Folders │ Indexers │ System                                                                                                  │
+│ Library │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                                      │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
 │   Title                                         Percent Complete  Size               Output Path                 Indexer                     Download Client      │
 │=> Test download title                           50%               3.30 GB            /nfs/music/alex/album       kickass torrents            transmission         │
