@@ -61,8 +61,10 @@ pub enum LidarrEvent {
   GetRootFolders,
   GetSecurityConfig,
   GetStatus,
+  GetTrackDetails(i64),
   GetTracks(i64, i64),
   GetTrackFiles(i64),
+  GetTrackHistory(i64, i64, i64),
   GetUpdates,
   GetTags,
   GetTasks,
@@ -99,7 +101,9 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ToggleAlbumMonitoring(_)
       | LidarrEvent::GetAlbumDetails(_)
       | LidarrEvent::DeleteAlbum(_) => "/album",
-      LidarrEvent::GetArtistHistory(_) | LidarrEvent::GetAlbumHistory(_, _) => "/history/artist",
+      LidarrEvent::GetArtistHistory(_)
+      | LidarrEvent::GetAlbumHistory(_, _)
+      | LidarrEvent::GetTrackHistory(_, _, _) => "/history/artist",
       LidarrEvent::GetLogs(_) => "/log",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
@@ -128,7 +132,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::TestAllIndexers => "/indexer/testall",
       LidarrEvent::GetStatus => "/system/status",
       LidarrEvent::GetTasks => "/system/task",
-      LidarrEvent::GetTracks(_, _) => "/track",
+      LidarrEvent::GetTracks(_, _) | LidarrEvent::GetTrackDetails(_) => "/track",
       LidarrEvent::GetUpdates => "/update",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
@@ -267,12 +271,20 @@ impl Network<'_, '_> {
       LidarrEvent::GetStatus => self.get_lidarr_status().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTags => self.get_lidarr_tags().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTasks => self.get_lidarr_tasks().await.map(LidarrSerdeable::from),
+      LidarrEvent::GetTrackDetails(track_id) => self
+        .get_track_details(track_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetTracks(artist_id, album_id) => self
         .get_tracks(artist_id, album_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetTrackFiles(album_id) => self
         .get_track_files(album_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetTrackHistory(artist_id, album_id, track_id) => self
+        .get_lidarr_track_history(artist_id, album_id, track_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetUpdates => self.get_lidarr_updates().await.map(LidarrSerdeable::from),

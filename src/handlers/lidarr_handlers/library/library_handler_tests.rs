@@ -15,7 +15,7 @@ mod tests {
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
     DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
-    LIBRARY_BLOCKS,
+    LIBRARY_BLOCKS, TRACK_DETAILS_BLOCKS,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
@@ -34,10 +34,14 @@ mod tests {
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
     library_handler_blocks.extend(ADD_ARTIST_BLOCKS);
     library_handler_blocks.extend(ALBUM_DETAILS_BLOCKS);
+    library_handler_blocks.extend(TRACK_DETAILS_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|lidarr_block| {
       if library_handler_blocks.contains(&lidarr_block) {
-        assert!(LibraryHandler::accepts(lidarr_block));
+        assert!(
+          LibraryHandler::accepts(lidarr_block),
+          "{lidarr_block} is not accepted by the LibraryHandler"
+        );
       } else {
         assert!(!LibraryHandler::accepts(lidarr_block));
       }
@@ -666,6 +670,27 @@ mod tests {
     test_handler_delegation!(
       LibraryHandler,
       ActiveLidarrBlock::Artists,
+      active_sonarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_track_details_blocks_to_track_details_handler(
+    #[values(
+      ActiveLidarrBlock::TrackDetails,
+      ActiveLidarrBlock::TrackHistory,
+      ActiveLidarrBlock::TrackHistoryDetails,
+      ActiveLidarrBlock::SearchTrackHistory,
+      ActiveLidarrBlock::SearchTrackHistoryError,
+      ActiveLidarrBlock::FilterTrackHistory,
+      ActiveLidarrBlock::FilterTrackHistoryError,
+      ActiveLidarrBlock::TrackHistorySortPrompt
+    )]
+    active_sonarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveLidarrBlock::AlbumDetails,
       active_sonarr_block
     );
   }

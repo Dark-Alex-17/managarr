@@ -422,6 +422,8 @@ pub struct LidarrHistoryItem {
   pub album_id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub artist_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub track_id: i64,
   #[serde(default)]
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
@@ -556,6 +558,7 @@ pub struct Track {
   pub duration: i64,
   pub has_file: bool,
   pub ratings: Ratings,
+  pub track_file: Option<TrackFile>,
 }
 
 impl From<LidarrSerdeable> for Serdeable {

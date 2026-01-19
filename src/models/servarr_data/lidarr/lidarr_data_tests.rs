@@ -16,6 +16,7 @@ mod tests {
     EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
     EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
     INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
+    TRACK_DETAILS_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -694,5 +695,18 @@ mod tests {
     assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemTasks));
     assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemTaskStartConfirmPrompt));
     assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemUpdates));
+  }
+
+  #[test]
+  fn test_track_details_blocks_contents() {
+    assert_eq!(TRACK_DETAILS_BLOCKS.len(), 8);
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::TrackDetails));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::TrackHistory));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::TrackHistoryDetails));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchTrackHistory));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchTrackHistoryError));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterTrackHistory));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::FilterTrackHistoryError));
+    assert!(TRACK_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::TrackHistorySortPrompt));
   }
 }

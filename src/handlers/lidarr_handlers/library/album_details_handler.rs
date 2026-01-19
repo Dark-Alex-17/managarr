@@ -227,22 +227,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for AlbumDetailsHandler<
 
   fn handle_submit(&mut self) {
     match self.active_lidarr_block {
-      // ActiveLidarrBlock::AlbumDetails
-      // if self.app.data.lidarr_data.album_details_modal.is_some()
-      // 	&& !self
-      // 	.app
-      // 	.data
-      // 	.lidarr_data
-      // 	.album_details_modal
-      // 	.as_ref()
-      // 	.unwrap()
-      // 	.tracks
-      // 	.is_empty() =>
-      // 	{
-      // 		self
-      // 			.app
-      // 			.push_navigation_stack(ActiveLidarrBlock::TrackDetails.into())
-      // 	}
+      ActiveLidarrBlock::AlbumDetails
+        if self.app.data.lidarr_data.album_details_modal.is_some()
+          && !self
+            .app
+            .data
+            .lidarr_data
+            .album_details_modal
+            .as_ref()
+            .unwrap()
+            .tracks
+            .is_empty() =>
+      {
+        self
+          .app
+          .push_navigation_stack(ActiveLidarrBlock::TrackDetails.into())
+      }
       ActiveLidarrBlock::AlbumHistory => self
         .app
         .push_navigation_stack(ActiveLidarrBlock::AlbumHistoryDetails.into()),

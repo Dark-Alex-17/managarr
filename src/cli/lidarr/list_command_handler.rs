@@ -2,15 +2,17 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use clap::{Subcommand, arg};
+use serde_json::json;
 use tokio::sync::Mutex;
 
+use super::LidarrCommand;
+use crate::models::Serdeable;
+use crate::models::lidarr_models::{LidarrHistoryItem, LidarrSerdeable};
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   network::{NetworkTrait, lidarr_network::LidarrEvent},
 };
-
-use super::LidarrCommand;
 
 #[cfg(test)]
 #[path = "list_command_handler_tests.rs"]
@@ -89,6 +91,27 @@ pub enum LidarrListCommand {
   Tags,
   #[command(about = "List all Lidarr tasks")]
   Tasks,
+  #[command(about = "Fetch all history events for the track with the given ID")]
+  TrackHistory {
+    #[arg(
+      long,
+      help = "The artist ID that the track belongs to",
+      required = true
+    )]
+    artist_id: i64,
+    #[arg(
+      long,
+      help = "The album ID that the track is a part of",
+      required = true
+    )]
+    album_id: i64,
+    #[arg(
+      long,
+      help = "The Lidarr ID of the track whose history you wish to fetch",
+      required = true
+    )]
+    track_id: i64,
+  },
   #[command(
     about = "List the tracks for the album that corresponds to the artist with the given ID"
   )]
@@ -256,6 +279,27 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
           .handle_network_event(LidarrEvent::GetTasks.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::TrackHistory {
+        artist_id,
+        album_id,
+        track_id,
+      } => {
+        match self
+          .network
+          .handle_network_event(LidarrEvent::GetTrackHistory(artist_id, album_id, track_id).into())
+          .await
+        {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::LidarrHistoryItems(history_vec))) => {
+            let history_items_vec: Vec<LidarrHistoryItem> = history_vec
+              .into_iter()
+              .filter(|it| it.track_id == track_id)
+              .collect();
+            serde_json::to_string_pretty(&history_items_vec)?
+          }
+          Err(e) => return Err(e),
+          _ => serde_json::to_string_pretty(&json!({"message": "Failed to parse response"}))?,
+        }
       }
       LidarrListCommand::Tracks {
         artist_id,

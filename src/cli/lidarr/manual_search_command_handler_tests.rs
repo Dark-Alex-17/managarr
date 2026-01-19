@@ -109,16 +109,20 @@ mod tests {
       LidarrManualSearchCommand, LidarrManualSearchCommandHandler,
     };
     use crate::models::Serdeable;
-    use crate::models::lidarr_models::LidarrSerdeable;
+    use crate::models::lidarr_models::{LidarrRelease, LidarrSerdeable};
     use crate::network::lidarr_network::LidarrEvent;
+    use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
+      torrent_release, usenet_release,
+    };
     use crate::network::{MockNetworkTrait, NetworkEvent};
     use mockall::predicate::eq;
-    use serde_json::json;
+    use pretty_assertions::assert_str_eq;
     use std::sync::Arc;
     use tokio::sync::Mutex;
 
     #[tokio::test]
     async fn test_manual_album_search_command() {
+      let expected_releases = [torrent_release()];
       let expected_artist_id = 1;
       let expected_album_id = 1;
       let mut mock_network = MockNetworkTrait::new();
@@ -129,9 +133,13 @@ mod tests {
         ))
         .times(1)
         .returning(|_| {
-          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Releases(vec![
+            torrent_release(),
+            LidarrRelease {
+              discography: true,
+              ..usenet_release()
+            },
+          ])))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_album_search_command = LidarrManualSearchCommand::Album {
@@ -148,10 +156,18 @@ mod tests {
       .await;
 
       assert_ok!(&result);
+      assert_str_eq!(
+        result.unwrap(),
+        serde_json::to_string_pretty(&expected_releases).unwrap()
+      );
     }
 
     #[tokio::test]
     async fn test_manual_discography_search_command() {
+      let expected_releases = [LidarrRelease {
+        discography: true,
+        ..usenet_release()
+      }];
       let expected_artist_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -161,9 +177,13 @@ mod tests {
         ))
         .times(1)
         .returning(|_| {
-          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Releases(vec![
+            torrent_release(),
+            LidarrRelease {
+              discography: true,
+              ..usenet_release()
+            },
+          ])))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_discography_search_command =
@@ -178,6 +198,10 @@ mod tests {
       .await;
 
       assert_ok!(&result);
+      assert_str_eq!(
+        result.unwrap(),
+        serde_json::to_string_pretty(&expected_releases).unwrap()
+      );
     }
   }
 }

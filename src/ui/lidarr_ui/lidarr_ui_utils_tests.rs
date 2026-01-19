@@ -425,6 +425,7 @@ mod tests {
       source_title: "\nTest Album - Artist Name".into(),
       album_id: 100,
       artist_id: 10,
+      track_id: 1,
       event_type,
       quality: QualityWrapper {
         quality: Quality {

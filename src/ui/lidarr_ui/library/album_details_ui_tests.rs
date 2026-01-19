@@ -3,7 +3,9 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::App;
-  use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock, TRACK_DETAILS_BLOCKS,
+  };
   use crate::models::stateful_table::StatefulTable;
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
@@ -11,8 +13,11 @@ mod tests {
 
   #[test]
   fn test_album_details_ui_accepts() {
+    let mut album_details_blocks = ALBUM_DETAILS_BLOCKS.to_vec();
+    album_details_blocks.extend(TRACK_DETAILS_BLOCKS);
+
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
-      if ALBUM_DETAILS_BLOCKS.contains(&active_lidarr_block) {
+      if album_details_blocks.contains(&active_lidarr_block) {
         assert!(AlbumDetailsUi::accepts(active_lidarr_block.into()));
       } else {
         assert!(!AlbumDetailsUi::accepts(active_lidarr_block.into()));
@@ -126,6 +131,18 @@ mod tests {
         format!("empty_album_details_{active_lidarr_block}_{index}"),
         output
       );
+    }
+
+    #[test]
+    fn test_album_details_ui_renders_track_details_over_album_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::TrackDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AlbumDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
     }
   }
 }

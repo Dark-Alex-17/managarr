@@ -153,6 +153,23 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::GetUpdates.into())
           .await;
       }
+      ActiveLidarrBlock::TrackDetails => {
+        self
+          .dispatch_network_event(
+            LidarrEvent::GetTrackDetails(self.extract_track_id().await).into(),
+          )
+          .await;
+      }
+      ActiveLidarrBlock::TrackHistory => {
+        let artist_id = self.extract_artist_id().await;
+        let album_id = self.extract_album_id().await;
+        let track_id = self.extract_track_id().await;
+        self
+          .dispatch_network_event(
+            LidarrEvent::GetTrackHistory(artist_id, album_id, track_id).into(),
+          )
+          .await;
+      }
       _ => (),
     }
 
@@ -177,6 +194,18 @@ impl App<'_> {
 
   async fn extract_album_id(&self) -> i64 {
     self.data.lidarr_data.albums.current_selection().id
+  }
+
+  async fn extract_track_id(&self) -> i64 {
+    self
+      .data
+      .lidarr_data
+      .album_details_modal
+      .as_ref()
+      .expect("album_details_modal is empty")
+      .tracks
+      .current_selection()
+      .id
   }
 
   async fn extract_lidarr_indexer_id(&self) -> i64 {

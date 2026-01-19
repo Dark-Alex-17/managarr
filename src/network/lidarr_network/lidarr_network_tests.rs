@@ -62,7 +62,11 @@ mod tests {
 
   #[rstest]
   fn test_resource_artist_history(
-    #[values(LidarrEvent::GetArtistHistory(0), LidarrEvent::GetAlbumHistory(0, 0))]
+    #[values(
+      LidarrEvent::GetArtistHistory(0),
+      LidarrEvent::GetAlbumHistory(0, 0),
+      LidarrEvent::GetTrackHistory(0, 0, 0)
+    )]
     event: LidarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/history/artist");
@@ -148,6 +152,13 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_track(
+    #[values(LidarrEvent::GetTracks(0, 0), LidarrEvent::GetTrackDetails(0))] event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/track");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]
@@ -161,7 +172,6 @@ mod tests {
   #[case(LidarrEvent::GetHistory(0), "/history")]
   #[case(LidarrEvent::TestIndexer(0), "/indexer/test")]
   #[case(LidarrEvent::TestAllIndexers, "/indexer/testall")]
-  #[case(LidarrEvent::GetTracks(0, 0), "/track")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }

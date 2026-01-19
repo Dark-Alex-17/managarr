@@ -1,8 +1,6 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::lidarr_handlers::history::history_sorting_options;
-use crate::handlers::lidarr_handlers::library::album_details_handler::AlbumDetailsHandler;
-use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbumHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
@@ -26,7 +24,7 @@ pub struct ArtistDetailsHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
-  context: Option<ActiveLidarrBlock>,
+  _context: Option<ActiveLidarrBlock>,
 }
 
 impl ArtistDetailsHandler<'_, '_> {
@@ -76,24 +74,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
       |app| &mut app.data.lidarr_data.discography_releases,
       artist_releases_table_handling_config,
     ) {
-      match self.active_lidarr_block {
-        _ if DeleteAlbumHandler::accepts(self.active_lidarr_block) => {
-          DeleteAlbumHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
-            .handle();
-        }
-        _ if AlbumDetailsHandler::accepts(self.active_lidarr_block) => {
-          AlbumDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
-            .handle();
-        }
-        _ => self.handle_key_event(),
-      };
+      self.handle_key_event();
     }
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    DeleteAlbumHandler::accepts(active_block)
-      || AlbumDetailsHandler::accepts(active_block)
-      || ARTIST_DETAILS_BLOCKS.contains(&active_block)
+    ARTIST_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -104,13 +90,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveLidarrBlock,
-    context: Option<ActiveLidarrBlock>,
+    _context: Option<ActiveLidarrBlock>,
   ) -> ArtistDetailsHandler<'a, 'b> {
     ArtistDetailsHandler {
       key,
       app,
       active_lidarr_block: active_block,
-      context,
+      _context,
     }
   }
 

@@ -4,6 +4,7 @@ mod tests {
 
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
+    TRACK_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::artist_details_ui::ArtistDetailsUi;
@@ -13,6 +14,7 @@ mod tests {
     let mut blocks = ARTIST_DETAILS_BLOCKS.clone().to_vec();
     blocks.extend(DELETE_ALBUM_BLOCKS);
     blocks.extend(ALBUM_DETAILS_BLOCKS);
+    blocks.extend(TRACK_DETAILS_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
       if blocks.contains(&active_lidarr_block) {

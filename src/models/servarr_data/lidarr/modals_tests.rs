@@ -2,11 +2,12 @@
 mod tests {
   use crate::app::lidarr::lidarr_context_clues::{
     ALBUM_DETAILS_CONTEXT_CLUES, ALBUM_HISTORY_CONTEXT_CLUES, MANUAL_ALBUM_SEARCH_CONTEXT_CLUES,
+    TRACK_DETAILS_CONTEXT_CLUES, TRACK_HISTORY_CONTEXT_CLUES,
   };
   use crate::models::lidarr_models::{Artist, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
   use crate::models::servarr_data::lidarr::modals::{
-    AddArtistModal, AlbumDetailsModal, EditArtistModal,
+    AddArtistModal, AlbumDetailsModal, EditArtistModal, TrackDetailsModal,
   };
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_models::{Indexer, IndexerField, RootFolder};
@@ -92,14 +93,14 @@ mod tests {
       quality_profile_id: 1,
       metadata_profile_id: 1,
       path: "/nfs/music/test_artist".to_owned(),
-      tags: vec![serde_json::Number::from(1)],
+      tags: vec![Number::from(1)],
       ..Artist::default()
     };
     lidarr_data.artists.set_items(vec![artist]);
 
     let edit_artist_modal = EditArtistModal::from(&lidarr_data);
 
-    assert_eq!(edit_artist_modal.monitored, Some(true));
+    assert_some_eq_x!(&edit_artist_modal.monitored, &true);
     assert_eq!(
       *edit_artist_modal.monitor_list.current_selection(),
       NewItemMonitorType::All
@@ -205,24 +206,24 @@ mod tests {
     let edit_indexer_modal = EditIndexerModal::from(&lidarr_data);
 
     assert_str_eq!(edit_indexer_modal.name.text, "Test");
-    assert_eq!(edit_indexer_modal.enable_rss, Some(true));
-    assert_eq!(edit_indexer_modal.enable_automatic_search, Some(true));
-    assert_eq!(edit_indexer_modal.enable_interactive_search, Some(true));
+    assert_some_eq_x!(&edit_indexer_modal.enable_rss, &true);
+    assert_some_eq_x!(&edit_indexer_modal.enable_automatic_search, &true);
+    assert_some_eq_x!(&edit_indexer_modal.enable_interactive_search, &true);
     assert_eq!(edit_indexer_modal.priority, 1);
     assert_str_eq!(edit_indexer_modal.url.text, "https://test.com");
     assert_str_eq!(edit_indexer_modal.api_key.text, "1234");
-    assert!(edit_indexer_modal.seed_ratio.text.is_empty());
+    assert_is_empty!(edit_indexer_modal.seed_ratio.text);
   }
 
   #[test]
   fn test_album_details_modal_default() {
     let album_details_modal = AlbumDetailsModal::default();
 
-    assert!(album_details_modal.tracks.is_empty());
-    // assert!(album_details_modal.track_details_modal.is_none());
-    assert!(album_details_modal.track_files.is_empty());
-    assert!(album_details_modal.album_releases.is_empty());
-    assert!(album_details_modal.album_history.is_empty());
+    assert_is_empty!(album_details_modal.tracks);
+    assert_none!(album_details_modal.track_details_modal);
+    assert_is_empty!(album_details_modal.track_files);
+    assert_is_empty!(album_details_modal.album_releases);
+    assert_is_empty!(album_details_modal.album_history);
 
     assert_eq!(album_details_modal.album_details_tabs.tabs.len(), 3);
 
@@ -234,15 +235,8 @@ mod tests {
       album_details_modal.album_details_tabs.tabs[0].route,
       ActiveLidarrBlock::AlbumDetails.into()
     );
-    assert!(
-      album_details_modal.album_details_tabs.tabs[0]
-        .contextual_help
-        .is_some()
-    );
-    assert_eq!(
-      album_details_modal.album_details_tabs.tabs[0]
-        .contextual_help
-        .unwrap(),
+    assert_some_eq_x!(
+      &album_details_modal.album_details_tabs.tabs[0].contextual_help,
       &ALBUM_DETAILS_CONTEXT_CLUES
     );
     assert_eq!(album_details_modal.album_details_tabs.tabs[0].config, None);
@@ -255,15 +249,8 @@ mod tests {
       album_details_modal.album_details_tabs.tabs[1].route,
       ActiveLidarrBlock::AlbumHistory.into()
     );
-    assert!(
-      album_details_modal.album_details_tabs.tabs[1]
-        .contextual_help
-        .is_some()
-    );
-    assert_eq!(
-      album_details_modal.album_details_tabs.tabs[1]
-        .contextual_help
-        .unwrap(),
+    assert_some_eq_x!(
+      &album_details_modal.album_details_tabs.tabs[1].contextual_help,
       &ALBUM_HISTORY_CONTEXT_CLUES
     );
     assert_eq!(album_details_modal.album_details_tabs.tabs[1].config, None);
@@ -276,17 +263,48 @@ mod tests {
       album_details_modal.album_details_tabs.tabs[2].route,
       ActiveLidarrBlock::ManualAlbumSearch.into()
     );
-    assert!(
-      album_details_modal.album_details_tabs.tabs[2]
-        .contextual_help
-        .is_some()
-    );
-    assert_eq!(
-      album_details_modal.album_details_tabs.tabs[2]
-        .contextual_help
-        .unwrap(),
+    assert_some_eq_x!(
+      &album_details_modal.album_details_tabs.tabs[2].contextual_help,
       &MANUAL_ALBUM_SEARCH_CONTEXT_CLUES
     );
     assert_eq!(album_details_modal.album_details_tabs.tabs[2].config, None);
+  }
+
+  #[test]
+  fn test_track_details_modal_default() {
+    let track_details_modal = TrackDetailsModal::default();
+
+    assert_is_empty!(track_details_modal.track_details);
+    assert_is_empty!(track_details_modal.track_history);
+
+    assert_eq!(track_details_modal.track_details_tabs.tabs.len(), 2);
+
+    assert_str_eq!(
+      track_details_modal.track_details_tabs.tabs[0].title,
+      "Track Details"
+    );
+    assert_eq!(
+      track_details_modal.track_details_tabs.tabs[0].route,
+      ActiveLidarrBlock::TrackDetails.into()
+    );
+    assert_some_eq_x!(
+      &track_details_modal.track_details_tabs.tabs[0].contextual_help,
+      &TRACK_DETAILS_CONTEXT_CLUES
+    );
+    assert_eq!(track_details_modal.track_details_tabs.tabs[0].config, None);
+
+    assert_str_eq!(
+      track_details_modal.track_details_tabs.tabs[1].title,
+      "History"
+    );
+    assert_eq!(
+      track_details_modal.track_details_tabs.tabs[1].route,
+      ActiveLidarrBlock::TrackHistory.into()
+    );
+    assert_some_eq_x!(
+      &track_details_modal.track_details_tabs.tabs[1].contextual_help,
+      &TRACK_HISTORY_CONTEXT_CLUES
+    );
+    assert_eq!(track_details_modal.track_details_tabs.tabs[1].config, None);
   }
 }

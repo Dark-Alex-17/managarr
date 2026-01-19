@@ -27,6 +27,7 @@ use itertools::Itertools;
 use strum::EnumIter;
 #[cfg(test)]
 use {
+  super::modals::TrackDetailsModal,
   crate::models::lidarr_models::{MonitorType, NewItemMonitorType},
   crate::models::stateful_table::SortOption,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::indexer_settings,
@@ -292,7 +293,21 @@ impl LidarrData<'_> {
       .metadata_profile_list
       .set_items(vec![metadata_profile().name]);
 
-    let mut album_details_modal = AlbumDetailsModal::default();
+    let mut track_details_modal = TrackDetailsModal::default();
+    track_details_modal.track_details = ScrollableText::with_string("Some details".to_owned());
+    track_details_modal
+      .track_history
+      .set_items(vec![lidarr_history_item()]);
+    track_details_modal.track_history.search = Some("track history search".into());
+    track_details_modal.track_history.filter = Some("track history filter".into());
+    track_details_modal
+      .track_history
+      .sorting(vec![sort_option!(id)]);
+
+    let mut album_details_modal = AlbumDetailsModal {
+      track_details_modal: Some(track_details_modal),
+      ..AlbumDetailsModal::default()
+    };
     album_details_modal.tracks.set_items(vec![track()]);
     album_details_modal.tracks.search = Some("album search".into());
     album_details_modal
@@ -469,6 +484,8 @@ pub enum ActiveLidarrBlock {
   FilterHistoryError,
   FilterArtistHistory,
   FilterArtistHistoryError,
+  FilterTrackHistory,
+  FilterTrackHistoryError,
   History,
   HistoryItemDetails,
   HistorySortPrompt,
@@ -499,12 +516,18 @@ pub enum ActiveLidarrBlock {
   SearchArtistHistoryError,
   SearchTracks,
   SearchTracksError,
+  SearchTrackHistory,
+  SearchTrackHistoryError,
   System,
   SystemLogs,
   SystemQueuedEvents,
   SystemTasks,
   SystemTaskStartConfirmPrompt,
   SystemUpdates,
+  TrackDetails,
+  TrackHistory,
+  TrackHistoryDetails,
+  TrackHistorySortPrompt,
   UpdateAllArtistsPrompt,
   UpdateAndScanArtistPrompt,
   UpdateDownloadsPrompt,
@@ -765,6 +788,17 @@ pub static SYSTEM_DETAILS_BLOCKS: [ActiveLidarrBlock; 5] = [
   ActiveLidarrBlock::SystemTasks,
   ActiveLidarrBlock::SystemTaskStartConfirmPrompt,
   ActiveLidarrBlock::SystemUpdates,
+];
+
+pub static TRACK_DETAILS_BLOCKS: [ActiveLidarrBlock; 8] = [
+  ActiveLidarrBlock::TrackDetails,
+  ActiveLidarrBlock::TrackHistory,
+  ActiveLidarrBlock::TrackHistoryDetails,
+  ActiveLidarrBlock::SearchTrackHistory,
+  ActiveLidarrBlock::SearchTrackHistoryError,
+  ActiveLidarrBlock::FilterTrackHistory,
+  ActiveLidarrBlock::FilterTrackHistoryError,
+  ActiveLidarrBlock::TrackHistorySortPrompt,
 ];
 
 impl From<ActiveLidarrBlock> for Route {

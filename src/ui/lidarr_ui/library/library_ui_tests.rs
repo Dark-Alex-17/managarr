@@ -6,6 +6,7 @@ mod tests {
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
     DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS,
+    TRACK_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::{LibraryUi, decorate_artist_row_with_style};
@@ -23,12 +24,19 @@ mod tests {
     library_ui_blocks.extend(ADD_ARTIST_BLOCKS);
     library_ui_blocks.extend(ARTIST_DETAILS_BLOCKS);
     library_ui_blocks.extend(ALBUM_DETAILS_BLOCKS);
+    library_ui_blocks.extend(TRACK_DETAILS_BLOCKS);
 
     for active_lidarr_block in ActiveLidarrBlock::iter() {
       if library_ui_blocks.contains(&active_lidarr_block) {
-        assert!(LibraryUi::accepts(active_lidarr_block.into()));
+        assert!(
+          LibraryUi::accepts(active_lidarr_block.into()),
+          "{active_lidarr_block} is not accepted by the LibraryUi"
+        );
       } else {
-        assert!(!LibraryUi::accepts(active_lidarr_block.into()));
+        assert!(
+          !LibraryUi::accepts(active_lidarr_block.into()),
+          "{active_lidarr_block} should not be accepted by LibraryUi"
+        );
       }
     }
   }

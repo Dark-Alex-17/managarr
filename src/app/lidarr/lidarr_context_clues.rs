@@ -8,6 +8,7 @@ use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS,
   ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+  TRACK_DETAILS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -103,8 +104,8 @@ pub static ALBUM_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
     DEFAULT_KEYBINDINGS.auto_search.desc,
   ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
-  (DEFAULT_KEYBINDINGS.submit, "episode details"),
-  (DEFAULT_KEYBINDINGS.delete, "delete episode"),
+  (DEFAULT_KEYBINDINGS.submit, "track details"),
+  (DEFAULT_KEYBINDINGS.delete, "delete track"),
 ];
 
 pub static ALBUM_HISTORY_CONTEXT_CLUES: [ContextClue; 7] = [
@@ -137,6 +138,26 @@ pub static MANUAL_ALBUM_SEARCH_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
+pub static TRACK_DETAILS_CONTEXT_CLUES: [ContextClue; 2] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
+pub static TRACK_HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.esc, "cancel filter/close"),
+];
+
 pub(in crate::app) struct LidarrContextClueProvider;
 
 impl ContextClueProvider for LidarrContextClueProvider {
@@ -156,8 +177,19 @@ impl ContextClueProvider for LidarrContextClueProvider {
         .lidarr_data
         .album_details_modal
         .as_ref()
-        .unwrap()
+        .expect("album_details_modal is empty")
         .album_details_tabs
+        .get_active_route_contextual_help(),
+      _ if TRACK_DETAILS_BLOCKS.contains(&active_lidarr_block) => app
+        .data
+        .lidarr_data
+        .album_details_modal
+        .as_ref()
+        .expect("album_details_modal is empty")
+        .track_details_modal
+        .as_ref()
+        .expect("track_details_modal is empty")
+        .track_details_tabs
         .get_active_route_contextual_help(),
       ActiveLidarrBlock::AddArtistSearchInput
       | ActiveLidarrBlock::AddArtistEmptySearchResults

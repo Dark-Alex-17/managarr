@@ -19,18 +19,22 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
 mod add_artist_handler;
+mod album_details_handler;
 mod artist_details_handler;
 mod delete_album_handler;
 mod delete_artist_handler;
 mod edit_artist_handler;
+mod track_details_handler;
 
+use crate::handlers::lidarr_handlers::library::album_details_handler::AlbumDetailsHandler;
+use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbumHandler;
+use crate::handlers::lidarr_handlers::library::track_details_handler::TrackDetailsHandler;
 use crate::models::Route;
 pub(in crate::handlers::lidarr_handlers) use add_artist_handler::AddArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use artist_details_handler::ArtistDetailsHandler;
 pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHandler;
 
-mod album_details_handler;
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
@@ -82,6 +86,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
           ArtistDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
             .handle();
         }
+        _ if DeleteAlbumHandler::accepts(self.active_lidarr_block) => {
+          DeleteAlbumHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
+        _ if AlbumDetailsHandler::accepts(self.active_lidarr_block) => {
+          AlbumDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
+        _ if TrackDetailsHandler::accepts(self.active_lidarr_block) => {
+          TrackDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
         _ => self.handle_key_event(),
       }
     }
@@ -90,8 +106,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
     AddArtistHandler::accepts(active_block)
       || DeleteArtistHandler::accepts(active_block)
+      || DeleteAlbumHandler::accepts(active_block)
       || EditArtistHandler::accepts(active_block)
       || ArtistDetailsHandler::accepts(active_block)
+      || AlbumDetailsHandler::accepts(active_block)
+      || TrackDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 

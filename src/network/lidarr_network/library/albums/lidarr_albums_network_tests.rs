@@ -3,6 +3,7 @@ mod tests {
   use crate::models::lidarr_models::{
     Album, DeleteParams, LidarrHistoryItem, LidarrRelease, LidarrSerdeable,
   };
+  use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
   use crate::models::stateful_table::SortOption;
   use crate::network::lidarr_network::LidarrEvent;
@@ -146,6 +147,7 @@ mod tests {
       "sourceTitle": "z album",
       "albumId": 1007,
       "artistId": 1007,
+      "trackId": 1007,
       "quality": { "quality": { "name": "Lossless" } },
       "date": "2023-01-01T00:00:00Z",
       "eventType": "grabbed",
@@ -159,6 +161,7 @@ mod tests {
       "sourceTitle": "An Album",
       "albumId": 2001,
       "artistId": 2001,
+      "trackId": 2001,
       "quality": { "quality": { "name": "Lossless" } },
       "date": "2023-01-01T00:00:00Z",
       "eventType": "grabbed",
@@ -173,6 +176,7 @@ mod tests {
         id: 123,
         artist_id: 1007,
         album_id: 1007,
+        track_id: 1007,
         source_title: "z album".into(),
         ..lidarr_history_item()
       },
@@ -180,6 +184,7 @@ mod tests {
         id: 456,
         artist_id: 2001,
         album_id: 2001,
+        track_id: 2001,
         source_title: "An Album".into(),
         ..lidarr_history_item()
       },
@@ -270,6 +275,7 @@ mod tests {
       "sourceTitle": "z album",
       "albumId": 1007,
       "artistId": 1007,
+      "trackId": 1007,
       "quality": { "quality": { "name": "Lossless" } },
       "date": "2023-01-01T00:00:00Z",
       "eventType": "grabbed",
@@ -283,6 +289,7 @@ mod tests {
       "sourceTitle": "An Album",
       "albumId": 2001,
       "artistId": 2001,
+      "trackId": 2001,
       "quality": { "quality": { "name": "Lossless" } },
       "date": "2023-01-01T00:00:00Z",
       "eventType": "grabbed",
@@ -297,6 +304,7 @@ mod tests {
         id: 123,
         artist_id: 1007,
         album_id: 1007,
+        track_id: 1007,
         source_title: "z album".into(),
         ..lidarr_history_item()
       },
@@ -304,6 +312,7 @@ mod tests {
         id: 456,
         artist_id: 2001,
         album_id: 2001,
+        track_id: 2001,
         source_title: "An Album".into(),
         ..lidarr_history_item()
       },
@@ -339,6 +348,95 @@ mod tests {
     );
     assert!(
       !app
+        .data
+        .lidarr_data
+        .album_details_modal
+        .as_ref()
+        .unwrap()
+        .album_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_lidarr_album_history_event_no_op_when_user_is_selecting_sort_options() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z album",
+      "albumId": 1007,
+      "artistId": 1007,
+      "trackId": 1007,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "An Album",
+      "albumId": 2001,
+      "artistId": 2001,
+      "trackId": 2001,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    }]);
+    let response: Vec<LidarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("artistId=1&albumId=1")
+      .build_for(LidarrEvent::GetAlbumHistory(1, 1))
+      .await;
+    app.lock().await.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .album_details_modal
+      .as_mut()
+      .unwrap()
+      .album_history
+      .sort_asc = true;
+    app
+      .lock()
+      .await
+      .push_navigation_stack(ActiveLidarrBlock::AlbumHistorySortPrompt.into());
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let LidarrSerdeable::LidarrHistoryItems(history) = network
+      .handle_lidarr_event(LidarrEvent::GetAlbumHistory(1, 1))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected LidarrHistoryItems")
+    };
+    mock.assert_async().await;
+    assert_is_empty!(
+      app
+        .lock()
+        .await
+        .data
+        .lidarr_data
+        .album_details_modal
+        .as_ref()
+        .unwrap()
+        .album_history
+        .items
+    );
+    assert!(
+      app
+        .lock()
+        .await
         .data
         .lidarr_data
         .album_details_modal

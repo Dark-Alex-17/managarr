@@ -278,6 +278,7 @@ pub mod test_utils {
       source_title: "Test source title".into(),
       album_id: 1,
       artist_id: 1,
+      track_id: 1,
       quality: quality_wrapper(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
       event_type: LidarrHistoryEventType::Grabbed,
@@ -473,6 +474,7 @@ pub mod test_utils {
       duration: 200173,
       has_file: false,
       ratings: ratings(),
+      track_file: Some(track_file()),
     }
   }
 }

@@ -1,13 +1,14 @@
 use super::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::app::lidarr::lidarr_context_clues::{
   ALBUM_DETAILS_CONTEXT_CLUES, ALBUM_HISTORY_CONTEXT_CLUES, MANUAL_ALBUM_SEARCH_CONTEXT_CLUES,
+  TRACK_DETAILS_CONTEXT_CLUES, TRACK_HISTORY_CONTEXT_CLUES,
 };
 use crate::models::lidarr_models::{LidarrHistoryItem, LidarrRelease, Track, TrackFile};
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_models::Indexer;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{
-  HorizontallyScrollableText, TabRoute, TabState,
+  HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
   lidarr_models::{MonitorType, NewItemMonitorType},
   servarr_models::RootFolder,
   stateful_list::StatefulList,
@@ -226,7 +227,7 @@ impl From<&LidarrData<'_>> for AddRootFolderModal {
 pub struct AlbumDetailsModal {
   pub tracks: StatefulTable<Track>,
   pub track_files: StatefulTable<TrackFile>,
-  // pub track_details_modal: Option<EpisodeDetailsModal>,
+  pub track_details_modal: Option<TrackDetailsModal>,
   pub album_history: StatefulTable<LidarrHistoryItem>,
   pub album_releases: StatefulTable<LidarrRelease>,
   pub album_details_tabs: TabState,
@@ -236,7 +237,7 @@ impl Default for AlbumDetailsModal {
   fn default() -> AlbumDetailsModal {
     AlbumDetailsModal {
       tracks: StatefulTable::default(),
-      // TODO episode_details_modal: None,
+      track_details_modal: None,
       track_files: StatefulTable::default(),
       album_releases: StatefulTable::default(),
       album_history: StatefulTable::default(),
@@ -257,6 +258,36 @@ impl Default for AlbumDetailsModal {
           title: "Manual Search".to_string(),
           route: ActiveLidarrBlock::ManualAlbumSearch.into(),
           contextual_help: Some(&MANUAL_ALBUM_SEARCH_CONTEXT_CLUES),
+          config: None,
+        },
+      ]),
+    }
+  }
+}
+
+#[cfg_attr(test, derive(Debug))]
+pub struct TrackDetailsModal {
+  pub track_details: ScrollableText,
+  pub track_history: StatefulTable<LidarrHistoryItem>,
+  pub track_details_tabs: TabState,
+}
+
+impl Default for TrackDetailsModal {
+  fn default() -> Self {
+    TrackDetailsModal {
+      track_details: ScrollableText::default(),
+      track_history: StatefulTable::default(),
+      track_details_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Track Details".to_string(),
+          route: ActiveLidarrBlock::TrackDetails.into(),
+          contextual_help: Some(&TRACK_DETAILS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "History".to_string(),
+          route: ActiveLidarrBlock::TrackHistory.into(),
+          contextual_help: Some(&TRACK_HISTORY_CONTEXT_CLUES),
           config: None,
         },
       ]),

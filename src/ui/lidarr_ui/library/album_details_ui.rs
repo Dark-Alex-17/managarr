@@ -2,6 +2,7 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::lidarr_models::{LidarrHistoryItem, LidarrRelease, Track};
 use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
+use crate::ui::lidarr_ui::library::track_details_ui::TrackDetailsUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{
@@ -31,10 +32,11 @@ impl DrawUi for AlbumDetailsUi {
     let Route::Lidarr(active_lidarr_block, _) = route else {
       return false;
     };
-    ALBUM_DETAILS_BLOCKS.contains(&active_lidarr_block)
+    TrackDetailsUi::accepts(route) || ALBUM_DETAILS_BLOCKS.contains(&active_lidarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    let route = app.get_current_route();
     if app.data.lidarr_data.album_details_modal.is_some()
       && let Route::Lidarr(active_lidarr_block, _) = app.get_current_route()
     {
@@ -106,6 +108,10 @@ impl DrawUi for AlbumDetailsUi {
       };
 
       draw_popup(f, app, draw_album_details_popup, Size::XLarge);
+
+      if TrackDetailsUi::accepts(route) {
+        TrackDetailsUi::draw(f, app, _area);
+      }
     }
   }
 }

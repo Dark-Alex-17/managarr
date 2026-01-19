@@ -44,6 +44,15 @@ pub enum LidarrGetCommand {
   SecurityConfig,
   #[command(about = "Get the system status")]
   SystemStatus,
+  #[command(about = "Get detailed information for the track with the given ID")]
+  TrackDetails {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the track whose details you wish to fetch",
+      required = true
+    )]
+    track_id: i64,
+  },
 }
 
 impl From<LidarrGetCommand> for Command {
@@ -112,6 +121,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrGetCommand> for LidarrGetCommandHan
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetStatus.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrGetCommand::TrackDetails { track_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetTrackDetails(track_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

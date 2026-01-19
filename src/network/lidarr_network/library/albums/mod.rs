@@ -1,7 +1,8 @@
+use crate::models::Route;
 use crate::models::lidarr_models::{
   Album, DeleteParams, LidarrCommandBody, LidarrHistoryItem, LidarrRelease,
 };
-use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
+use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -75,28 +76,25 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<LidarrHistoryItem>>(request_props, |history_items, mut app| {
-        if app.data.lidarr_data.album_details_modal.is_none() {
-          app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
-        }
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Lidarr(ActiveLidarrBlock::AlbumHistorySortPrompt, _)
+        );
 
-        let mut history_vec = history_items;
-        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-        app
-          .data
-          .lidarr_data
-          .album_details_modal
-          .as_mut()
-          .unwrap()
-          .album_history
-          .set_items(history_vec);
-        app
-          .data
-          .lidarr_data
-          .album_details_modal
-          .as_mut()
-          .unwrap()
-          .album_history
-          .apply_sorting_toggle(false);
+        if !is_sorting {
+          let album_details_modal = app
+            .data
+            .lidarr_data
+            .album_details_modal
+            .get_or_insert_default();
+
+          let mut history_vec = history_items;
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          album_details_modal.album_history.set_items(history_vec);
+          album_details_modal
+            .album_history
+            .apply_sorting_toggle(false);
+        }
       })
       .await
   }
@@ -121,21 +119,18 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<LidarrRelease>>(request_props, |release_vec, mut app| {
-        if app.data.lidarr_data.album_details_modal.is_none() {
-          app.data.lidarr_data.album_details_modal = Some(AlbumDetailsModal::default());
-        }
+        let album_details_modal = app
+          .data
+          .lidarr_data
+          .album_details_modal
+          .get_or_insert_default();
 
         let album_releases_vec = release_vec
           .into_iter()
           .filter(|release| !release.discography)
           .collect();
 
-        app
-          .data
-          .lidarr_data
-          .album_details_modal
-          .as_mut()
-          .unwrap()
+        album_details_modal
           .album_releases
           .set_items(album_releases_vec);
       })

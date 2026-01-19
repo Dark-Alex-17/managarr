@@ -155,37 +155,37 @@ mod tests {
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
-    // #[test]
-    // fn test_album_details_submit() {
-    // 	let mut app = App::test_default_fully_populated();
-    // 	app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
-    //
-    // 	AlbumDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::AlbumDetails, None)
-    // 		.handle();
-    //
-    // 	assert_navigation_pushed!(app, ActiveLidarrBlock::TrackDetails.into());
-    // }
+    #[test]
+    fn test_album_details_submit() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
 
-    // #[test]
-    // fn test_album_details_submit_no_op_on_empty_tracks_table() {
-    // 	let mut app = App::test_default_fully_populated();
-    // 	app
-    // 		.data
-    // 		.lidarr_data
-    // 		.album_details_modal
-    // 		.as_mut()
-    // 		.unwrap()
-    // 		.tracks = StatefulTable::default();
-    // 	app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
-    //
-    // 	AlbumDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::AlbumDetails, None)
-    // 		.handle();
-    //
-    // 	assert_eq!(
-    // 		app.get_current_route(),
-    // 		ActiveLidarrBlock::AlbumDetails.into()
-    // 	);
-    // }
+      AlbumDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::AlbumDetails, None)
+        .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::TrackDetails.into());
+    }
+
+    #[test]
+    fn test_album_details_submit_no_op_on_empty_tracks_table() {
+      let mut app = App::test_default_fully_populated();
+      app
+        .data
+        .lidarr_data
+        .album_details_modal
+        .as_mut()
+        .unwrap()
+        .tracks = StatefulTable::default();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+
+      AlbumDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::AlbumDetails, None)
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveLidarrBlock::AlbumDetails.into()
+      );
+    }
 
     #[test]
     fn test_album_details_submit_no_op_when_not_ready() {
