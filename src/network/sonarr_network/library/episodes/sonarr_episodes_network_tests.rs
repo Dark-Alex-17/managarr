@@ -821,8 +821,7 @@ mod tests {
       .path("/1")
       .build_for(SonarrEvent::GetEpisodeDetails(1))
       .await;
-    let mut episode_details_modal = EpisodeDetailsModal::default();
-    episode_details_modal.episode_details_tabs.next();
+    let episode_details_modal = EpisodeDetailsModal::default();
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     season_details_modal.episode_details_modal = Some(episode_details_modal);
@@ -868,7 +867,7 @@ mod tests {
         .unwrap()
         .episode_details_tabs
         .get_active_route(),
-      ActiveSonarrBlock::EpisodeHistory.into()
+      ActiveSonarrBlock::EpisodeDetails.into()
     );
     assert_eq!(episode, response);
 

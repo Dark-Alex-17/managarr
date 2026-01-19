@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
+  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{SonarrHistoryItem, SonarrRelease, SonarrSerdeable};
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
@@ -453,6 +454,93 @@ mod tests {
     );
     assert!(
       !app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event_no_op_when_user_is_selecting_sort_option() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]);
+    let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1&seasonNumber=1")
+      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .await;
+    app.lock().await.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+    app
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .season_history
+      .sort_asc = true;
+    app.lock().await.server_tabs.next();
+    app
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::SeasonHistorySortPrompt.into());
+    let mut network = test_network(&app);
+
+    let SonarrSerdeable::SonarrHistoryItems(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    mock.assert_async().await;
+    assert_is_empty!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .items
+    );
+    assert!(
+      app
         .lock()
         .await
         .data

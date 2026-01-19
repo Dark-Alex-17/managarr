@@ -1,4 +1,4 @@
-use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
+use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
@@ -65,10 +65,6 @@ impl Network<'_, '_> {
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::EpisodesSortPrompt, _)
         ) {
-          if app.data.sonarr_data.season_details_modal.is_none() {
-            app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-          }
-
           let season_episodes_vec = if !app.data.sonarr_data.seasons.is_empty() {
             let season_number = app
               .data
@@ -85,22 +81,14 @@ impl Network<'_, '_> {
             episode_vec
           };
 
-          app
+          let season_details_modal = app
             .data
             .sonarr_data
             .season_details_modal
-            .as_mut()
-            .unwrap()
-            .episodes
-            .set_items(season_episodes_vec);
-          app
-            .data
-            .sonarr_data
-            .season_details_modal
-            .as_mut()
-            .unwrap()
-            .episodes
-            .apply_sorting_toggle(false);
+            .get_or_insert_default();
+
+          season_details_modal.episodes.set_items(season_episodes_vec);
+          season_details_modal.episodes.apply_sorting_toggle(false);
         }
       })
       .await
@@ -125,16 +113,13 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<EpisodeFile>>(request_props, |episode_file_vec, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
-
-        app
+        let season_details_modal = app
           .data
           .sonarr_data
           .season_details_modal
-          .as_mut()
-          .unwrap()
+          .get_or_insert_default();
+
+        season_details_modal
           .episode_files
           .set_items(episode_file_vec);
       })
@@ -156,50 +141,19 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), SonarrHistoryWrapper>(request_props, |history_response, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
-
-        if app
+        let season_details_modal = app
           .data
           .sonarr_data
           .season_details_modal
-          .as_ref()
-          .unwrap()
+          .get_or_insert_default();
+        let episode_details_modal = season_details_modal
           .episode_details_modal
-          .is_none()
-        {
-          app
-            .data
-            .sonarr_data
-            .season_details_modal
-            .as_mut()
-            .unwrap()
-            .episode_details_modal = Some(EpisodeDetailsModal::default());
-        }
+          .get_or_insert_default();
 
         let mut history_vec = history_response.records;
         history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .episode_details_modal
-          .as_mut()
-          .unwrap()
-          .episode_history
-          .set_items(history_vec);
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .episode_details_modal
-          .as_mut()
-          .unwrap()
+        episode_details_modal.episode_history.set_items(history_vec);
+        episode_details_modal
           .episode_history
           .apply_sorting_toggle(false);
       })
@@ -231,24 +185,6 @@ impl Network<'_, '_> {
           app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
         }
 
-        if app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .expect("Season details modal is empty")
-          .episode_details_modal
-          .is_none()
-        {
-          app
-            .data
-            .sonarr_data
-            .season_details_modal
-            .as_mut()
-            .unwrap()
-            .episode_details_modal = Some(EpisodeDetailsModal::default());
-        }
-
         let Episode {
           id,
           title,
@@ -271,10 +207,9 @@ impl Network<'_, '_> {
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("Season details modal is empty")
           .episode_details_modal
-          .as_mut()
-          .unwrap();
+          .get_or_insert_default();
         episode_details_modal.episode_details = ScrollableText::with_string(formatdoc!(
           "
             Title: {}
@@ -366,42 +301,21 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrRelease>>(request_props, |release_vec, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
+        let season_details_modal = app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .get_or_insert_default();
+        let episode_details_modal = season_details_modal
+          .episode_details_modal
+          .get_or_insert_default();
 
         let episode_releases_vec = release_vec
           .into_iter()
           .filter(|release| !release.full_season)
           .collect();
 
-        if app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .episode_details_modal
-          .is_none()
-        {
-          app
-            .data
-            .sonarr_data
-            .season_details_modal
-            .as_mut()
-            .unwrap()
-            .episode_details_modal = Some(EpisodeDetailsModal::default());
-        }
-
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .episode_details_modal
-          .as_mut()
-          .unwrap()
+        episode_details_modal
           .episode_releases
           .set_items(episode_releases_vec);
       })

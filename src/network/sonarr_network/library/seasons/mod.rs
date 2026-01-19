@@ -1,4 +1,5 @@
-use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
+use crate::models::Route;
+use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::{SonarrCommandBody, SonarrHistoryItem, SonarrRelease};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
@@ -111,21 +112,18 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrRelease>>(request_props, |release_vec, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
+        let season_details_modal = app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .get_or_insert_default();
 
         let season_releases_vec = release_vec
           .into_iter()
           .filter(|release| release.full_season)
           .collect();
 
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
+        season_details_modal
           .season_releases
           .set_items(season_releases_vec);
       })
@@ -147,28 +145,25 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |history_items, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Sonarr(ActiveSonarrBlock::SeasonHistorySortPrompt, _)
+        );
 
-        let mut history_vec = history_items;
-        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-        app
+        let season_details_modal = app
           .data
           .sonarr_data
           .season_details_modal
-          .as_mut()
-          .unwrap()
-          .season_history
-          .set_items(history_vec);
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .season_history
-          .apply_sorting_toggle(false);
+          .get_or_insert_default();
+
+        if !is_sorting {
+          let mut history_vec = history_items;
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          season_details_modal.season_history.set_items(history_vec);
+          season_details_modal
+            .season_history
+            .apply_sorting_toggle(false);
+        }
       })
       .await
   }
