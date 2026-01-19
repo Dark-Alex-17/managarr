@@ -302,8 +302,10 @@ impl LidarrData<'_> {
       .metadata_profile_list
       .set_items(vec![metadata_profile().name]);
 
-    let mut track_details_modal = TrackDetailsModal::default();
-    track_details_modal.track_details = ScrollableText::with_string("Some details".to_owned());
+    let mut track_details_modal = TrackDetailsModal {
+      track_details: ScrollableText::with_string("Some details".to_owned()),
+      ..TrackDetailsModal::default()
+    };
     track_details_modal
       .track_history
       .set_items(vec![lidarr_history_item()]);

@@ -37,7 +37,7 @@ mod tests {
         "PUT",
         format!(
           "/api/v3{}/1",
-          SonarrEvent::ToggleSeasonMonitoring((1, 1)).resource()
+          SonarrEvent::ToggleSeasonMonitoring(1, 1).resource()
         )
         .as_str(),
       )
@@ -56,7 +56,7 @@ mod tests {
 
     assert!(
       network
-        .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring((1, 1)))
+        .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring(1, 1))
         .await
         .is_ok()
     );
@@ -117,7 +117,7 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(release_json)
       .query("seriesId=1&seasonNumber=1")
-      .build_for(SonarrEvent::GetSeasonReleases((1, 1)))
+      .build_for(SonarrEvent::GetSeasonReleases(1, 1))
       .await;
     app
       .lock()
@@ -138,7 +138,7 @@ mod tests {
     let mut network = test_network(&app);
 
     let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(1, 1))
       .await
       .unwrap()
     else {
@@ -203,7 +203,7 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(release_json)
       .query("seriesId=1&seasonNumber=1")
-      .build_for(SonarrEvent::GetSeasonReleases((1, 1)))
+      .build_for(SonarrEvent::GetSeasonReleases(1, 1))
       .await;
     app
       .lock()
@@ -224,7 +224,7 @@ mod tests {
 
     assert!(
       network
-        .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
+        .handle_sonarr_event(SonarrEvent::GetSeasonReleases(1, 1))
         .await
         .is_ok()
     );
@@ -291,7 +291,7 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(history_json)
       .query("seriesId=1&seasonNumber=1")
-      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .build_for(SonarrEvent::GetSeasonHistory(1, 1))
       .await;
     app.lock().await.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app
@@ -322,7 +322,7 @@ mod tests {
     let mut network = test_network(&app);
 
     let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(1, 1))
       .await
       .unwrap()
     else {
@@ -403,7 +403,7 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(history_json)
       .query("seriesId=1&seasonNumber=1")
-      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .build_for(SonarrEvent::GetSeasonHistory(1, 1))
       .await;
     app
       .lock()
@@ -423,7 +423,7 @@ mod tests {
     let mut network = test_network(&app);
 
     let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(1, 1))
       .await
       .unwrap()
     else {
@@ -499,7 +499,7 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(history_json)
       .query("seriesId=1&seasonNumber=1")
-      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .build_for(SonarrEvent::GetSeasonHistory(1, 1))
       .await;
     app.lock().await.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app
@@ -520,7 +520,7 @@ mod tests {
     let mut network = test_network(&app);
 
     let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(1, 1))
       .await
       .unwrap()
     else {
@@ -563,14 +563,14 @@ mod tests {
         "seasonNumber": 1
       }))
       .returns(json!({}))
-      .build_for(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
+      .build_for(SonarrEvent::TriggerAutomaticSeasonSearch(1, 1))
       .await;
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
     assert!(
       network
-        .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
+        .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch(1, 1))
         .await
         .is_ok()
     );

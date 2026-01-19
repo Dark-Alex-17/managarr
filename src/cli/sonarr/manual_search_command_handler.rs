@@ -98,7 +98,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrManualSearchCommand>
         println!("Searching for season releases. This may take a minute...");
         match self
           .network
-          .handle_network_event(SonarrEvent::GetSeasonReleases((series_id, season_number)).into())
+          .handle_network_event(SonarrEvent::GetSeasonReleases(series_id, season_number).into())
           .await
         {
           Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(releases_vec))) => {

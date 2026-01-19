@@ -278,8 +278,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
         _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.sonarr_data.prompt_confirm = true;
+          let (series_id, season_number) = self.extract_series_id_season_number_tuple();
           self.app.data.sonarr_data.prompt_confirm_action = Some(
-            SonarrEvent::ToggleSeasonMonitoring(self.extract_series_id_season_number_tuple()),
+            SonarrEvent::ToggleSeasonMonitoring(series_id, season_number),
           );
 
           self

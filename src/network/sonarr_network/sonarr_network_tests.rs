@@ -43,8 +43,8 @@ mod test {
       SonarrEvent::GetSeriesDetails(0),
       SonarrEvent::DeleteSeries(DeleteSeriesParams::default()),
       SonarrEvent::EditSeries(EditSeriesParams::default()),
-      SonarrEvent::ToggleSeasonMonitoring((0, 0)),
-      SonarrEvent::ToggleSeriesMonitoring(0),
+      SonarrEvent::ToggleSeasonMonitoring(0, 0),
+      SonarrEvent::ToggleSeriesMonitoring(0)
     )]
     event: SonarrEvent,
   ) {
@@ -76,7 +76,7 @@ mod test {
       SonarrEvent::GetQueuedEvents,
       SonarrEvent::StartTask(SonarrTaskName::default()),
       SonarrEvent::TriggerAutomaticEpisodeSearch(0),
-      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0)),
+      SonarrEvent::TriggerAutomaticSeasonSearch(0, 0),
       SonarrEvent::TriggerAutomaticSeriesSearch(0),
       SonarrEvent::UpdateAllSeries,
       SonarrEvent::UpdateAndScanSeries(0),
@@ -108,10 +108,7 @@ mod test {
 
   #[rstest]
   fn test_resource_series_history(
-    #[values(
-      SonarrEvent::GetSeriesHistory(0),
-      SonarrEvent::GetSeasonHistory((0, 0))
-    )]
+    #[values(SonarrEvent::GetSeriesHistory(0), SonarrEvent::GetSeasonHistory(0, 0))]
     event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/history/series");
@@ -139,7 +136,7 @@ mod test {
   #[rstest]
   fn test_resource_release(
     #[values(
-      SonarrEvent::GetSeasonReleases((0, 0)),
+      SonarrEvent::GetSeasonReleases(0, 0),
       SonarrEvent::GetEpisodeReleases(0)
     )]
     event: SonarrEvent,

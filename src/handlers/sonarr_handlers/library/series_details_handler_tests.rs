@@ -378,7 +378,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleSeasonMonitoring((0, 0))
+        &SonarrEvent::ToggleSeasonMonitoring(0, 0)
       );
     }
 

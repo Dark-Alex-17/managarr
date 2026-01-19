@@ -14,10 +14,10 @@ mod sonarr_seasons_network_tests;
 impl Network<'_, '_> {
   pub(in crate::network::sonarr_network) async fn toggle_sonarr_season_monitoring(
     &mut self,
-    series_id_season_number_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<()> {
-    let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
-    let (series_id, season_number) = series_id_season_number_tuple;
+    let event = SonarrEvent::ToggleSeasonMonitoring(series_id, season_number);
 
     let detail_event = SonarrEvent::GetSeriesDetails(series_id);
     info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
@@ -94,10 +94,10 @@ impl Network<'_, '_> {
 
   pub(in crate::network::sonarr_network) async fn get_season_releases(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetSeasonReleases(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::GetSeasonReleases(series_id, season_number);
     info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
 
     let request_props = self
@@ -132,10 +132,10 @@ impl Network<'_, '_> {
 
   pub(in crate::network::sonarr_network) async fn get_sonarr_season_history(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Vec<SonarrHistoryItem>> {
-    let event = SonarrEvent::GetSeasonHistory(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::GetSeasonHistory(series_id, season_number);
     info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
 
     let params = format!("seriesId={series_id}&seasonNumber={season_number}",);
@@ -170,10 +170,10 @@ impl Network<'_, '_> {
 
   pub(in crate::network::sonarr_network) async fn trigger_automatic_season_search(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Value> {
-    let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_id, season_number);
     info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
 
     let body = SonarrCommandBody {

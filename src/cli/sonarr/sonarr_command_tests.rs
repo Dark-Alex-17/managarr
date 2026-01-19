@@ -755,7 +755,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::ToggleSeasonMonitoring((expected_series_id, expected_season_number)).into(),
+          SonarrEvent::ToggleSeasonMonitoring(expected_series_id, expected_season_number).into(),
         ))
         .times(1)
         .returning(|_| {
