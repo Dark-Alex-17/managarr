@@ -108,9 +108,13 @@ mod tests {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
-    use serde_json::json;
+    use pretty_assertions::assert_str_eq;
     use tokio::sync::Mutex;
 
+    use crate::models::sonarr_models::SonarrRelease;
+    use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+      torrent_release, usenet_release,
+    };
     use crate::{
       app::App,
       cli::{
@@ -134,9 +138,13 @@ mod tests {
         ))
         .times(1)
         .returning(|_| {
-          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(vec![
+            torrent_release(),
+            SonarrRelease {
+              full_season: true,
+              ..usenet_release()
+            },
+          ])))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_episode_search_command = SonarrManualSearchCommand::Episode { episode_id: 1 };
@@ -150,10 +158,18 @@ mod tests {
       .await;
 
       assert_ok!(&result);
+      assert_str_eq!(
+        result.unwrap(),
+        serde_json::to_string_pretty(&[torrent_release()]).unwrap()
+      );
     }
 
     #[tokio::test]
     async fn test_manual_season_search_command() {
+      let expected_release = SonarrRelease {
+        full_season: true,
+        ..usenet_release()
+      };
       let expected_series_id = 1;
       let expected_season_number = 1;
       let mut mock_network = MockNetworkTrait::new();
@@ -164,9 +180,13 @@ mod tests {
         ))
         .times(1)
         .returning(|_| {
-          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(vec![
+            torrent_release(),
+            SonarrRelease {
+              full_season: true,
+              ..usenet_release()
+            },
+          ])))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_season_search_command = SonarrManualSearchCommand::Season {
@@ -183,6 +203,10 @@ mod tests {
       .await;
 
       assert_ok!(&result);
+      assert_str_eq!(
+        result.unwrap(),
+        serde_json::to_string_pretty(&[expected_release]).unwrap()
+      );
     }
   }
 }

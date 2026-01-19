@@ -75,11 +75,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrManualSearchCommand>
     let result = match self.command {
       SonarrManualSearchCommand::Episode { episode_id } => {
         println!("Searching for episode releases. This may take a minute...");
-        let resp = self
+        match self
           .network
           .handle_network_event(SonarrEvent::GetEpisodeReleases(episode_id).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
+          .await
+        {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(releases_vec))) => {
+            let seasons_vec: Vec<SonarrRelease> = releases_vec
+              .into_iter()
+              .filter(|release| !release.full_season)
+              .collect();
+            serde_json::to_string_pretty(&seasons_vec)?
+          }
+          Err(e) => return Err(e),
+          _ => serde_json::to_string_pretty(&json!({"message": "Failed to parse response"}))?,
+        }
       }
       SonarrManualSearchCommand::Season {
         series_id,
