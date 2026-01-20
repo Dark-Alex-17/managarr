@@ -30,7 +30,7 @@ pub enum SonarrManualSearchCommand {
     episode_id: i64,
   },
   #[command(
-    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID"
+    about = "Trigger a manual search of full-season releases (full_season: true) for the given season corresponding to the series with the given ID"
   )]
   Season {
     #[arg(
@@ -88,7 +88,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrManualSearchCommand>
             serde_json::to_string_pretty(&seasons_vec)?
           }
           Err(e) => return Err(e),
-          _ => serde_json::to_string_pretty(&json!({"message": "Failed to parse response"}))?,
+          _ => serde_json::to_string_pretty(&json!({"message": "Unexpected response format"}))?,
         }
       }
       SonarrManualSearchCommand::Season {
