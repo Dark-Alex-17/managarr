@@ -1,7 +1,5 @@
 VERSION := "latest"
 IMG_NAME := "darkalex17/managarr"
-IMAGE := "{{IMG_NAME}}:{{VERSION}}"
-
 
 # List all recipes
 default:
@@ -88,4 +86,4 @@ build build_type='debug':
 # Build the docker image
 [group: 'build']
 build-docker:
-    @DOCKER_BUILDKIT=1 docker build --rm -t {{IMAGE}}
+    @DOCKER_BUILDKIT=1 docker build --rm -t {{IMG_NAME}}:{{VERSION}} .
