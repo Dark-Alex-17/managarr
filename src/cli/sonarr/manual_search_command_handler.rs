@@ -2,15 +2,17 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use clap::Subcommand;
+use serde_json::json;
 use tokio::sync::Mutex;
 
+use super::SonarrCommand;
+use crate::models::Serdeable;
+use crate::models::sonarr_models::{SonarrRelease, SonarrSerdeable};
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
-
-use super::SonarrCommand;
 
 #[cfg(test)]
 #[path = "manual_search_command_handler_tests.rs"]
@@ -28,7 +30,7 @@ pub enum SonarrManualSearchCommand {
     episode_id: i64,
   },
   #[command(
-    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID.\nNote that when downloading a season release, ensure that the release includes 'fullSeason: true', otherwise you'll run into issues"
+    about = "Trigger a manual search of full-season releases (full_season: true) for the given season corresponding to the series with the given ID"
   )]
   Season {
     #[arg(
@@ -73,22 +75,42 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrManualSearchCommand>
     let result = match self.command {
       SonarrManualSearchCommand::Episode { episode_id } => {
         println!("Searching for episode releases. This may take a minute...");
-        let resp = self
+        match self
           .network
           .handle_network_event(SonarrEvent::GetEpisodeReleases(episode_id).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
+          .await
+        {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(releases_vec))) => {
+            let seasons_vec: Vec<SonarrRelease> = releases_vec
+              .into_iter()
+              .filter(|release| !release.full_season)
+              .collect();
+            serde_json::to_string_pretty(&seasons_vec)?
+          }
+          Err(e) => return Err(e),
+          _ => serde_json::to_string_pretty(&json!({"message": "Unexpected response format"}))?,
+        }
       }
       SonarrManualSearchCommand::Season {
         series_id,
         season_number,
       } => {
         println!("Searching for season releases. This may take a minute...");
-        let resp = self
+        match self
           .network
-          .handle_network_event(SonarrEvent::GetSeasonReleases((series_id, season_number)).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
+          .handle_network_event(SonarrEvent::GetSeasonReleases(series_id, season_number).into())
+          .await
+        {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Releases(releases_vec))) => {
+            let seasons_vec: Vec<SonarrRelease> = releases_vec
+              .into_iter()
+              .filter(|release| release.full_season)
+              .collect();
+            serde_json::to_string_pretty(&seasons_vec)?
+          }
+          Err(e) => return Err(e),
+          _ => serde_json::to_string_pretty(&json!({"message": "Failed to parse response"}))?,
+        }
       }
     };
 

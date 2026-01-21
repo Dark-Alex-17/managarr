@@ -1,0 +1,52 @@
+---
+source: src/ui/lidarr_ui/library/artist_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+        ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
+        │Artist: Alex                                                                                                                                       │        
+        │Overview: some interesting description of the artist                                                                                               │        
+        │Disambiguation: American pianist                                                                                                                   │        
+        │Type: Person                                                                                                                                       │        
+        │Status: Continuing                                                                                                                                 │        
+        │Genres: soundtrack                                                                                                                                 │        
+        │Rating: 84%                                                                                                                                        │        
+        │Path: /nfs/music/test-artist                                                                                                                       │        
+        │Quality Profile: Lossless                                                                                                                          │        
+        │Metadata Profile: Standard                                                                                                                         │        
+        │Monitored: Yes                                                                                                                                     │        
+        │Albums: 1                                                                                                                                          │        
+        │Tracks: 15/15                             ╭────────────────  Automatic Artist Search  ────────────────╮                                            │        
+        │Size on Disk: 0.00 GB                     │Do you want to trigger an automatic search of your indexers│                                            │        
+        │╭  Artist Details  ───────────────────────│     for all monitored album(s) for the artist: Alex?      │───────────────────────────────────────────╮│        
+        ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
+        ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
+        ││   Source ▼  Age        ⛔     Title      │                                                           │ Size         Peers        Quality         ││        
+        ││=> torrent   1 days     ⛔     Test Releas│                                                           │ 0.0 GB       2 / 1        Lossless        ││        
+        ││   usenet    1 days     ⛔     Test Releas│                                                           │ 0.0 GB                    Lossless        ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │                                                           │                                           ││        
+        ││                                         │╭────────────────────────────╮╭───────────────────────────╮│                                           ││        
+        ││                                         ││             Yes            ││            No             ││                                           ││        
+        ││                                         │╰────────────────────────────╯╰───────────────────────────╯│                                           ││        
+        ││                                         ╰───────────────────────────────────────────────────────────╯                                           ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        │╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯│        
+        ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

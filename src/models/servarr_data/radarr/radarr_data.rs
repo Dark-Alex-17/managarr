@@ -1,5 +1,5 @@
 use crate::app::context_clues::{
-  BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+  BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
   ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
 };
 use crate::app::radarr::radarr_context_clues::{
@@ -8,7 +8,7 @@ use crate::app::radarr::radarr_context_clues::{
 };
 use crate::models::radarr_models::{
   AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DownloadRecord,
-  IndexerSettings, Movie, RadarrTask,
+  IndexerSettings, Movie, RadarrHistoryItem, RadarrTask,
 };
 use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
@@ -23,6 +23,7 @@ use crate::models::{
 use crate::network::radarr_network::RadarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use serde_json::Number;
 use strum::EnumIter;
 #[cfg(test)]
@@ -33,7 +34,8 @@ use {
   crate::network::radarr_network::radarr_network_test_utils::test_utils::{
     add_movie_search_result, blocklist_item, cast_credit, collection, collection_movie,
     crew_credit, download_record, indexer, log_line, movie, movie_history_item,
-    quality_profile_map, tags_map, task, torrent_release, updates, usenet_release,
+    quality_profile_map, radarr_history_item, tags_map, task, torrent_release, updates,
+    usenet_release,
   },
   crate::network::servarr_test_utils::diskspace,
   crate::network::servarr_test_utils::indexer_test_result,
@@ -61,6 +63,7 @@ pub struct RadarrData<'a> {
   pub downloads: StatefulTable<DownloadRecord>,
   pub indexers: StatefulTable<Indexer>,
   pub blocklist: StatefulTable<BlocklistItem>,
+  pub history: StatefulTable<RadarrHistoryItem>,
   pub quality_profile_map: BiMap<i64, String>,
   pub tags_map: BiMap<i64, String>,
   pub collections: StatefulTable<Collection>,
@@ -112,9 +115,13 @@ impl RadarrData<'_> {
   }
 
   pub fn sorted_quality_profile_names(&self) -> Vec<String> {
-    let mut names: Vec<String> = self.quality_profile_map.right_values().cloned().collect();
-    names.sort();
-    names
+    self
+      .quality_profile_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 }
 
@@ -130,6 +137,7 @@ impl<'a> Default for RadarrData<'a> {
       downloads: StatefulTable::default(),
       indexers: StatefulTable::default(),
       blocklist: StatefulTable::default(),
+      history: StatefulTable::default(),
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       collections: StatefulTable::default(),
@@ -177,6 +185,12 @@ impl<'a> Default for RadarrData<'a> {
           title: "Blocklist".to_string(),
           route: ActiveRadarrBlock::Blocklist.into(),
           contextual_help: Some(&BLOCKLIST_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "History".to_string(),
+          route: ActiveRadarrBlock::History.into(),
+          contextual_help: Some(&HISTORY_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
@@ -382,6 +396,10 @@ impl RadarrData<'_> {
     radarr_data.downloads.set_items(vec![download_record()]);
     radarr_data.blocklist.set_items(vec![blocklist_item()]);
     radarr_data.blocklist.sorting(vec![sort_option!(id)]);
+    radarr_data.history.set_items(vec![radarr_history_item()]);
+    radarr_data.history.sorting(vec![sort_option!(id)]);
+    radarr_data.history.search = Some("Something".into());
+    radarr_data.history.filter = Some("Something".into());
     radarr_data.indexers.set_items(vec![indexer()]);
     radarr_data.indexers.sorting(vec![sort_option!(id)]);
     radarr_data.indexers.search = Some("Something".into());
@@ -415,6 +433,13 @@ pub enum ActiveRadarrBlock {
   BlocklistClearAllItemsPrompt,
   BlocklistItemDetails,
   BlocklistSortPrompt,
+  History,
+  HistoryItemDetails,
+  HistorySortPrompt,
+  FilterHistory,
+  FilterHistoryError,
+  SearchHistory,
+  SearchHistoryError,
   Collections,
   CollectionsSortPrompt,
   CollectionDetails,
@@ -532,6 +557,15 @@ pub static BLOCKLIST_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::DeleteBlocklistItemPrompt,
   ActiveRadarrBlock::BlocklistClearAllItemsPrompt,
   ActiveRadarrBlock::BlocklistSortPrompt,
+];
+pub static HISTORY_BLOCKS: [ActiveRadarrBlock; 7] = [
+  ActiveRadarrBlock::History,
+  ActiveRadarrBlock::HistoryItemDetails,
+  ActiveRadarrBlock::HistorySortPrompt,
+  ActiveRadarrBlock::FilterHistory,
+  ActiveRadarrBlock::FilterHistoryError,
+  ActiveRadarrBlock::SearchHistory,
+  ActiveRadarrBlock::SearchHistoryError,
 ];
 pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieSearchInput,

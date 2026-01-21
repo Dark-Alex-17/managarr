@@ -3,7 +3,7 @@ use super::message::Message;
 use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::HIGHLIGHT_SYMBOL;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{ManagarrStyle, highlight_style};
 use crate::ui::utils::{borderless_block, centered_rect, title_block_centered};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
@@ -12,7 +12,7 @@ use derive_setters::Setters;
 use ratatui::Frame;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
-use ratatui::prelude::{Style, Stylize, Text};
+use ratatui::prelude::{Stylize, Text};
 use ratatui::widgets::{Block, ListItem, Row, StatefulWidget, Table, Widget, WidgetRef};
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
@@ -136,7 +136,10 @@ where
       if !table_contents.is_empty() {
         let rows = table_contents.iter().map(&self.row_mapper);
 
-        let headers = Row::new(table_headers).default().bold().bottom_margin(0);
+        let headers = Row::new(table_headers)
+          .default_color()
+          .bold()
+          .bottom_margin(0);
 
         let mut table = Table::new(rows, &self.constraints)
           .header(headers)
@@ -144,7 +147,7 @@ where
 
         if self.highlight_rows {
           table = table
-            .row_highlight_style(Style::new().highlight())
+            .row_highlight_style(highlight_style())
             .highlight_symbol(HIGHLIGHT_SYMBOL);
         }
 

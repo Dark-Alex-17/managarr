@@ -8,6 +8,7 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
+  use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
@@ -35,6 +36,7 @@ mod tests {
       theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
+      lidarr: None,
     };
     let expected_tab_routes = vec![
       TabRoute {
@@ -78,7 +80,7 @@ mod tests {
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.server_tabs.tabs, expected_tab_routes);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.ticks_until_scroll, 64);
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.ui_scroll_tick_count, 0);
     assert!(!app.is_loading);
@@ -99,7 +101,7 @@ mod tests {
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.ticks_until_scroll, 64);
     assert_eq!(app.tick_count, 0);
     assert!(!app.is_loading);
     assert!(!app.is_routing);
@@ -184,6 +186,7 @@ mod tests {
       ..SonarrData::default()
     };
     let data = Data {
+      lidarr_data: LidarrData::default(),
       radarr_data,
       sonarr_data,
     };

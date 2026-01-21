@@ -174,9 +174,25 @@ where
   }
 
   pub fn set_filtered_items(&mut self, filtered_items: Vec<T>) {
+    let items_len = filtered_items.len();
     self.filtered_items = Some(filtered_items);
+
+    let preserved_selection = self
+      .filtered_state
+      .as_ref()
+      .and_then(|state| state.selected())
+      .map_or(0, |i| {
+        if i > 0 && i < items_len {
+          i
+        } else if i >= items_len && items_len > 0 {
+          items_len - 1
+        } else {
+          0
+        }
+      });
+
     let mut filtered_state: TableState = Default::default();
-    filtered_state.select(Some(0));
+    filtered_state.select(Some(preserved_selection));
     self.filtered_state = Some(filtered_state);
   }
 

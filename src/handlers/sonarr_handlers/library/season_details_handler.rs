@@ -4,6 +4,7 @@ use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
@@ -278,8 +279,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       }
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
+          let (series_id, season_number) = self.extract_series_id_season_number_tuple();
           self.app.data.sonarr_data.prompt_confirm_action = Some(
-            SonarrEvent::TriggerAutomaticSeasonSearch(self.extract_series_id_season_number_tuple()),
+            SonarrEvent::TriggerAutomaticSeasonSearch(series_id, season_number),
           );
         }
 
@@ -403,8 +405,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       },
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt if matches_key!(confirm, key) => {
         self.app.data.sonarr_data.prompt_confirm = true;
+        let (series_id, season_number) = self.extract_series_id_season_number_tuple();
         self.app.data.sonarr_data.prompt_confirm_action = Some(
-          SonarrEvent::TriggerAutomaticSeasonSearch(self.extract_series_id_season_number_tuple()),
+          SonarrEvent::TriggerAutomaticSeasonSearch(series_id, season_number),
         );
 
         self.app.pop_navigation_stack();
@@ -458,7 +461,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -197,7 +197,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::TriggerAutomaticSeasonSearch((expected_series_id, expected_season_number))
+          SonarrEvent::TriggerAutomaticSeasonSearch(expected_series_id, expected_season_number)
             .into(),
         ))
         .times(1)

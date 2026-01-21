@@ -23,6 +23,7 @@ use crate::{
 mod modals_tests;
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct AddSeriesModal {
   pub root_folder_list: StatefulList<RootFolder>,
   pub monitor_list: StatefulList<SeriesMonitor>,
@@ -130,6 +131,7 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct EditSeriesModal {
   pub series_type_list: StatefulList<SeriesType>,
   pub quality_profile_list: StatefulList<String>,
@@ -260,6 +262,7 @@ impl Default for EpisodeDetailsModal {
   }
 }
 
+#[cfg_attr(test, derive(Debug))]
 pub struct SeasonDetailsModal {
   pub episodes: StatefulTable<Episode>,
   pub episode_files: StatefulTable<EpisodeFile>,

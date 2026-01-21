@@ -15,6 +15,7 @@ use crate::models::{HorizontallyScrollableText, ScrollableText};
 mod modals_tests;
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct MovieDetailsModal {
   pub movie_details: ScrollableText,
   pub file_details: String,
@@ -97,6 +98,7 @@ impl From<&RadarrData<'_>> for EditIndexerModal {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct EditMovieModal {
   pub minimum_availability_list: StatefulList<MinimumAvailability>,
   pub quality_profile_list: StatefulList<String>,
@@ -157,6 +159,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct AddMovieModal {
   pub root_folder_list: StatefulList<RootFolder>,
   pub monitor_list: StatefulList<MovieMonitor>,
@@ -186,6 +189,7 @@ impl From<&RadarrData<'_>> for AddMovieModal {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct EditCollectionModal {
   pub monitored: Option<bool>,
   pub minimum_availability_list: StatefulList<MinimumAvailability>,

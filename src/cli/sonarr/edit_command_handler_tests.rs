@@ -622,8 +622,8 @@ mod tests {
       },
       models::{
         Serdeable,
-        servarr_models::EditIndexerParams,
-        sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
+        servarr_models::{EditIndexerParams, IndexerSettings},
+        sonarr_models::{EditSeriesParams, SeriesType, SonarrSerdeable},
       },
       network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };

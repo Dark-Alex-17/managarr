@@ -384,12 +384,12 @@ mod tests {
         title: String::new(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
-        minimum_availability: "released".to_owned(),
+        minimum_availability: MinimumAvailability::Released,
         monitored: false,
         tags: vec![1, 2],
         tag_input_string: None,
         add_options: AddMovieOptions {
-          monitor: "movieAndCollection".to_owned(),
+          monitor: MovieMonitor::MovieAndCollection,
           search_for_movie: false,
         },
       };

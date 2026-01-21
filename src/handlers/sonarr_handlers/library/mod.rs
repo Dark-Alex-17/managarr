@@ -25,6 +25,7 @@ use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeD
 use crate::handlers::sonarr_handlers::library::season_details_handler::SeasonDetailsHandler;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::models::Route;
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -245,7 +246,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

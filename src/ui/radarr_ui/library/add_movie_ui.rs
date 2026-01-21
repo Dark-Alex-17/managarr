@@ -69,12 +69,14 @@ impl DrawUi for AddMovieUi {
 
 fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.radarr_data.add_searched_movies.is_none();
-  let current_selection =
-    if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_ref() {
-      add_searched_movies.current_selection().clone()
-    } else {
-      AddMovieSearchResult::default()
-    };
+  let current_selection = if let Some(add_searched_movies) =
+    app.data.radarr_data.add_searched_movies.as_ref()
+    && !add_searched_movies.is_empty()
+  {
+    add_searched_movies.current_selection().clone()
+  } else {
+    AddMovieSearchResult::default()
+  };
 
   let [search_box_area, results_area] =
     Layout::vertical([Constraint::Length(3), Constraint::Fill(0)])
@@ -162,14 +164,14 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .block(title_block_centered("Add Movie"));
 
         search_box.show_cursor(f, search_box_area);
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(search_box, search_box_area);
       }
       ActiveRadarrBlock::AddMovieEmptySearchResults => {
         let error_message = Message::new("No movies found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(error_message_popup, f.area());
       }
       ActiveRadarrBlock::AddMovieSearchResults
@@ -185,7 +187,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           search_results_row_mapping,
         )
         .loading(is_loading)
-        .block(layout_block().default())
+        .block(layout_block().default_color())
         .headers([
           "✔",
           "Title",
@@ -336,22 +338,22 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
-  let root_folder_drop_down_button = Button::new()
+  let root_folder_drop_down_button = Button::default()
     .title(&selected_root_folder.path)
     .label("Root Folder")
     .icon("▼")
     .selected(selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder);
-  let monitor_drop_down_button = Button::new()
+  let monitor_drop_down_button = Button::default()
     .title(selected_monitor.to_display_str())
     .label("Monitor")
     .icon("▼")
     .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMonitor);
-  let min_availability_drop_down_button = Button::new()
+  let min_availability_drop_down_button = Button::default()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
     .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
-  let quality_profile_drop_down_button = Button::new()
+  let quality_profile_drop_down_button = Button::default()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
@@ -371,10 +373,10 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }
 
-  let add_button = Button::new()
+  let add_button = Button::default()
     .title("Add")
     .selected(yes_no_value && highlight_yes_no);
-  let cancel_button = Button::new()
+  let cancel_button = Button::default()
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 

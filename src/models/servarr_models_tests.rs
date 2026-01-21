@@ -3,8 +3,29 @@ mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::models::servarr_models::{
-    AuthenticationMethod, AuthenticationRequired, CertificateValidation, QualityProfile,
+    AuthenticationMethod, AuthenticationRequired, CertificateValidation, Indexer, QualityProfile,
   };
+
+  #[test]
+  fn test_indexer_default() {
+    let indexer = Indexer::default();
+
+    assert_eq!(indexer.id, 0);
+    assert_none!(indexer.name);
+    assert_none!(indexer.implementation);
+    assert_none!(indexer.implementation_name);
+    assert_none!(indexer.config_contract);
+    assert!(!indexer.supports_rss);
+    assert!(!indexer.supports_search);
+    assert_none!(indexer.fields);
+    assert!(!indexer.enable_rss);
+    assert!(!indexer.enable_automatic_search);
+    assert!(!indexer.enable_interactive_search);
+    assert_is_empty!(indexer.protocol);
+    assert_eq!(indexer.priority, 1);
+    assert_eq!(indexer.download_client_id, 0);
+    assert_is_empty!(indexer.tags);
+  }
 
   #[test]
   fn test_authentication_method_display() {

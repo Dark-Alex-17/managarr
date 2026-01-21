@@ -11,7 +11,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::servarr_models::Language;
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, Route, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]
@@ -379,7 +379,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

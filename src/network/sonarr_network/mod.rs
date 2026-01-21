@@ -5,10 +5,12 @@ use serde_json::{Value, json};
 use super::{Network, NetworkEvent, NetworkResource};
 use crate::{
   models::{
-    servarr_models::{AddRootFolderBody, EditIndexerParams, Language, QualityProfile, Tag},
+    servarr_models::{
+      AddRootFolderBody, EditIndexerParams, IndexerSettings, Language, QualityProfile, Tag,
+    },
     sonarr_models::{
-      AddSeriesBody, DeleteSeriesParams, EditSeriesParams, IndexerSettings,
-      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTaskName,
+      AddSeriesBody, DeleteSeriesParams, EditSeriesParams, SonarrReleaseDownloadBody,
+      SonarrSerdeable, SonarrTaskName,
     },
   },
   network::RequestMethod,
@@ -63,8 +65,8 @@ pub enum SonarrEvent {
   GetQueuedEvents,
   GetRootFolders,
   GetEpisodeReleases(i64),
-  GetSeasonHistory((i64, i64)),
-  GetSeasonReleases((i64, i64)),
+  GetSeasonHistory(i64, i64),
+  GetSeasonReleases(i64, i64),
   GetSecurityConfig,
   GetSeriesDetails(i64),
   GetSeriesHistory(i64),
@@ -79,11 +81,11 @@ pub enum SonarrEvent {
   StartTask(SonarrTaskName),
   TestIndexer(i64),
   TestAllIndexers,
-  ToggleSeasonMonitoring((i64, i64)),
+  ToggleSeasonMonitoring(i64, i64),
   ToggleSeriesMonitoring(i64),
   ToggleEpisodeMonitoring(i64),
   TriggerAutomaticEpisodeSearch(i64),
-  TriggerAutomaticSeasonSearch((i64, i64)),
+  TriggerAutomaticSeasonSearch(i64, i64),
   TriggerAutomaticSeriesSearch(i64),
   UpdateAllSeries,
   UpdateAndScanSeries(i64),
@@ -116,7 +118,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetQueuedEvents
       | SonarrEvent::StartTask(_)
       | SonarrEvent::TriggerAutomaticSeriesSearch(_)
-      | SonarrEvent::TriggerAutomaticSeasonSearch(_)
+      | SonarrEvent::TriggerAutomaticSeasonSearch(_, _)
       | SonarrEvent::TriggerAutomaticEpisodeSearch(_)
       | SonarrEvent::UpdateAllSeries
       | SonarrEvent::UpdateAndScanSeries(_)
@@ -124,8 +126,8 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
-      SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
-      SonarrEvent::GetSeriesHistory(_) | SonarrEvent::GetSeasonHistory(_) => "/history/series",
+      SonarrEvent::GetSeasonReleases(_, _) | SonarrEvent::GetEpisodeReleases(_) => "/release",
+      SonarrEvent::GetSeriesHistory(_) | SonarrEvent::GetSeasonHistory(_, _) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::GetTasks => "/system/task",
       SonarrEvent::GetUpdates => "/update",
@@ -135,7 +137,7 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::GetSeriesDetails(_)
       | SonarrEvent::DeleteSeries(_)
       | SonarrEvent::EditSeries(_)
-      | SonarrEvent::ToggleSeasonMonitoring(_)
+      | SonarrEvent::ToggleSeasonMonitoring(_, _)
       | SonarrEvent::ToggleSeriesMonitoring(_) => "/series",
       SonarrEvent::SearchNewSeries(_) => "/series/lookup",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
@@ -273,12 +275,12 @@ impl Network<'_, '_> {
         .get_episode_releases(params)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::GetSeasonHistory(params) => self
-        .get_sonarr_season_history(params)
+      SonarrEvent::GetSeasonHistory(series_id, season_number) => self
+        .get_sonarr_season_history(series_id, season_number)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::GetSeasonReleases(params) => self
-        .get_season_releases(params)
+      SonarrEvent::GetSeasonReleases(series_id, season_number) => self
+        .get_season_releases(series_id, season_number)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSecurityConfig => self
@@ -326,16 +328,16 @@ impl Network<'_, '_> {
         .toggle_sonarr_episode_monitoring(episode_id)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::ToggleSeasonMonitoring(params) => self
-        .toggle_sonarr_season_monitoring(params)
+      SonarrEvent::ToggleSeasonMonitoring(series_id, season_number) => self
+        .toggle_sonarr_season_monitoring(series_id, season_number)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::ToggleSeriesMonitoring(series_id) => self
         .toggle_sonarr_series_monitoring(series_id)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
-        .trigger_automatic_season_search(params)
+      SonarrEvent::TriggerAutomaticSeasonSearch(series_id, season_number) => self
+        .trigger_automatic_season_search(series_id, season_number)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::TriggerAutomaticSeriesSearch(series_id) => self

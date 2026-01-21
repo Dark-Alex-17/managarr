@@ -62,6 +62,11 @@ impl App<'_> {
           .dispatch_network_event(RadarrEvent::GetDownloads(500).into())
           .await;
       }
+      ActiveRadarrBlock::History => {
+        self
+          .dispatch_network_event(RadarrEvent::GetHistory(500).into())
+          .await;
+      }
       ActiveRadarrBlock::Indexers => {
         self
           .dispatch_network_event(RadarrEvent::GetTags.into())

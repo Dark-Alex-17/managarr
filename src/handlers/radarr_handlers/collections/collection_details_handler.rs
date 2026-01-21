@@ -3,12 +3,12 @@ use crate::event::Key;
 use crate::handlers::KeyEventHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::matches_key;
-use crate::models::BlockSelectionState;
 use crate::models::servarr_data::radarr::radarr_data::{
   ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::StatefulTable;
+use crate::models::{BlockSelectionState, Route};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -148,7 +148,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

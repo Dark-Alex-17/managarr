@@ -2,16 +2,19 @@ use crate::handlers::KeyEventHandler;
 use crate::handlers::radarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::radarr_handlers::collections::CollectionsHandler;
 use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
+use crate::handlers::radarr_handlers::history::HistoryHandler;
 use crate::handlers::radarr_handlers::indexers::IndexersHandler;
 use crate::handlers::radarr_handlers::library::LibraryHandler;
 use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::{App, Key, matches_key};
 
 mod blocklist;
 mod collections;
 mod downloads;
+mod history;
 mod indexers;
 mod library;
 mod root_folders;
@@ -49,6 +52,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
       }
       _ if DownloadsHandler::accepts(self.active_radarr_block) => {
         DownloadsHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
+      }
+      _ if HistoryHandler::accepts(self.active_radarr_block) => {
+        HistoryHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if RootFoldersHandler::accepts(self.active_radarr_block) => {
         RootFoldersHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
@@ -112,7 +118,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -64,6 +64,15 @@ pub enum RadarrCommand {
   Refresh(RadarrRefreshCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
+  #[command(about = "Mark the Radarr history item with the given ID as 'failed'")]
+  MarkHistoryItemAsFailed {
+    #[arg(
+      long,
+      help = "The Radarr ID of the history item you wish to mark as 'failed'",
+      required = true
+    )]
+    history_item_id: i64,
+  },
   #[command(about = "Manually download the given release for the specified movie ID")]
   DownloadRelease {
     #[arg(long, help = "The GUID of the release to download", required = true)]
@@ -207,6 +216,15 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
           .handle_network_event(RadarrEvent::ClearBlocklist.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
+      }
+      RadarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
+        let _ = self
+          .network
+          .handle_network_event(RadarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
+          .await?;
+        serde_json::to_string_pretty(
+          &serde_json::json!({"message": "Radarr history item marked as 'failed'"}),
+        )?
       }
       RadarrCommand::DownloadRelease {
         guid,

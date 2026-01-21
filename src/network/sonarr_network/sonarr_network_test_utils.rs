@@ -5,10 +5,9 @@ pub mod test_utils {
   };
   use crate::models::sonarr_models::{
     AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
-    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating,
-    Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
-    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask,
-    SonarrTaskName,
+    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, MediaInfo, Rating, Season,
+    SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType, SonarrHistoryData,
+    SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask, SonarrTaskName,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
@@ -204,7 +203,7 @@ pub mod test_utils {
     }
   }
 
-  pub fn history_item() -> SonarrHistoryItem {
+  pub fn sonarr_history_item() -> SonarrHistoryItem {
     SonarrHistoryItem {
       id: 1,
       source_title: "Test source".into(),
@@ -250,16 +249,6 @@ pub mod test_utils {
     }
   }
 
-  pub fn indexer_settings() -> IndexerSettings {
-    IndexerSettings {
-      id: 1,
-      minimum_age: 1,
-      retention: 1,
-      maximum_size: 12345,
-      rss_sync_interval: 60,
-    }
-  }
-
   pub fn language() -> Language {
     Language {
       id: 1,
@@ -284,6 +273,7 @@ pub mod test_utils {
       subtitles: Some("English".to_owned()),
     }
   }
+
   pub fn quality() -> Quality {
     Quality {
       name: "Bluray-1080p".to_owned(),

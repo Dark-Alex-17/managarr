@@ -268,7 +268,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
+      SonarrEvent::TriggerAutomaticSeasonSearch(0, 0)
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
@@ -694,7 +694,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
+      SonarrEvent::TriggerAutomaticSeasonSearch(0, 0)
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,

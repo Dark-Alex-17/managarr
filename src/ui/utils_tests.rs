@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-  use crate::ui::styles::ManagarrStyle;
+  use crate::ui::styles::{ManagarrStyle, default_style, failure_style, secondary_style};
   use crate::ui::utils::{
     borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style,
     get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border,
@@ -49,7 +49,7 @@ mod test {
         .add_modifier(Modifier::BOLD),
     );
     let expected_block = Block::new()
-      .default()
+      .default_color()
       .borders(Borders::TOP)
       .title(title_span.clone());
 
@@ -63,7 +63,7 @@ mod test {
   fn test_layout_block_top_border() {
     assert_eq!(
       layout_block_top_border(),
-      Block::new().borders(Borders::TOP).default()
+      Block::new().borders(Borders::TOP).default_color()
     );
   }
 
@@ -71,13 +71,13 @@ mod test {
   fn test_layout_block_bottom_border() {
     assert_eq!(
       layout_block_bottom_border(),
-      Block::new().borders(Borders::BOTTOM).default()
+      Block::new().borders(Borders::BOTTOM).default_color()
     );
   }
 
   #[test]
   fn test_borderless_block() {
-    assert_eq!(borderless_block(), Block::new().default());
+    assert_eq!(borderless_block(), Block::new().default_color());
   }
 
   #[test]
@@ -117,7 +117,7 @@ mod test {
   #[test]
   fn test_title_block() {
     let expected_block = Block::new()
-      .default()
+      .default_color()
       .borders(Borders::ALL)
       .border_type(BorderType::Rounded)
       .title(Span::styled(
@@ -131,7 +131,7 @@ mod test {
   #[test]
   fn test_title_block_centered() {
     let expected_block = Block::new()
-      .default()
+      .default_color()
       .borders(Borders::ALL)
       .border_type(BorderType::Rounded)
       .title(Span::styled(
@@ -146,7 +146,7 @@ mod test {
   #[test]
   fn test_logo_block() {
     let expected_block = Block::new()
-      .default()
+      .default_color()
       .borders(Borders::ALL)
       .border_type(BorderType::Rounded)
       .title(Span::styled(
@@ -190,7 +190,6 @@ mod test {
 
   #[test]
   fn test_determine_log_style_by_level() {
-    use crate::ui::styles::ManagarrStyle;
     let list_item = ListItem::new(Text::from(Span::raw("test")));
 
     assert_eq!(
@@ -203,23 +202,23 @@ mod test {
     );
     assert_eq!(
       style_log_list_item(list_item.clone(), "info".to_string()),
-      list_item.clone().style(Style::new().default())
+      list_item.clone().style(default_style())
     );
     assert_eq!(
       style_log_list_item(list_item.clone(), "warn".to_string()),
-      list_item.clone().style(Style::new().secondary())
+      list_item.clone().style(secondary_style())
     );
     assert_eq!(
       style_log_list_item(list_item.clone(), "error".to_string()),
-      list_item.clone().style(Style::new().failure())
+      list_item.clone().style(failure_style())
     );
     assert_eq!(
       style_log_list_item(list_item.clone(), "fatal".to_string()),
-      list_item.clone().style(Style::new().failure().bold())
+      list_item.clone().style(failure_style().bold())
     );
     assert_eq!(
       style_log_list_item(list_item.clone(), "".to_string()),
-      list_item.style(Style::new().default())
+      list_item.style(default_style())
     );
   }
 

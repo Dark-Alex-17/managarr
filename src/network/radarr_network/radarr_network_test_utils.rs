@@ -3,8 +3,8 @@ pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
     CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
-    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName,
-    Rating, RatingsList,
+    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrHistoryData, RadarrHistoryEventType,
+    RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -310,6 +310,24 @@ pub mod test_utils {
       languages: vec![language()],
       date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
       event_type: "grabbed".to_owned(),
+    }
+  }
+
+  pub fn radarr_history_item() -> RadarrHistoryItem {
+    RadarrHistoryItem {
+      id: 1,
+      source_title: HorizontallyScrollableText::from("Test"),
+      movie_id: 1,
+      quality: quality_wrapper(),
+      languages: vec![language()],
+      date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
+      event_type: RadarrHistoryEventType::Grabbed,
+      data: RadarrHistoryData {
+        indexer: Some("DrunkenSlug (Prowlarr)".to_owned()),
+        release_group: Some("SPARKS".to_owned()),
+        download_client: Some("transmission".to_owned()),
+        ..RadarrHistoryData::default()
+      },
     }
   }
 

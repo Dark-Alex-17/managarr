@@ -318,6 +318,11 @@ pub fn select_cli_configuration(
           config.sonarr.as_ref().expect("Sonarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_sonarr_config);
       }
+      Command::Lidarr(_) => {
+        let default_lidarr_config =
+          config.lidarr.as_ref().expect("Lidarr config must exist")[0].clone();
+        app.server_tabs.select_tab_by_config(&default_lidarr_config);
+      }
       _ => (),
     }
   }

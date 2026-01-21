@@ -29,9 +29,10 @@ mod tests {
     #[case(ActiveRadarrBlock::Collections, 1)]
     #[case(ActiveRadarrBlock::Downloads, 2)]
     #[case(ActiveRadarrBlock::Blocklist, 3)]
-    #[case(ActiveRadarrBlock::RootFolders, 4)]
-    #[case(ActiveRadarrBlock::Indexers, 5)]
-    #[case(ActiveRadarrBlock::System, 6)]
+    #[case(ActiveRadarrBlock::History, 4)]
+    #[case(ActiveRadarrBlock::RootFolders, 5)]
+    #[case(ActiveRadarrBlock::Indexers, 6)]
+    #[case(ActiveRadarrBlock::System, 7)]
     fn test_radarr_ui_renders_radarr_tabs(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,

@@ -9,6 +9,7 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::table_handler::TableHandlingConfig;
   use crate::handlers::table_handler::handle_table;
+  use crate::models::Route;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::Language;
@@ -98,7 +99,7 @@ mod tests {
       self.app
     }
 
-    fn current_route(&self) -> crate::models::Route {
+    fn current_route(&self) -> Route {
       self.app.get_current_route()
     }
   }

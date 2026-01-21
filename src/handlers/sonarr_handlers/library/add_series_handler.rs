@@ -5,7 +5,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
   ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock,
 };
 use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult};
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, Route, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{App, Key, handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
@@ -74,8 +74,8 @@ impl AddSeriesHandler<'_, '_> {
       .unwrap();
 
     let path = root_folder_list.current_selection().path.clone();
-    let monitor = monitor_list.current_selection().to_string();
-    let series_type = series_type_list.current_selection().to_string();
+    let monitor = *monitor_list.current_selection();
+    let series_type = *series_type_list.current_selection();
 
     AddSeriesBody {
       tvdb_id,
@@ -426,8 +426,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_submit(&mut self) {
     match self.active_sonarr_block {
-      _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchInput
-        && !self
+      ActiveSonarrBlock::AddSeriesSearchInput
+        if !self
           .app
           .data
           .sonarr_data
@@ -442,8 +442,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
           .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
         self.app.ignore_special_keys_for_textbox_input = false;
       }
-      _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchResults
-        && self.app.data.sonarr_data.add_searched_series.is_some() =>
+      ActiveSonarrBlock::AddSeriesSearchResults
+        if self.app.data.sonarr_data.add_searched_series.is_some() =>
       {
         let tvdb_id = self
           .app
@@ -625,7 +625,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -4,7 +4,7 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{
     DownloadRecord, DownloadStatus, Episode, MonitorEpisodeBody, Season, Series, SonarrHistoryItem,
-    SonarrHistoryWrapper, SonarrSerdeable,
+    SonarrHistoryWrapper, SonarrRelease, SonarrSerdeable,
   };
   use crate::models::stateful_table::SortOption;
   use crate::network::NetworkResource;
@@ -12,7 +12,7 @@ mod tests {
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::library::episodes::get_episode_status;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    EPISODE_JSON, episode, episode_file, history_item, torrent_release,
+    EPISODE_JSON, episode, episode_file, sonarr_history_item, torrent_release,
   };
   use indoc::formatdoc;
   use mockito::Matcher;
@@ -522,13 +522,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
@@ -649,13 +649,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
@@ -754,13 +754,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
@@ -821,8 +821,7 @@ mod tests {
       .path("/1")
       .build_for(SonarrEvent::GetEpisodeDetails(1))
       .await;
-    let mut episode_details_modal = EpisodeDetailsModal::default();
-    episode_details_modal.episode_details_tabs.next();
+    let episode_details_modal = EpisodeDetailsModal::default();
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     season_details_modal.episode_details_modal = Some(episode_details_modal);
@@ -868,7 +867,7 @@ mod tests {
         .unwrap()
         .episode_details_tabs
         .get_active_route(),
-      ActiveSonarrBlock::EpisodeHistory.into()
+      ActiveSonarrBlock::EpisodeDetails.into()
     );
     assert_eq!(episode, response);
 
@@ -1067,21 +1066,53 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_episode_releases_event() {
-    let release_json = json!([{
-      "guid": "1234",
-      "protocol": "torrent",
-      "age": 1,
-      "title": "Test Release",
-      "indexer": "kickass torrents",
-      "indexerId": 2,
-      "size": 1234,
-      "rejected": true,
-      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-      "seeders": 2,
-      "leechers": 1,
-      "languages": [ { "id": 1, "name": "English" } ],
-      "quality": { "quality": { "name": "Bluray-1080p" }}
-    }]);
+    let release_json = json!([
+      {
+        "guid": "1234",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "languages": [ { "id": 1, "name": "English" } ],
+        "quality": { "quality": { "name": "Bluray-1080p" }},
+        "fullSeason": true
+      },
+      {
+        "guid": "4567",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "languages": [ { "id": 1, "name": "English" } ],
+        "quality": { "quality": { "name": "Bluray-1080p" }},
+      }
+    ]);
+    let expected_filtered_sonarr_release = SonarrRelease {
+      guid: "4567".to_owned(),
+      ..torrent_release()
+    };
+    let expected_raw_sonarr_releases = vec![
+      SonarrRelease {
+        full_season: true,
+        ..torrent_release()
+      },
+      SonarrRelease {
+        guid: "4567".to_owned(),
+        ..torrent_release()
+      },
+    ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
       .returns(release_json)
       .query("episodeId=1")
@@ -1124,28 +1155,60 @@ mod tests {
         .unwrap()
         .episode_releases
         .items,
-      vec![torrent_release()]
+      vec![expected_filtered_sonarr_release]
     );
-    assert_eq!(releases_vec, vec![torrent_release()]);
+    assert_eq!(releases_vec, expected_raw_sonarr_releases);
   }
 
   #[tokio::test]
   async fn test_handle_get_episode_releases_event_empty_episode_details_modal() {
-    let release_json = json!([{
-      "guid": "1234",
-      "protocol": "torrent",
-      "age": 1,
-      "title": "Test Release",
-      "indexer": "kickass torrents",
-      "indexerId": 2,
-      "size": 1234,
-      "rejected": true,
-      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-      "seeders": 2,
-      "leechers": 1,
-      "languages": [ { "id": 1, "name": "English" } ],
-      "quality": { "quality": { "name": "Bluray-1080p" }}
-    }]);
+    let release_json = json!([
+      {
+        "guid": "1234",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "languages": [ { "id": 1, "name": "English" } ],
+        "quality": { "quality": { "name": "Bluray-1080p" }},
+        "fullSeason": true
+      },
+      {
+        "guid": "4567",
+        "protocol": "torrent",
+        "age": 1,
+        "title": "Test Release",
+        "indexer": "kickass torrents",
+        "indexerId": 2,
+        "size": 1234,
+        "rejected": true,
+        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+        "seeders": 2,
+        "leechers": 1,
+        "languages": [ { "id": 1, "name": "English" } ],
+        "quality": { "quality": { "name": "Bluray-1080p" }},
+      }
+    ]);
+    let expected_filtered_sonarr_release = SonarrRelease {
+      guid: "4567".to_owned(),
+      ..torrent_release()
+    };
+    let expected_raw_sonarr_releases = vec![
+      SonarrRelease {
+        full_season: true,
+        ..torrent_release()
+      },
+      SonarrRelease {
+        guid: "4567".to_owned(),
+        ..torrent_release()
+      },
+    ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
       .returns(release_json)
       .query("episodeId=1")
@@ -1179,9 +1242,9 @@ mod tests {
         .unwrap()
         .episode_releases
         .items,
-      vec![torrent_release()]
+      vec![expected_filtered_sonarr_release]
     );
-    assert_eq!(releases_vec, vec![torrent_release()]);
+    assert_eq!(releases_vec, expected_raw_sonarr_releases);
   }
 
   #[tokio::test]

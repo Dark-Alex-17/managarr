@@ -4,8 +4,8 @@ use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
 use crate::handlers::{KeyEventHandler, handle_clear_errors};
 use crate::matches_key;
-use crate::models::Scrollable;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::{Route, Scrollable};
 
 mod system_details_handler;
 
@@ -129,7 +129,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

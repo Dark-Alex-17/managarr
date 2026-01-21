@@ -6,11 +6,11 @@ use library::LibraryHandler;
 use root_folders::RootFoldersHandler;
 use system::SystemHandler;
 
+use super::KeyEventHandler;
+use crate::models::Route;
 use crate::{
   app::App, event::Key, matches_key, models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
 };
-
-use super::KeyEventHandler;
 
 mod blocklist;
 mod downloads;
@@ -115,7 +115,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

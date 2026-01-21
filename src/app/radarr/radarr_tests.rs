@@ -6,7 +6,8 @@ mod tests {
   use crate::app::App;
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
-    AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, Movie, RadarrRelease,
+    AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, MinimumAvailability, Movie,
+    MovieMonitor, RadarrRelease,
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_models::Indexer;
@@ -88,13 +89,13 @@ mod tests {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
-      minimum_availability: "announced".to_owned(),
+      minimum_availability: MinimumAvailability::Announced,
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
       tag_input_string: None,
       add_options: AddMovieOptions {
-        monitor: "movieOnly".to_owned(),
+        monitor: MovieMonitor::MovieOnly,
         search_for_movie: true,
       },
     };
@@ -141,6 +142,23 @@ mod tests {
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetDownloads(500).into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_history_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::History)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetHistory(500).into()
     );
     assert!(!app.data.radarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);

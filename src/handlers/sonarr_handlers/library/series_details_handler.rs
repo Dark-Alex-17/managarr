@@ -4,11 +4,11 @@ use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::BlockSelectionState;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
+use crate::models::{BlockSelectionState, Route};
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -278,8 +278,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
         _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.sonarr_data.prompt_confirm = true;
+          let (series_id, season_number) = self.extract_series_id_season_number_tuple();
           self.app.data.sonarr_data.prompt_confirm_action = Some(
-            SonarrEvent::ToggleSeasonMonitoring(self.extract_series_id_season_number_tuple()),
+            SonarrEvent::ToggleSeasonMonitoring(series_id, season_number),
           );
 
           self
@@ -327,10 +328,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
       }
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt => {
-        if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
-        }
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
 
         self.app.pop_navigation_stack();
       }
@@ -342,7 +342,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

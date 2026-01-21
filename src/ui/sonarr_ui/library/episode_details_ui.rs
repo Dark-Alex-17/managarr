@@ -3,16 +3,14 @@ use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
+  DownloadRecord, DownloadStatus, Episode, SonarrHistoryItem, SonarrRelease,
 };
-use crate::ui::sonarr_ui::sonarr_ui_utils::{
-  create_download_failed_history_event_details,
-  create_download_folder_imported_history_event_details,
-  create_episode_file_deleted_history_event_details,
-  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
-  create_no_data_history_event_details,
-};
+use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{
+  awaiting_import_style, downloaded_style, downloading_style, missing_style, secondary_style,
+  unmonitored_missing_style, unmonitored_style, unreleased_style,
+};
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
   layout_block_top_border,
@@ -97,7 +95,7 @@ impl DrawUi for EpisodeDetailsUi {
             draw_manual_episode_search_confirm_prompt(f, app);
           }
           ActiveSonarrBlock::EpisodeHistoryDetails => {
-            draw_history_item_details_popup(f, app, popup_area);
+            draw_history_item_details_popup(f, app);
           }
           _ => (),
         }
@@ -349,7 +347,7 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
   }
 }
 
-fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection =
     if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
       if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
@@ -368,30 +366,15 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
       SonarrHistoryItem::default()
     };
 
-  let line_vec = match current_selection.event_type {
-    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
-    SonarrHistoryEventType::DownloadFolderImported => {
-      create_download_folder_imported_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::DownloadFailed => {
-      create_download_failed_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileDeleted => {
-      create_episode_file_deleted_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileRenamed => {
-      create_episode_file_renamed_history_event_details(current_selection)
-    }
-    _ => create_no_data_history_event_details(current_selection),
-  };
+  let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }
 
 fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -602,29 +585,29 @@ fn style_from_status(download: Option<&DownloadRecord>, episode: &Episode) -> St
   if !episode.has_file {
     if let Some(download) = download {
       if download.status == DownloadStatus::Downloading {
-        return Style::new().downloading();
+        return downloading_style();
       }
 
       if download.status == DownloadStatus::Completed {
-        return Style::new().awaiting_import();
+        return awaiting_import_style();
       }
     }
     if !episode.monitored {
-      return Style::new().unmonitored_missing();
+      return unmonitored_missing_style();
     }
 
     if let Some(air_date) = episode.air_date_utc.as_ref()
       && air_date > &Utc::now()
     {
-      return Style::new().unreleased();
+      return unreleased_style();
     }
 
-    return Style::new().missing();
+    return missing_style();
   }
 
   if !episode.monitored {
-    Style::new().unmonitored()
+    unmonitored_style()
   } else {
-    Style::new().downloaded()
+    downloaded_style()
   }
 }

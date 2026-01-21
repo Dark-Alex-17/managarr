@@ -1,8 +1,9 @@
+use crate::ui::styles::secondary_style;
 use chrono::Utc;
 use deunicode::deunicode;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use regex::Regex;
@@ -10,18 +11,10 @@ use regex::Regex;
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
-use crate::models::sonarr_models::{
-  Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
-};
+use crate::models::sonarr_models::{Season, SeasonStatistics, SonarrHistoryItem};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
-use crate::ui::sonarr_ui::sonarr_ui_utils::{
-  create_download_failed_history_event_details,
-  create_download_folder_imported_history_event_details,
-  create_episode_file_deleted_history_event_details,
-  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
-  create_no_data_history_event_details,
-};
+use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
@@ -103,7 +96,7 @@ impl DrawUi for SeriesDetailsUi {
             );
           }
           ActiveSonarrBlock::SeriesHistoryDetails => {
-            draw_history_item_details_popup(f, app, popup_area);
+            draw_history_item_details_popup(f, app);
           }
           _ => (),
         };
@@ -157,54 +150,60 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       "Title: ".primary().bold(),
       current_selection.title.text.clone().primary().bold(),
     ]),
-    Line::from(vec!["Overview: ".primary().bold(), overview.default()]),
+    Line::from(vec![
+      "Overview: ".primary().bold(),
+      overview.default_color(),
+    ]),
     Line::from(vec![
       "Network: ".primary().bold(),
       current_selection
         .network
         .clone()
         .unwrap_or_default()
-        .default(),
+        .default_color(),
     ]),
     Line::from(vec![
       "Status: ".primary().bold(),
-      current_selection.status.to_display_str().default(),
+      current_selection.status.to_display_str().default_color(),
     ]),
     Line::from(vec![
       "Genres: ".primary().bold(),
-      current_selection.genres.join(", ").default(),
+      current_selection.genres.join(", ").default_color(),
     ]),
     Line::from(vec![
       "Rating: ".primary().bold(),
-      format!("{}%", (current_selection.ratings.value * 10.0) as i32).default(),
+      format!("{}%", (current_selection.ratings.value * 10.0) as i32).default_color(),
     ]),
     Line::from(vec![
       "Year: ".primary().bold(),
-      current_selection.year.to_string().default(),
+      current_selection.year.to_string().default_color(),
     ]),
     Line::from(vec![
       "Runtime: ".primary().bold(),
-      format!("{} minutes", current_selection.runtime).default(),
+      format!("{} minutes", current_selection.runtime).default_color(),
     ]),
     Line::from(vec![
       "Path: ".primary().bold(),
-      current_selection.path.clone().default(),
+      current_selection.path.clone().default_color(),
     ]),
     Line::from(vec![
       "Quality Profile: ".primary().bold(),
-      quality_profile.default(),
+      quality_profile.default_color(),
     ]),
     Line::from(vec![
       "Language Profile: ".primary().bold(),
-      language_profile.default(),
+      language_profile.default_color(),
     ]),
-    Line::from(vec!["Monitored: ".primary().bold(), monitored.default()]),
+    Line::from(vec![
+      "Monitored: ".primary().bold(),
+      monitored.default_color(),
+    ]),
   ];
   if let Some(stats) = current_selection.statistics.as_ref() {
     let size = convert_to_gb(stats.size_on_disk);
     series_description.extend(vec![Line::from(vec![
       "Size on Disk: ".primary().bold(),
-      format!("{size:.2} GB").default(),
+      format!("{size:.2} GB").default_color(),
     ])]);
   }
 
@@ -389,7 +388,7 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection =
     if let Some(series_history_items) = app.data.sonarr_data.series_history.as_ref() {
       if series_history_items.is_empty() {
@@ -401,28 +400,13 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
       SonarrHistoryItem::default()
     };
 
-  let line_vec = match current_selection.event_type {
-    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
-    SonarrHistoryEventType::DownloadFolderImported => {
-      create_download_folder_imported_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::DownloadFailed => {
-      create_download_failed_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileDeleted => {
-      create_episode_file_deleted_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileRenamed => {
-      create_episode_file_renamed_history_event_details(current_selection)
-    }
-    _ => create_no_data_history_event_details(current_selection),
-  };
+  let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }

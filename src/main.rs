@@ -3,12 +3,15 @@
 extern crate assertables;
 
 use anyhow::Result;
-use clap::{CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version};
+use clap::{
+  Args, CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version,
+};
 use clap_complete::generate;
 use crossterm::execute;
 use crossterm::terminal::{
   EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
+use indoc::indoc;
 use log::{debug, error, warn};
 use network::NetworkTrait;
 use ratatui::Terminal;
@@ -64,6 +67,13 @@ mod utils;
 struct Cli {
   #[command(subcommand)]
   command: Option<Command>,
+  #[command(flatten)]
+  global: GlobalOpts,
+}
+
+#[derive(Args, Debug)]
+#[command(next_help_heading = "Global Options")]
+struct GlobalOpts {
   #[arg(
     long,
     global = true,
@@ -98,9 +108,12 @@ struct Cli {
   #[arg(
     long,
     global = true,
-    help = "For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
-    This is useful when you have multiple instances of the same Servarr defined in your config file.
-    By default, if left empty, the first configured Servarr instance listed in the config file will be used."
+    help = indoc!{"
+      For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+
+      This is useful when you have multiple instances of the same Servarr defined in your config file.
+      By default, if left empty, the first configured Servarr instance listed in the config file will be used.
+    "}
   )]
   servarr_name: Option<String>,
 }
@@ -114,13 +127,13 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
-  let mut config = if let Some(ref config_file) = args.config_file {
+  let mut config = if let Some(ref config_file) = args.global.config_file {
     load_config(config_file.to_str().expect("Invalid config file specified"))?
   } else {
     confy::load("managarr", "config")?
   };
   let theme_name = config.theme.clone();
-  let spinner_disabled = args.disable_spinner;
+  let spinner_disabled = args.global.disable_spinner;
   debug!("Managarr loaded using config: {config:?}");
   config.validate();
   config.post_process_initialization();
@@ -145,7 +158,7 @@ async fn main() -> Result<()> {
 
   match args.command {
     Some(command) => match command {
-      Command::Radarr(_) | Command::Sonarr(_) => {
+      Command::Radarr(_) | Command::Sonarr(_) | Command::Lidarr(_) => {
         if spinner_disabled {
           start_cli_no_spinner(config, reqwest_client, cancellation_token, app, command).await;
         } else {
@@ -165,8 +178,8 @@ async fn main() -> Result<()> {
       });
       start_ui(
         &app,
-        &args.themes_file,
-        args.theme.unwrap_or(theme_name.unwrap_or_default()),
+        &args.global.themes_file,
+        args.global.theme.unwrap_or(theme_name.unwrap_or_default()),
       )
       .await?;
     }

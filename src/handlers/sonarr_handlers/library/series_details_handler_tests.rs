@@ -378,7 +378,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleSeasonMonitoring((0, 0))
+        &SonarrEvent::ToggleSeasonMonitoring(0, 0)
       );
     }
 
@@ -402,7 +402,7 @@ mod tests {
         ActiveSonarrBlock::SeriesDetails.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_modal_absent!(app.data.sonarr_data.prompt_confirm_action);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.is_routing);
     }
 
@@ -555,7 +555,6 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::test_default();
-      app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());

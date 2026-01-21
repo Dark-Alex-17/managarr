@@ -498,7 +498,7 @@ impl Network<'_, '_> {
       )
       .await;
 
-    self
+    let result = self
       .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
         if movie_vec.is_empty() {
           app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
@@ -511,7 +511,13 @@ impl Network<'_, '_> {
           app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
         }
       })
-      .await
+      .await;
+
+    if result.is_err() {
+      self.app.lock().await.data.radarr_data.add_searched_movies = Some(StatefulTable::default());
+    }
+
+    result
   }
 
   pub(in crate::network) async fn toggle_movie_monitoring(&mut self, movie_id: i64) -> Result<()> {

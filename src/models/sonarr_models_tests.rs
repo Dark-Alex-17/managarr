@@ -6,14 +6,14 @@ mod tests {
   use crate::models::{
     Serdeable,
     servarr_models::{
-      DiskSpace, HostConfig, Indexer, IndexerTestResult, Language, Log, LogResponse,
-      QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+      DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Language, Log,
+      LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus,
-      DownloadsResponse, Episode, EpisodeFile, IndexerSettings, Series, SeriesMonitor,
-      SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
-      SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      DownloadsResponse, Episode, EpisodeFile, Series, SeriesMonitor, SeriesStatus, SeriesType,
+      SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
+      SonarrTaskName, SystemStatus,
     },
   };
 

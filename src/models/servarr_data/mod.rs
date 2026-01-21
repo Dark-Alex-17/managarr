@@ -1,5 +1,6 @@
 use crate::models::Route;
 
+pub mod lidarr;
 pub mod modals;
 pub mod radarr;
 pub mod sonarr;

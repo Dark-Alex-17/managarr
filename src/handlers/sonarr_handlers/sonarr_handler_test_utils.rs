@@ -2,13 +2,14 @@
 #[macro_use]
 pub(in crate::handlers::sonarr_handlers) mod utils {
   use crate::models::HorizontallyScrollableText;
+  use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::sonarr_models::{
     AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadRecord, DownloadStatus,
-    Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating, Season, SeasonStatistics, Series,
-    SeriesStatistics, SeriesStatus, SeriesType,
+    Episode, EpisodeFile, MediaInfo, Rating, Season, SeasonStatistics, Series, SeriesStatistics,
+    SeriesStatus, SeriesType,
   };
   use chrono::DateTime;
   use serde_json::{Number, json};

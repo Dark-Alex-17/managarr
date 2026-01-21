@@ -20,7 +20,7 @@ impl Network<'_, '_> {
   pub(in crate::network::sonarr_network) async fn add_sonarr_series(
     &mut self,
     mut add_series_body: AddSeriesBody,
-  ) -> anyhow::Result<Value> {
+  ) -> Result<Value> {
     info!("Adding new series to Sonarr");
     let event = SonarrEvent::AddSeries(AddSeriesBody::default());
     if let Some(tag_input_str) = add_series_body.tag_input_string.as_ref() {
@@ -362,20 +362,26 @@ impl Network<'_, '_> {
       )
       .await;
 
-    self
+    let result = self
       .handle_request::<(), Vec<AddSeriesSearchResult>>(request_props, |series_vec, mut app| {
         if series_vec.is_empty() {
           app.pop_and_push_navigation_stack(ActiveSonarrBlock::AddSeriesEmptySearchResults.into());
-        } else if let Some(add_searched_seriess) = app.data.sonarr_data.add_searched_series.as_mut()
+        } else if let Some(add_searched_series) = app.data.sonarr_data.add_searched_series.as_mut()
         {
-          add_searched_seriess.set_items(series_vec);
+          add_searched_series.set_items(series_vec);
         } else {
-          let mut add_searched_seriess = StatefulTable::default();
-          add_searched_seriess.set_items(series_vec);
-          app.data.sonarr_data.add_searched_series = Some(add_searched_seriess);
+          let mut add_searched_series = StatefulTable::default();
+          add_searched_series.set_items(series_vec);
+          app.data.sonarr_data.add_searched_series = Some(add_searched_series);
         }
       })
-      .await
+      .await;
+
+    if result.is_err() {
+      self.app.lock().await.data.sonarr_data.add_searched_series = Some(StatefulTable::default());
+    }
+
+    result
   }
 
   pub(in crate::network::sonarr_network) async fn trigger_automatic_series_search(

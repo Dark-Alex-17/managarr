@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::app::key_binding::{DEFAULT_KEYBINDINGS, KeyBinding};
+use crate::app::lidarr::lidarr_context_clues::LidarrContextClueProvider;
 use crate::app::radarr::radarr_context_clues::RadarrContextClueProvider;
 use crate::app::sonarr::sonarr_context_clues::SonarrContextClueProvider;
 use crate::models::Route;
@@ -21,6 +22,7 @@ impl ContextClueProvider for ServarrContextClueProvider {
     match app.get_current_route() {
       Route::Radarr(_, _) => RadarrContextClueProvider::get_context_clues(app),
       Route::Sonarr(_, _) => SonarrContextClueProvider::get_context_clues(app),
+      Route::Lidarr(_, _) => LidarrContextClueProvider::get_context_clues(app),
       _ => None,
     }
   }
@@ -100,6 +102,18 @@ pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   ),
 ];
 
+pub static HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
+];
+
 pub static SYSTEM_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.tasks, "open tasks"),
   (DEFAULT_KEYBINDINGS.events, "open events"),
@@ -109,4 +123,9 @@ pub static SYSTEM_CONTEXT_CLUES: [ContextClue; 5] = [
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
   ),
+];
+
+pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
+  (DEFAULT_KEYBINDINGS.submit, "start task"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];

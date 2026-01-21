@@ -1,0 +1,38 @@
+---
+source: src/ui/lidarr_ui/downloads/downloads_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Title                                         Percent Complete   Size               Output Path                 Indexer                      Download Client      
+=> Test download title                           50%                3.30 GB            /nfs/music/alex/album       kickass torrents             transmission         
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                   ╭────────────────────  Cancel Download  ────────────────────╮                                                     
+                                                   │       Do you really want to delete this download:         │                                                     
+                                                   │                   Test download title?                    │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │╭────────────────────────────╮╭───────────────────────────╮│                                                     
+                                                   ││             Yes            ││            No             ││                                                     
+                                                   │╰────────────────────────────╯╰───────────────────────────╯│                                                     
+                                                   ╰───────────────────────────────────────────────────────────╯

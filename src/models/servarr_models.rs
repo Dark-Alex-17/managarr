@@ -89,6 +89,21 @@ pub struct DiskSpace {
   pub total_space: i64,
 }
 
+#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerSettings {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub minimum_age: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub retention: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub maximum_size: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub rss_sync_interval: i64,
+}
+
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EditIndexerParams {
@@ -130,7 +145,7 @@ pub struct HostConfig {
   pub ssl_cert_password: Option<String>,
 }
 
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Indexer {
   #[serde(deserialize_with = "super::from_i64")]
@@ -151,6 +166,28 @@ pub struct Indexer {
   #[serde(deserialize_with = "super::from_i64")]
   pub download_client_id: i64,
   pub tags: Vec<Number>,
+}
+
+impl Default for Indexer {
+  fn default() -> Self {
+    Self {
+      id: 0,
+      name: None,
+      implementation: None,
+      implementation_name: None,
+      config_contract: None,
+      supports_rss: false,
+      supports_search: false,
+      fields: None,
+      enable_rss: false,
+      enable_automatic_search: false,
+      enable_interactive_search: false,
+      protocol: "".to_string(),
+      priority: 1,
+      download_client_id: 0,
+      tags: vec![],
+    }
+  }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

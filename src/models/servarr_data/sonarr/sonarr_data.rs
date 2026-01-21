@@ -2,21 +2,20 @@ use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
 use crate::{
   app::{
     context_clues::{
-      BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-      ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+      BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
     },
     sonarr::sonarr_context_clues::{
-      HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
-      SERIES_HISTORY_CONTEXT_CLUES,
+      SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES, SERIES_HISTORY_CONTEXT_CLUES,
     },
   },
   models::{
     BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
     servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
-    servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
+    servarr_models::{DiskSpace, Indexer, IndexerSettings, QueueEvent, RootFolder},
     sonarr_models::{
-      AddSeriesSearchResult, BlocklistItem, DownloadRecord, IndexerSettings, Season, Series,
-      SonarrHistoryItem, SonarrTask,
+      AddSeriesSearchResult, BlocklistItem, DownloadRecord, Season, Series, SonarrHistoryItem,
+      SonarrTask,
     },
     stateful_list::StatefulList,
     stateful_table::StatefulTable,
@@ -25,6 +24,7 @@ use crate::{
 };
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use serde_json::Number;
 use strum::EnumIter;
 #[cfg(test)]
@@ -33,11 +33,12 @@ use {
   crate::models::sonarr_models::{SeriesMonitor, SeriesType},
   crate::models::stateful_table::SortOption,
   crate::network::servarr_test_utils::diskspace,
+  crate::network::servarr_test_utils::indexer_settings,
   crate::network::servarr_test_utils::indexer_test_result,
   crate::network::servarr_test_utils::queued_event,
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    add_series_search_result, blocklist_item, download_record, history_item, indexer,
-    indexer_settings, log_line, root_folder,
+    add_series_search_result, blocklist_item, download_record, indexer, log_line, root_folder,
+    sonarr_history_item,
   },
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
     episode, episode_file, language_profiles_map, quality_profile_map, season, series, tags_map,
@@ -119,15 +120,23 @@ impl SonarrData<'_> {
   }
 
   pub fn sorted_quality_profile_names(&self) -> Vec<String> {
-    let mut names: Vec<String> = self.quality_profile_map.right_values().cloned().collect();
-    names.sort();
-    names
+    self
+      .quality_profile_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 
   pub fn sorted_language_profile_names(&self) -> Vec<String> {
-    let mut names: Vec<String> = self.language_profiles_map.right_values().cloned().collect();
-    names.sort();
-    names
+    self
+      .language_profiles_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 }
 
@@ -300,7 +309,7 @@ impl SonarrData<'_> {
     };
     episode_details_modal
       .episode_history
-      .set_items(vec![history_item()]);
+      .set_items(vec![sonarr_history_item()]);
     episode_details_modal
       .episode_releases
       .set_items(vec![torrent_release(), usenet_release()]);
@@ -319,7 +328,7 @@ impl SonarrData<'_> {
       .set_items(vec![episode_file()]);
     season_details_modal
       .season_history
-      .set_items(vec![history_item()]);
+      .set_items(vec![sonarr_history_item()]);
     season_details_modal.season_history.search = Some("season history search".into());
     season_details_modal.season_history.filter = Some("season history filter".into());
     season_details_modal
@@ -333,7 +342,7 @@ impl SonarrData<'_> {
       .sorting(vec![sort_option!(indexer_id)]);
 
     let mut series_history = StatefulTable::default();
-    series_history.set_items(vec![history_item()]);
+    series_history.set_items(vec![sonarr_history_item()]);
     series_history.sorting(vec![sort_option!(id)]);
     series_history.search = Some("series history search".into());
     series_history.filter = Some("series history filter".into());
@@ -365,7 +374,7 @@ impl SonarrData<'_> {
     sonarr_data.blocklist.set_items(vec![blocklist_item()]);
     sonarr_data.blocklist.sorting(vec![sort_option!(id)]);
     sonarr_data.downloads.set_items(vec![download_record()]);
-    sonarr_data.history.set_items(vec![history_item()]);
+    sonarr_data.history.set_items(vec![sonarr_history_item()]);
     sonarr_data.history.sorting(vec![sort_option!(id)]);
     sonarr_data.history.search = Some("test search".into());
     sonarr_data.history.filter = Some("test filter".into());

@@ -2,15 +2,15 @@
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{
-    AddSeriesBody, AddSeriesOptions, DeleteSeriesParams, EditSeriesParams, Series, SeriesType,
-    SonarrHistoryItem, SonarrSerdeable,
+    AddSeriesBody, AddSeriesOptions, DeleteSeriesParams, EditSeriesParams, Series, SeriesMonitor,
+    SeriesType, SonarrHistoryItem, SonarrSerdeable,
   };
   use crate::models::stateful_table::{SortOption, StatefulTable};
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    SERIES_JSON, add_series_search_result, history_item, season, series,
+    SERIES_JSON, add_series_search_result, season, series, sonarr_history_item,
   };
   use bimap::BiMap;
   use mockito::Matcher;
@@ -27,12 +27,12 @@ mod tests {
       root_folder_path: "/nfs2".to_owned(),
       quality_profile_id: 2222,
       language_profile_id: 2222,
-      series_type: "standard".to_owned(),
+      series_type: SeriesType::Standard,
       season_folder: true,
       tags: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddSeriesOptions {
-        monitor: "all".to_owned(),
+        monitor: SeriesMonitor::All,
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },
@@ -82,12 +82,12 @@ mod tests {
       root_folder_path: "/nfs2".to_owned(),
       quality_profile_id: 2222,
       language_profile_id: 2222,
-      series_type: "standard".to_owned(),
+      series_type: SeriesType::Standard,
       season_folder: true,
       tags: vec![1, 2],
       tag_input_string: None,
       add_options: AddSeriesOptions {
-        monitor: "all".to_owned(),
+        monitor: SeriesMonitor::All,
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },
@@ -457,13 +457,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app, _server) = MockServarrApi::get()
@@ -570,13 +570,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app, _server) = MockServarrApi::get()
@@ -873,7 +873,6 @@ mod tests {
       .query("term=test%20term")
       .build_for(SonarrEvent::SearchNewSeries("test term".into()))
       .await;
-    app.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
@@ -941,6 +940,27 @@ mod tests {
       app.lock().await.get_current_route(),
       ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_series_event_sets_empty_table_on_api_error() {
+    let (async_server, app, _server) = MockServarrApi::get()
+      .status(500)
+      .query("term=test%20term")
+      .build_for(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(&app.data.sonarr_data.add_searched_series);
+    assert_is_empty!(app.data.sonarr_data.add_searched_series.as_ref().unwrap());
   }
 
   #[tokio::test]

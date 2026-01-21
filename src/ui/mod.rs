@@ -1,9 +1,10 @@
 use std::cell::Cell;
 use std::sync::atomic::Ordering;
 
+use lidarr_ui::LidarrUi;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
@@ -16,7 +17,7 @@ use crate::app::App;
 use crate::models::servarr_models::KeybindingItem;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::theme::Theme;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, logo_block, title_block, title_block_centered,
@@ -27,6 +28,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
 
 mod builtin_themes;
+mod lidarr_ui;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
@@ -86,6 +88,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
       SonarrUi::draw_context_row(f, app, context_area);
       SonarrUi::draw(f, app, table_area);
     }
+    route if LidarrUi::accepts(route) => {
+      LidarrUi::draw_context_row(f, app, context_area);
+      LidarrUi::draw(f, app, table_area);
+    }
     _ => (),
   }
 
@@ -110,7 +116,7 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .map(|tab| Line::from(tab.title.clone().bold()));
   let tabs = Tabs::new(titles)
     .block(borderless_block())
-    .highlight_style(Style::new().secondary())
+    .highlight_style(secondary_style())
     .select(app.server_tabs.index);
   let help = Paragraph::new(help_text)
     .block(borderless_block())
@@ -179,7 +185,7 @@ pub fn draw_help_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   if title.is_empty() {
-    f.render_widget(layout_block().default(), area);
+    f.render_widget(layout_block().default_color(), area);
   } else {
     f.render_widget(title_block(title), area);
   }
@@ -194,7 +200,7 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
     .map(|tab_route| Line::from(tab_route.title.clone().bold()));
   let tabs = Tabs::new(titles)
     .block(borderless_block())
-    .highlight_style(Style::new().secondary())
+    .highlight_style(secondary_style())
     .select(tab_state.index);
 
   f.render_widget(tabs, header_area);

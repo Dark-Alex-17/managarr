@@ -11,7 +11,10 @@ mod tests {
   use crate::ui::radarr_ui::library::movie_details_ui::{
     MovieDetailsUi, style_from_download_status,
   };
-  use crate::ui::styles::ManagarrStyle;
+  use crate::ui::styles::{
+    awaiting_import_style, downloaded_style, downloading_style, missing_style,
+    unmonitored_missing_style,
+  };
   use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
   #[test]
@@ -26,13 +29,13 @@ mod tests {
   }
 
   #[rstest]
-  #[case("Downloading", true, "", Style::new().downloading())]
-  #[case("Downloaded", true, "", Style::new().downloaded())]
-  #[case("Awaiting Import", true, "", Style::new().awaiting_import())]
-  #[case("Missing", false, "", Style::new().unmonitored_missing())]
-  #[case("Missing", false, "", Style::new().unmonitored_missing())]
-  #[case("Missing", true, "released", Style::new().missing())]
-  #[case("", true, "", Style::new().downloaded())]
+  #[case("Downloading", true, "", downloading_style())]
+  #[case("Downloaded", true, "", downloaded_style())]
+  #[case("Awaiting Import", true, "", awaiting_import_style())]
+  #[case("Missing", false, "", unmonitored_missing_style())]
+  #[case("Missing", false, "", unmonitored_missing_style())]
+  #[case("Missing", true, "released", missing_style())]
+  #[case("", true, "", downloaded_style())]
   fn test_style_from_download_status(
     #[case] download_status: &str,
     #[case] is_monitored: bool,

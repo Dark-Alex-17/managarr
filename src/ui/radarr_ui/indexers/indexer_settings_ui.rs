@@ -9,7 +9,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
 use crate::render_selectable_input_box;
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -154,10 +153,10 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
         .flex(Flex::Center)
         .areas(buttons_area);
 
-    let save_button = Button::new()
+    let save_button = Button::default()
       .title("Save")
       .selected(yes_no_value && highlight_yes_no);
-    let cancel_button = Button::new()
+    let cancel_button = Button::default()
       .title("Cancel")
       .selected(!yes_no_value && highlight_yes_no);
 

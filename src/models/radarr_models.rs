@@ -27,7 +27,7 @@ pub struct AddMovieBody {
   pub title: String,
   pub root_folder_path: String,
   pub quality_profile_id: i64,
-  pub minimum_availability: String,
+  pub minimum_availability: MinimumAvailability,
   pub monitored: bool,
   pub tags: Vec<i64>,
   #[serde(skip_serializing, skip_deserializing)]
@@ -55,7 +55,7 @@ pub struct AddMovieSearchResult {
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieOptions {
-  pub monitor: String,
+  pub monitor: MovieMonitor,
   pub search_for_movie: bool,
 }
 
@@ -268,8 +268,20 @@ pub enum MinimumAvailability {
 }
 
 #[derive(
-  Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum, Display, EnumDisplayStyle,
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  ValueEnum,
+  Display,
+  EnumDisplayStyle,
 )]
+#[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum MovieMonitor {
   #[default]
@@ -396,6 +408,69 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RadarrHistoryWrapper {
+  pub records: Vec<RadarrHistoryItem>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RadarrHistoryData {
+  pub indexer: Option<String>,
+  pub release_group: Option<String>,
+  pub nzb_info_url: Option<String>,
+  pub download_client: Option<String>,
+  pub download_client_name: Option<String>,
+  pub age: Option<String>,
+  pub published_date: Option<DateTime<Utc>>,
+  pub message: Option<String>,
+  pub reason: Option<String>,
+  pub dropped_path: Option<String>,
+  pub imported_path: Option<String>,
+  pub source_path: Option<String>,
+  pub path: Option<String>,
+}
+
+#[derive(
+  Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Display, EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum RadarrHistoryEventType {
+  #[default]
+  Unknown,
+  Grabbed,
+  #[display_style(name = "Download Folder Imported")]
+  DownloadFolderImported,
+  #[display_style(name = "Download Failed")]
+  DownloadFailed,
+  #[display_style(name = "Movie File Deleted")]
+  MovieFileDeleted,
+  #[display_style(name = "Movie Folder Imported")]
+  MovieFolderImported,
+  #[display_style(name = "Movie File Renamed")]
+  MovieFileRenamed,
+  #[display_style(name = "Download Ignored")]
+  DownloadIgnored,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RadarrHistoryItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub source_title: HorizontallyScrollableText,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub movie_id: i64,
+  pub quality: QualityWrapper,
+  pub languages: Vec<Language>,
+  pub date: DateTime<Utc>,
+  pub event_type: RadarrHistoryEventType,
+  #[serde(default)]
+  pub data: RadarrHistoryData,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RadarrTask {
@@ -449,6 +524,7 @@ serde_enum_from!(
     Credits(Vec<Credit>),
     DiskSpaces(Vec<DiskSpace>),
     DownloadsResponse(DownloadsResponse),
+    HistoryWrapper(RadarrHistoryWrapper),
     HostConfig(HostConfig),
     Indexers(Vec<Indexer>),
     IndexerSettings(IndexerSettings),

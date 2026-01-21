@@ -21,6 +21,7 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::Route;
   use crate::models::servarr_data::ActiveKeybindingBlock;
+  use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::KeybindingItem;
@@ -60,11 +61,16 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveSonarrBlock::Series, ActiveSonarrBlock::Series)]
-  #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Movies)]
-  fn test_handle_change_tabs<T>(#[case] index: usize, #[case] left_block: T, #[case] right_block: T)
-  where
+  #[case(0, ActiveLidarrBlock::Artists, ActiveSonarrBlock::Series)]
+  #[case(1, ActiveRadarrBlock::Movies, ActiveLidarrBlock::Artists)]
+  #[case(2, ActiveSonarrBlock::Series, ActiveRadarrBlock::Movies)]
+  fn test_handle_change_tabs<T, U>(
+    #[case] index: usize,
+    #[case] left_block: T,
+    #[case] right_block: U,
+  ) where
     T: Into<Route> + Copy,
+    U: Into<Route> + Copy,
   {
     let mut app = App::test_default();
     app.error = "Test".into();

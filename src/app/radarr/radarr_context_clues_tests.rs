@@ -3,14 +3,15 @@ mod tests {
   use crate::app::App;
   use crate::app::context_clues::{
     BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
-    ContextClue, ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-    ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    ContextClue, ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
+    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    SYSTEM_TASKS_CONTEXT_CLUES,
   };
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::radarr::radarr_context_clues::{
     ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, COLLECTION_DETAILS_CONTEXT_CLUES,
     COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
-    MOVIE_DETAILS_CONTEXT_CLUES, RadarrContextClueProvider, SYSTEM_TASKS_CONTEXT_CLUES,
+    MOVIE_DETAILS_CONTEXT_CLUES, RadarrContextClueProvider,
   };
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
@@ -459,9 +460,10 @@ mod tests {
   #[case(1, ActiveRadarrBlock::Collections, &COLLECTIONS_CONTEXT_CLUES)]
   #[case(2, ActiveRadarrBlock::Downloads, &DOWNLOADS_CONTEXT_CLUES)]
   #[case(3, ActiveRadarrBlock::Blocklist, &BLOCKLIST_CONTEXT_CLUES)]
-  #[case(4, ActiveRadarrBlock::RootFolders, &ROOT_FOLDERS_CONTEXT_CLUES)]
-  #[case(5, ActiveRadarrBlock::Indexers, &INDEXERS_CONTEXT_CLUES)]
-  #[case(6, ActiveRadarrBlock::System, &SYSTEM_CONTEXT_CLUES)]
+  #[case(4, ActiveRadarrBlock::History, &HISTORY_CONTEXT_CLUES)]
+  #[case(5, ActiveRadarrBlock::RootFolders, &ROOT_FOLDERS_CONTEXT_CLUES)]
+  #[case(6, ActiveRadarrBlock::Indexers, &INDEXERS_CONTEXT_CLUES)]
+  #[case(7, ActiveRadarrBlock::System, &SYSTEM_CONTEXT_CLUES)]
   fn test_radarr_context_clue_provider_radarr_blocks_context_clues(
     #[case] index: usize,
     #[case] active_radarr_block: ActiveRadarrBlock,

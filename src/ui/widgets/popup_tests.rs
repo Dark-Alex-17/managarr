@@ -12,6 +12,7 @@ mod tests {
     assert_eq!(Size::WideLargePrompt.to_percent(), (70, 50));
     assert_eq!(Size::Message.to_percent(), (25, 8));
     assert_eq!(Size::NarrowMessage.to_percent(), (50, 20));
+    assert_eq!(Size::NarrowLongMessage.to_percent(), (50, 35));
     assert_eq!(Size::LargeMessage.to_percent(), (25, 25));
     assert_eq!(Size::InputBox.to_percent(), (30, 13));
     assert_eq!(Size::Dropdown.to_percent(), (20, 30));

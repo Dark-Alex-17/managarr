@@ -12,17 +12,16 @@
 ![Docker pulls](https://img.shields.io/docker/pulls/darkalex17/managarr?label=Docker%20downloads)
 [![Matrix](https://img.shields.io/matrix/managarr-room%3Amatrix.org?logo=matrix&server_fqdn=matrix.org&fetchMode=guest&style=social&label=Managarr%20Matrix%20Space&link=https%3A%2F%2Fmatrix.to%2F%23%2F%23managarr%3Amatrix.org)](https://matrix.to/#/#managarr:matrix.org)
 
-
 Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
 
-![library](screenshots/sonarr/sonarr_library.png)
+![library](screenshots/lidarr/lidarr_library.png)
 
 ## What Servarrs are supported?
 
 - [x] ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
 - [x] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
+- [x] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
 - [ ] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
-- [ ] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
 - [ ] ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
 - [ ] ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
@@ -96,7 +95,7 @@ of Chocolatey packages take quite some time, and thus the package may not be ava
 choco install managarr
 
 # Some newer releases may require a version number, so you can specify it like so:
-choco install managarr --version=0.5.0
+choco install managarr --version=0.7.0
 ```
 
 To upgrade to the latest and greatest version of Managarr:
@@ -104,7 +103,7 @@ To upgrade to the latest and greatest version of Managarr:
 choco upgrade managarr
 
 # To upgrade to a specific version:
-choco upgrade managarr --version=0.5.0
+choco upgrade managarr --version=0.7.0
 ```
 
 ### Manual
@@ -182,13 +181,29 @@ Key:
 | ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
 | ✅   | ✅   | Manually trigger scheduled tasks                                                                                   |
 
+### Lidarr
+
+| TUI | CLI | Feature                                                                                                        |
+|-----|-----|----------------------------------------------------------------------------------------------------------------|
+| ✅   | ✅   | View your library, downloads, blocklist, tracks                                                                |
+| ✅   | ✅   | View details of a specific artists, albums, or tracks including description, history, downloaded file info     |
+| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅   | ✅   | Search your library                                                                                            |
+| ✅   | ✅   | Add artists to your library                                                                                    |
+| ✅   | ✅   | Delete artists, downloads, indexers, root folders, and track files                                             |
+| ✅   | ✅   | Trigger automatic searches for artists or albums                                                               |
+| ✅   | ✅   | Trigger refresh and disk scan for artists and downloads                                                        |
+| ✅   | ✅   | Manually search for  full artist discographies or albums                                                       |
+| ✅   | ✅   | Edit your artists and indexers                                                                                 |
+| ✅   | ✅   | Manage your tags                                                                                               |
+| ✅   | ✅   | Manage your root folders                                                                                       |
+| ✅   | ✅   | Manage your blocklist                                                                                          |
+| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+
 ### Readarr
 
 - [ ] Support for Readarr
-
-### Lidarr
-
-- [ ] Support for Lidarr
 
 ### Whisparr
 
@@ -231,7 +246,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.5.1
+managarr 0.7.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -241,20 +256,24 @@ Usage: managarr [OPTIONS] [COMMAND]
 Commands:
   radarr       Commands for manging your Radarr instance
   sonarr       Commands for manging your Sonarr instance
+  lidarr       Commands for manging your Lidarr instance
   completions  Generate shell completions for the Managarr CLI
   tail-logs    Tail Managarr logs
   help         Print this message or the help of the given subcommand(s)
 
 Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+Global Options:
       --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
       --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
       --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
       --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
       --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
-                                         This is useful when you have multiple instances of the same Servarr defined in your config file.
-                                         By default, if left empty, the first configured Servarr instance listed in the config file will be used.
-  -h, --help                         Print help
-  -V, --version                      Print version
+                                     
+                                     This is useful when you have multiple instances of the same Servarr defined in your config file.
+                                     By default, if left empty, the first configured Servarr instance listed in the config file will be used.
 ```
 
 All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Sonarr, you would run:
@@ -283,12 +302,21 @@ Commands:
   test-all-indexers            Test all Sonarr indexers
   toggle-episode-monitoring    Toggle monitoring for the specified episode
   toggle-season-monitoring     Toggle monitoring for the specified season that corresponds to the specified series ID
+  toggle-series-monitoring     Toggle monitoring for the specified series corresponding to the given series ID
   help                         Print this message or the help of the given subcommand(s)
 
 Options:
-      --disable-spinner  Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
-      --config <CONFIG>  The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
-  -h, --help             Print help
+  -h, --help  Print help
+
+Global Options:
+      --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
+      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+                                     
+                                     This is useful when you have multiple instances of the same Servarr defined in your config file.
+                                     By default, if left empty, the first configured Servarr instance listed in the config file will be used.
 ```
 
 **Pro Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
@@ -428,9 +456,6 @@ Managarr supports using environment variables on startup so you don't have to al
 | `MANAGARR_CONFIG_FILE`                  | Set the path to the config file                                                | `--config`                       |
 | `MANAGARR_DISABLE_SPINNER`              | Disable the CLI spinner (this can be useful when scripting and parsing output) | `--disable-spinner`              |
 
-## Track What I'm Currently Working On
-To see what feature(s) I'm currently working on, check out my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr).
-
 ## Screenshots
 
 ### Radarr
@@ -445,6 +470,13 @@ To see what feature(s) I'm currently working on, check out my [Wekan Board](http
 ![series_details](screenshots/sonarr/series_details.png)
 ![season_details](screenshots/sonarr/season_details.png)
 ![manual_episode_search](screenshots/sonarr/manual_episode_search.png)
+
+### Lidarr
+![lidarr_library](screenshots/lidarr/lidarr_library.png)
+![artist_details](screenshots/lidarr/artist_details.png)
+![album_details](screenshots/lidarr/album_details.png)
+![artist_discography_search](screenshots/lidarr/artist_discography_search.png)
+![manual_album_search](screenshots/lidarr/manual_album_search.png)
 
 ### General
 ![logs](screenshots/radarr/logs.png)
@@ -461,8 +493,8 @@ To see what feature(s) I'm currently working on, check out my [Wekan Board](http
 ## Servarr Requirements
 * [Radarr >= 5.3.6.8612](https://radarr.video/docs/api/)
 * [Sonarr >= v4](https://sonarr.tv/docs/api/)
-* [Readarr v1](https://readarr.com/docs/api/)
 * [Lidarr v1](https://lidarr.audio/docs/api/)
+* [Readarr v1](https://readarr.com/docs/api/)
 * [Whisparr >= v3](https://whisparr.com/docs/api/)
 * [Prowlarr v1](https://prowlarr.com/docs/api/)
 * [Bazarr v1.1.4](http://localhost:6767/api)

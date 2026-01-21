@@ -13,6 +13,7 @@ use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
 use crate::cli::Command;
+use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::servarr_models::KeybindingItem;
@@ -25,6 +26,7 @@ mod app_tests;
 pub mod context_clues;
 pub mod key_binding;
 mod key_binding_tests;
+pub mod lidarr;
 pub mod radarr;
 pub mod sonarr;
 
@@ -94,6 +96,26 @@ impl App<'_> {
         }
       });
       server_tabs.extend(sonarr_tabs);
+    }
+
+    if let Some(lidarr_configs) = config.lidarr {
+      let mut unnamed_idx = 0;
+      let lidarr_tabs = lidarr_configs.into_iter().map(|lidarr_config| {
+        let name = if let Some(name) = lidarr_config.name.clone() {
+          name
+        } else {
+          unnamed_idx += 1;
+          format!("Lidarr {unnamed_idx}")
+        };
+
+        TabRoute {
+          title: name,
+          route: ActiveLidarrBlock::Artists.into(),
+          contextual_help: None,
+          config: Some(lidarr_config),
+        }
+      });
+      server_tabs.extend(lidarr_tabs);
     }
 
     let weight_sorted_tabs = server_tabs
@@ -176,6 +198,7 @@ impl App<'_> {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block, _) => self.radarr_on_tick(active_radarr_block).await,
         Route::Sonarr(active_sonarr_block, _) => self.sonarr_on_tick(active_sonarr_block).await,
+        Route::Lidarr(active_lidarr_block, _) => self.lidarr_on_tick(active_lidarr_block).await,
         _ => (),
       }
 
@@ -234,7 +257,7 @@ impl Default for App<'_> {
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
       tick_until_poll: 400,
-      ticks_until_scroll: 4,
+      ticks_until_scroll: 64,
       tick_count: 0,
       ui_scroll_tick_count: 0,
       is_loading: false,
@@ -264,6 +287,12 @@ impl App<'_> {
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
+        TabRoute {
+          title: "Lidarr".to_owned(),
+          route: ActiveLidarrBlock::Artists.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
       ]),
       ..App::default()
     }
@@ -272,6 +301,7 @@ impl App<'_> {
   pub fn test_default_fully_populated() -> Self {
     App {
       data: Data {
+        lidarr_data: LidarrData::test_default_fully_populated(),
         radarr_data: RadarrData::test_default_fully_populated(),
         sonarr_data: SonarrData::test_default_fully_populated(),
       },
@@ -288,6 +318,12 @@ impl App<'_> {
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
+        TabRoute {
+          title: "Lidarr".to_owned(),
+          route: ActiveLidarrBlock::Artists.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
       ]),
       ..App::default()
     }
@@ -296,6 +332,7 @@ impl App<'_> {
 
 #[derive(Default)]
 pub struct Data<'a> {
+  pub lidarr_data: LidarrData<'a>,
   pub radarr_data: RadarrData<'a>,
   pub sonarr_data: SonarrData<'a>,
 }
@@ -303,13 +340,14 @@ pub struct Data<'a> {
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
   pub theme: Option<String>,
+  pub lidarr: Option<Vec<ServarrConfig>>,
   pub radarr: Option<Vec<ServarrConfig>>,
   pub sonarr: Option<Vec<ServarrConfig>>,
 }
 
 impl AppConfig {
   pub fn validate(&self) {
-    if self.radarr.is_none() && self.sonarr.is_none() {
+    if self.lidarr.is_none() && self.radarr.is_none() && self.sonarr.is_none() {
       log_and_print_error(
         "No Servarr configuration provided in the specified configuration file".to_owned(),
       );
@@ -322,6 +360,10 @@ impl AppConfig {
 
     if let Some(sonarr_configs) = &self.sonarr {
       sonarr_configs.iter().for_each(|config| config.validate());
+    }
+
+    if let Some(lidarr_configs) = &self.lidarr {
+      lidarr_configs.iter().for_each(|config| config.validate());
     }
   }
 
@@ -340,6 +382,10 @@ impl AppConfig {
         msg("Sonarr");
         process::exit(1);
       }
+      Command::Lidarr(_) if self.lidarr.is_none() => {
+        msg("Lidarr");
+        process::exit(1);
+      }
       _ => (),
     }
   }
@@ -354,6 +400,12 @@ impl AppConfig {
     if let Some(sonarr_configs) = self.sonarr.as_mut() {
       for sonarr_config in sonarr_configs {
         sonarr_config.post_process_initialization();
+      }
+    }
+
+    if let Some(lidarr_configs) = self.lidarr.as_mut() {
+      for lidarr_config in lidarr_configs {
+        lidarr_config.post_process_initialization();
       }
     }
   }

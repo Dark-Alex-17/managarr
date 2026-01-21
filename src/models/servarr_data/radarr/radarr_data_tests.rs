@@ -1,17 +1,18 @@
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
-    use chrono::{DateTime, Utc};
-    use pretty_assertions::{assert_eq, assert_str_eq};
-
     use crate::app::context_clues::{
-      BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-      ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+      BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
     };
     use crate::app::radarr::radarr_context_clues::{
       COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
       MOVIE_DETAILS_CONTEXT_CLUES,
     };
+    use bimap::BiMap;
+    use chrono::{DateTime, Utc};
+    use pretty_assertions::{assert_eq, assert_str_eq};
+    use serde_json::Number;
 
     use crate::models::Route;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;
@@ -62,44 +63,84 @@ mod tests {
     }
 
     #[test]
+    fn test_tag_ids_to_display() {
+      let mut tags_map = BiMap::new();
+      tags_map.insert(3, "test 3".to_owned());
+      tags_map.insert(2, "test 2".to_owned());
+      tags_map.insert(1, "test 1".to_owned());
+      let radarr_data = RadarrData {
+        tags_map,
+        ..RadarrData::default()
+      };
+
+      assert_str_eq!(
+        radarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]),
+        "test 1, test 2"
+      );
+    }
+
+    #[test]
+    fn test_sorted_quality_profile_names() {
+      let mut quality_profile_map = BiMap::new();
+      quality_profile_map.insert(3, "test 1".to_owned());
+      quality_profile_map.insert(2, "test 2".to_owned());
+      quality_profile_map.insert(1, "test 3".to_owned());
+      let radarr_data = RadarrData {
+        quality_profile_map,
+        ..RadarrData::default()
+      };
+      let expected_quality_profile_vec = vec![
+        "test 3".to_owned(),
+        "test 2".to_owned(),
+        "test 1".to_owned(),
+      ];
+
+      assert_iter_eq!(
+        radarr_data.sorted_quality_profile_names(),
+        expected_quality_profile_vec
+      );
+    }
+
+    #[test]
     fn test_radarr_data_defaults() {
       let radarr_data = RadarrData::default();
 
-      assert!(radarr_data.root_folders.items.is_empty());
+      assert_is_empty!(radarr_data.root_folders.items);
       assert_eq!(radarr_data.disk_space_vec, Vec::new());
-      assert!(radarr_data.version.is_empty());
+      assert_is_empty!(radarr_data.version);
       assert_eq!(radarr_data.start_time, <DateTime<Utc>>::default());
-      assert!(radarr_data.movies.is_empty());
+      assert_is_empty!(radarr_data.movies);
       assert_eq!(radarr_data.selected_block, BlockSelectionState::default());
-      assert!(radarr_data.downloads.items.is_empty());
-      assert!(radarr_data.indexers.items.is_empty());
-      assert!(radarr_data.blocklist.items.is_empty());
-      assert!(radarr_data.quality_profile_map.is_empty());
-      assert!(radarr_data.tags_map.is_empty());
-      assert!(radarr_data.collections.items.is_empty());
-      assert!(radarr_data.collection_movies.items.is_empty());
-      assert!(radarr_data.logs.items.is_empty());
-      assert!(radarr_data.log_details.items.is_empty());
-      assert!(radarr_data.tasks.items.is_empty());
-      assert!(radarr_data.queued_events.items.is_empty());
-      assert!(radarr_data.updates.get_text().is_empty());
-      assert!(radarr_data.add_movie_search.is_none());
-      assert!(radarr_data.add_movie_modal.is_none());
-      assert!(radarr_data.add_searched_movies.is_none());
-      assert!(radarr_data.edit_movie_modal.is_none());
-      assert!(radarr_data.edit_collection_modal.is_none());
-      assert!(radarr_data.edit_root_folder.is_none());
-      assert!(radarr_data.edit_indexer_modal.is_none());
-      assert!(radarr_data.indexer_settings.is_none());
-      assert!(radarr_data.indexer_test_errors.is_none());
-      assert!(radarr_data.indexer_test_all_results.is_none());
-      assert!(radarr_data.movie_details_modal.is_none());
-      assert!(radarr_data.prompt_confirm_action.is_none());
+      assert_is_empty!(radarr_data.downloads.items);
+      assert_is_empty!(radarr_data.indexers.items);
+      assert_is_empty!(radarr_data.blocklist.items);
+      assert_is_empty!(radarr_data.history.items);
+      assert_is_empty!(radarr_data.quality_profile_map);
+      assert_is_empty!(radarr_data.tags_map);
+      assert_is_empty!(radarr_data.collections.items);
+      assert_is_empty!(radarr_data.collection_movies.items);
+      assert_is_empty!(radarr_data.logs.items);
+      assert_is_empty!(radarr_data.log_details.items);
+      assert_is_empty!(radarr_data.tasks.items);
+      assert_is_empty!(radarr_data.queued_events.items);
+      assert_is_empty!(radarr_data.updates.get_text());
+      assert_none!(&radarr_data.add_movie_search);
+      assert_none!(&radarr_data.add_movie_modal);
+      assert_none!(&radarr_data.add_searched_movies);
+      assert_none!(&radarr_data.edit_movie_modal);
+      assert_none!(&radarr_data.edit_collection_modal);
+      assert_none!(&radarr_data.edit_root_folder);
+      assert_none!(&radarr_data.edit_indexer_modal);
+      assert_none!(&radarr_data.indexer_settings);
+      assert_none!(&radarr_data.indexer_test_errors);
+      assert_none!(&radarr_data.indexer_test_all_results);
+      assert_none!(&radarr_data.movie_details_modal);
+      assert_none!(&radarr_data.prompt_confirm_action);
       assert!(!radarr_data.prompt_confirm);
       assert!(!radarr_data.delete_movie_files);
       assert!(!radarr_data.add_list_exclusion);
 
-      assert_eq!(radarr_data.main_tabs.tabs.len(), 7);
+      assert_eq!(radarr_data.main_tabs.tabs.len(), 8);
 
       assert_str_eq!(radarr_data.main_tabs.tabs[0].title, "Library");
       assert_eq!(
@@ -149,41 +190,53 @@ mod tests {
       );
       assert_eq!(radarr_data.main_tabs.tabs[3].config, None);
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Root Folders");
+      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "History");
       assert_eq!(
         radarr_data.main_tabs.tabs[4].route,
-        ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::History.into()
       );
       assert!(radarr_data.main_tabs.tabs[4].contextual_help.is_some());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help.unwrap(),
-        &ROOT_FOLDERS_CONTEXT_CLUES
+        &HISTORY_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[4].config, None);
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "Indexers");
+      assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "Root Folders");
       assert_eq!(
         radarr_data.main_tabs.tabs[5].route,
-        ActiveRadarrBlock::Indexers.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
       assert!(radarr_data.main_tabs.tabs[5].contextual_help.is_some());
       assert_eq!(
         radarr_data.main_tabs.tabs[5].contextual_help.unwrap(),
-        &INDEXERS_CONTEXT_CLUES
+        &ROOT_FOLDERS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[5].config, None);
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[6].title, "System");
+      assert_str_eq!(radarr_data.main_tabs.tabs[6].title, "Indexers");
       assert_eq!(
         radarr_data.main_tabs.tabs[6].route,
-        ActiveRadarrBlock::System.into()
+        ActiveRadarrBlock::Indexers.into()
       );
       assert!(radarr_data.main_tabs.tabs[6].contextual_help.is_some());
       assert_eq!(
         radarr_data.main_tabs.tabs[6].contextual_help.unwrap(),
-        &SYSTEM_CONTEXT_CLUES
+        &INDEXERS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[6].config, None);
+
+      assert_str_eq!(radarr_data.main_tabs.tabs[7].title, "System");
+      assert_eq!(
+        radarr_data.main_tabs.tabs[7].route,
+        ActiveRadarrBlock::System.into()
+      );
+      assert!(radarr_data.main_tabs.tabs[7].contextual_help.is_some());
+      assert_eq!(
+        radarr_data.main_tabs.tabs[7].contextual_help.unwrap(),
+        &SYSTEM_CONTEXT_CLUES
+      );
+      assert_eq!(radarr_data.main_tabs.tabs[7].config, None);
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
 
@@ -294,8 +347,8 @@ mod tests {
       DELETE_MOVIE_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS,
       EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
       EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
-      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS,
-      MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
+      HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS,
+      LIBRARY_BLOCKS, MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -346,6 +399,18 @@ mod tests {
       assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::DeleteBlocklistItemPrompt));
       assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::BlocklistClearAllItemsPrompt));
       assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::BlocklistSortPrompt));
+    }
+
+    #[test]
+    fn test_history_blocks_contents() {
+      assert_eq!(HISTORY_BLOCKS.len(), 7);
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::History));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::HistoryItemDetails));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::HistorySortPrompt));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::FilterHistory));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::FilterHistoryError));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::SearchHistory));
+      assert!(HISTORY_BLOCKS.contains(&ActiveRadarrBlock::SearchHistoryError));
     }
 
     #[test]

@@ -1,3 +1,4 @@
+use crate::ui::styles::default_style;
 use std::ops::Sub;
 
 #[cfg(test)]
@@ -5,7 +6,6 @@ use crate::ui::ui_test_utils::test_utils::Utc;
 #[cfg(not(test))]
 use chrono::Utc;
 use ratatui::layout::Layout;
-use ratatui::style::Style;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Row};
 use ratatui::{
@@ -171,7 +171,7 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })
   .block(block)
-  .highlight_style(Style::new().default());
+  .highlight_style(default_style());
 
   f.render_widget(logs_box, area);
 }

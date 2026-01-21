@@ -1,4 +1,3 @@
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -63,11 +62,11 @@ impl ConfirmationPrompt<'_> {
           checkbox.render(chunks[i + 1], buf);
         });
 
-      Button::new()
+      Button::default()
         .title("Yes")
         .selected(self.yes_no_value && self.yes_no_highlighted)
         .render(yes_area, buf);
-      Button::new()
+      Button::default()
         .title("No")
         .selected(!self.yes_no_value && self.yes_no_highlighted)
         .render(no_area, buf);
@@ -109,11 +108,11 @@ impl ConfirmationPrompt<'_> {
       Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
         .areas(buttons_area);
 
-    Button::new()
+    Button::default()
       .title("Yes")
       .selected(self.yes_no_value)
       .render(yes_area, buf);
-    Button::new()
+    Button::default()
       .title("No")
       .selected(!self.yes_no_value)
       .render(no_area, buf);

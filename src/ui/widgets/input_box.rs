@@ -1,9 +1,10 @@
+use crate::ui::styles::{default_style, system_function_style};
 use derive_setters::Setters;
 use ratatui::Frame;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
-use ratatui::style::{Style, Styled, Stylize};
+use ratatui::style::{Style, Styled};
 use ratatui::widgets::{Block, Paragraph, Widget, WidgetRef};
 
 use crate::ui::styles::ManagarrStyle;
@@ -35,7 +36,7 @@ impl<'a> InputBox<'a> {
     InputBox {
       content,
       offset: 0,
-      style: Style::new().default(),
+      style: default_style(),
       block: layout_block(),
       label: None,
       cursor_after_string: true,
@@ -71,7 +72,7 @@ impl<'a> InputBox<'a> {
   fn render_input_box(&self, area: Rect, buf: &mut Buffer) {
     let style =
       if matches!(self.is_highlighted, Some(true)) && matches!(self.is_selected, Some(false)) {
-        Style::new().system_function().bold()
+        system_function_style().bold()
       } else {
         self.style
       };

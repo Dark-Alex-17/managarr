@@ -2,17 +2,12 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
+  DownloadRecord, DownloadStatus, Episode, SonarrHistoryItem, SonarrRelease,
 };
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
-use crate::ui::sonarr_ui::sonarr_ui_utils::{
-  create_download_failed_history_event_details,
-  create_download_folder_imported_history_event_details,
-  create_episode_file_deleted_history_event_details,
-  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
-  create_no_data_history_event_details,
-};
+use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::secondary_style;
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_top_border,
 };
@@ -26,7 +21,7 @@ use crate::utils::convert_to_gb;
 use chrono::Utc;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::prelude::{Line, Style, Stylize, Text};
+use ratatui::prelude::{Line, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use serde_json::Number;
 
@@ -122,7 +117,7 @@ impl DrawUi for SeasonDetailsUi {
             draw_manual_season_search_confirm_prompt(f, app);
           }
           ActiveSonarrBlock::SeasonHistoryDetails => {
-            draw_history_item_details_popup(f, app, popup_area);
+            draw_history_item_details_popup(f, app);
           }
           _ => (),
         }
@@ -532,7 +527,7 @@ fn draw_manual_season_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   }
 }
 
-fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection =
     if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
       if season_details_modal.season_history.is_empty() {
@@ -547,30 +542,15 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
       SonarrHistoryItem::default()
     };
 
-  let line_vec = match current_selection.event_type {
-    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
-    SonarrHistoryEventType::DownloadFolderImported => {
-      create_download_folder_imported_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::DownloadFailed => {
-      create_download_failed_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileDeleted => {
-      create_episode_file_deleted_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileRenamed => {
-      create_episode_file_renamed_history_event_details(current_selection)
-    }
-    _ => create_no_data_history_event_details(current_selection),
-  };
+  let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }
 
 fn decorate_with_row_style<'a>(

@@ -2,7 +2,7 @@
 mod tests {
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, EditMovieParams,
-    MinimumAvailability, Movie, MovieHistoryItem, RadarrReleaseDownloadBody,
+    MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrReleaseDownloadBody,
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -50,13 +50,13 @@ mod tests {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
-      minimum_availability: "announced".to_owned(),
+      minimum_availability: MinimumAvailability::Announced,
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
       tag_input_string: Some("usenet, testing".into()),
       add_options: AddMovieOptions {
-        monitor: "movieOnly".to_owned(),
+        monitor: MovieMonitor::MovieOnly,
         search_for_movie: true,
       },
     };
@@ -99,13 +99,13 @@ mod tests {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
-      minimum_availability: "announced".to_owned(),
+      minimum_availability: MinimumAvailability::Announced,
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
       tag_input_string: None,
       add_options: AddMovieOptions {
-        monitor: "movieOnly".to_owned(),
+        monitor: MovieMonitor::MovieOnly,
         search_for_movie: true,
       },
     };
@@ -981,18 +981,39 @@ mod tests {
     );
 
     async_server.assert_async().await;
-    assert!(
+    assert_none!(&app_arc.lock().await.data.radarr_data.add_searched_movies);
+    assert_eq!(
+      app_arc.lock().await.get_current_route(),
+      ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_movie_event_sets_empty_table_on_api_error() {
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .status(500)
+      .query("term=test%20term")
+      .build_for(RadarrEvent::SearchNewMovie("test term".into()))
+      .await;
+    let mut network = test_network(&app_arc);
+
+    let result = network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie("test term".into()))
+      .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    assert_some!(&app_arc.lock().await.data.radarr_data.add_searched_movies);
+    assert_is_empty!(
       app_arc
         .lock()
         .await
         .data
         .radarr_data
         .add_searched_movies
-        .is_none()
-    );
-    assert_eq!(
-      app_arc.lock().await.get_current_route(),
-      ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+        .as_ref()
+        .unwrap()
     );
   }
 

@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::models::Route;
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::servarr_models::EditIndexerParams;
@@ -124,7 +125,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
           .edit_indexer_modal
           .as_mut()
           .unwrap();
-        if edit_indexer_modal.priority > 0 {
+        if edit_indexer_modal.priority > 1 {
           edit_indexer_modal.priority -= 1;
         }
       }
@@ -527,7 +528,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

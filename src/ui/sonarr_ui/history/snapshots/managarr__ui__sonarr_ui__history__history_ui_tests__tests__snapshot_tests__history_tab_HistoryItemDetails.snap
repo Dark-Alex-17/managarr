@@ -18,12 +18,9 @@ expression: output
                                                                                                                                                                      
                                                                                                                                                                      
                                                                                                                                                                      
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                                                                                                     
                                          ╭───────────────────────────────────  Details  ───────────────────────────────────╮                                         
                                          │Source Title: Test source                                                        │                                         
+                                         │Event Type: grabbed                                                              │                                         
                                          │Indexer:                                                                         │                                         
                                          │Release Group:                                                                   │                                         
                                          │Series Match Type:                                                               │                                         
@@ -31,4 +28,11 @@ expression: output
                                          │Download Client Name:                                                            │                                         
                                          │Age: 0 days                                                                      │                                         
                                          │Published Date: 1970-01-01 00:00:00 UTC                                          │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
                                          ╰─────────────────────────────────────────────────────────────────────────────────╯

@@ -7,7 +7,7 @@ use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock,
 };
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, Route, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{App, Key, handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
@@ -83,8 +83,8 @@ impl AddMovieHandler<'_, '_> {
       .unwrap();
 
     let path = root_folder_list.current_selection().path.clone();
-    let monitor = monitor_list.current_selection().to_string();
-    let minimum_availability = minimum_availability_list.current_selection().to_string();
+    let monitor = *monitor_list.current_selection();
+    let minimum_availability = *minimum_availability_list.current_selection();
 
     AddMovieBody {
       tmdb_id,
@@ -558,7 +558,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

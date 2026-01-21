@@ -6,10 +6,9 @@ mod tests {
   use crate::models::sonarr_models::SonarrSerdeable;
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::servarr_test_utils::indexer_settings;
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    indexer, indexer_settings,
-  };
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::indexer;
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
@@ -31,11 +30,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::DeleteIndexer(1))
         .await
-        .is_ok()
     );
 
     mock.assert_async().await;
@@ -58,11 +56,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
         .await
-        .is_ok()
     );
 
     mock.assert_async().await;
@@ -153,11 +150,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
         .await
-        .is_ok()
     );
 
     mock_details_server.assert_async().await;
@@ -248,11 +244,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
         .await
-        .is_ok()
     );
 
     mock_details_server.assert_async().await;
@@ -338,11 +333,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
         .await
-        .is_ok()
     );
 
     mock_details_server.assert_async().await;
@@ -435,11 +429,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
         .await
-        .is_ok()
     );
 
     mock_details_server.assert_async().await;
@@ -497,11 +490,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
         .await
-        .is_ok()
     );
 
     mock_details_server.assert_async().await;
@@ -584,11 +576,10 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
         .await
-        .is_ok()
     );
 
     async_details_server.assert_async().await;
@@ -642,6 +633,7 @@ mod tests {
     else {
       panic!("Expected Indexers")
     };
+
     async_server.assert_async().await;
     assert_eq!(
       app.lock().await.data.sonarr_data.indexers.items,
@@ -714,6 +706,7 @@ mod tests {
     else {
       panic!("Expected Value")
     };
+
     async_details_server.assert_async().await;
     async_test_server.assert_async().await;
     assert_eq!(
@@ -780,6 +773,7 @@ mod tests {
     else {
       panic!("Expected Value")
     };
+
     async_details_server.assert_async().await;
     async_test_server.assert_async().await;
     assert_eq!(
@@ -860,16 +854,9 @@ mod tests {
     else {
       panic!("Expected IndexerTestResults")
     };
+
     async_server.assert_async().await;
-    assert!(
-      app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexer_test_all_results
-        .is_some()
-    );
+    assert_some!(&app.lock().await.data.sonarr_data.indexer_test_all_results);
     assert_eq!(
       app
         .lock()
@@ -883,5 +870,32 @@ mod tests {
       indexer_test_results_modal_items
     );
     assert_eq!(results, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_all_sonarr_indexers_event_sets_empty_table_on_api_error() {
+    let (async_server, app, _server) = MockServarrApi::post()
+      .status(500)
+      .build_for(SonarrEvent::TestAllIndexers)
+      .await;
+    let mut network = test_network(&app);
+    app.lock().await.server_tabs.next();
+
+    let result = network
+      .handle_sonarr_event(SonarrEvent::TestAllIndexers)
+      .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(&app.data.sonarr_data.indexer_test_all_results);
+    assert_is_empty!(
+      app
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+    );
   }
 }

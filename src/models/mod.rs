@@ -3,7 +3,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::app::ServarrConfig;
 use crate::app::context_clues::ContextClue;
+use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use lidarr_models::LidarrSerdeable;
 use radarr_models::RadarrSerdeable;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
@@ -11,6 +13,7 @@ use serde_json::Number;
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
 
+pub mod lidarr_models;
 pub mod radarr_models;
 pub mod servarr_data;
 pub mod servarr_models;
@@ -30,7 +33,7 @@ pub enum Route {
   Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
   Sonarr(ActiveSonarrBlock, Option<ActiveSonarrBlock>),
   Readarr,
-  Lidarr,
+  Lidarr(ActiveLidarrBlock, Option<ActiveLidarrBlock>),
   Whisparr,
   Bazarr,
   Prowlarr,
@@ -43,6 +46,7 @@ pub enum Route {
 pub enum Serdeable {
   Radarr(RadarrSerdeable),
   Sonarr(SonarrSerdeable),
+  Lidarr(LidarrSerdeable),
 }
 
 pub trait Scrollable {
@@ -289,8 +293,7 @@ impl TabState {
     TabState { tabs, index: 0 }
   }
 
-  // Allowing this code for now since we'll eventually be implementing additional Servarr support, and we'll need it then
-  #[allow(dead_code)]
+  #[cfg(test)]
   pub fn set_index(&mut self, index: usize) -> &TabRoute {
     self.index = index;
     &self.tabs[self.index]

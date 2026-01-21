@@ -32,6 +32,6 @@ mod tests {
       .await;
 
     mock.assert_async().await;
-    assert!(result.is_ok());
+    assert_ok!(result);
   }
 }

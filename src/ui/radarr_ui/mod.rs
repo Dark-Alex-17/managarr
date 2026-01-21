@@ -21,6 +21,7 @@ use crate::ui::draw_tabs;
 use crate::ui::radarr_ui::blocklist::BlocklistUi;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::radarr_ui::downloads::DownloadsUi;
+use crate::ui::radarr_ui::history::HistoryUi;
 use crate::ui::radarr_ui::indexers::IndexersUi;
 use crate::ui::radarr_ui::library::LibraryUi;
 use crate::ui::radarr_ui::root_folders::RootFoldersUi;
@@ -35,10 +36,12 @@ use crate::utils::convert_to_gb;
 mod blocklist;
 mod collections;
 mod downloads;
+mod history;
 mod indexers;
 mod library;
 #[cfg(test)]
 mod radarr_ui_tests;
+mod radarr_ui_utils;
 mod root_folders;
 mod system;
 
@@ -61,6 +64,7 @@ impl DrawUi for RadarrUi {
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
+      _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ => (),
     }
   }
@@ -161,7 +165,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let space: f64 = convert_to_gb(*free_space);
       let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
-        .default();
+        .default_color();
 
       f.render_widget(
         root_folder_space,
@@ -249,7 +253,7 @@ fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
   let logo_text = Text::from(RADARR_LOGO);
   let logo = Paragraph::new(logo_text)
     .light_yellow()
-    .block(layout_block().default())
+    .block(layout_block().default_color())
     .centered();
   f.render_widget(logo, area);
 }

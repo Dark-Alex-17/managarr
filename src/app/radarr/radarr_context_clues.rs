@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::app::context_clues::{
   BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
+  SYSTEM_TASKS_CONTEXT_CLUES,
 };
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
@@ -80,11 +81,6 @@ pub static MANUAL_MOVIE_SEARCH_CONTEXT_CLUES: [ContextClue; 7] = [
 pub static ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "details"),
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
-];
-
-pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
-  (DEFAULT_KEYBINDINGS.submit, "start task"),
-  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
 pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 3] = [

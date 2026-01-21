@@ -50,7 +50,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .priority,
-          1
+          2
         );
       } else {
         assert_eq!(
@@ -61,7 +61,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .priority,
-          0
+          1
         );
 
         EditIndexerHandler::new(
@@ -80,7 +80,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .priority,
-          1
+          2
         );
 
         EditIndexerHandler::new(
@@ -98,7 +98,7 @@ mod tests {
             .as_ref()
             .unwrap()
             .priority,
-          0
+          1
         );
       }
     }

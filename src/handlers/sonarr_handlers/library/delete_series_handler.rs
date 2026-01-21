@@ -1,3 +1,4 @@
+use crate::models::Route;
 use crate::models::sonarr_models::DeleteSeriesParams;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{
@@ -143,7 +144,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

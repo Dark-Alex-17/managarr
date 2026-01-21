@@ -1,0 +1,34 @@
+---
+source: src/ui/lidarr_ui/blocklist/blocklist_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Artist Name ▼                                Source Title                                                       Quality               Date                        
+=> Alex                                         Alex - Something                                                   Lossless              2023-05-20 21:29:16 UTC     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                         ╭───────────────────────────────────  Details  ───────────────────────────────────╮                                         
+                                         │Name: Alex - Something                                                           │                                         
+                                         │Protocol: usenet                                                                 │                                         
+                                         │Indexer: NZBgeek (Prowlarr)                                                      │                                         
+                                         │Message: test message                                                            │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         ╰─────────────────────────────────────────────────────────────────────────────────╯

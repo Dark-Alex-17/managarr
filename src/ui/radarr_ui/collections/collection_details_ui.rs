@@ -150,7 +150,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         .overview
         .clone()
         .unwrap_or_default()
-        .default(),
+        .default_color(),
     ]),
     Line::from(vec![
       "Root Folder Path: ".primary().bold(),
@@ -158,20 +158,23 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         .root_folder_path
         .clone()
         .unwrap_or_default()
-        .default(),
+        .default_color(),
     ]),
     Line::from(vec![
       "Quality Profile: ".primary().bold(),
-      quality_profile.default(),
+      quality_profile.default_color(),
     ]),
     Line::from(vec![
       "Minimum Availability: ".primary().bold(),
-      minimum_availability.default(),
+      minimum_availability.default_color(),
     ]),
-    Line::from(vec!["Monitored: ".primary().bold(), monitored.default()]),
+    Line::from(vec![
+      "Monitored: ".primary().bold(),
+      monitored.default_color(),
+    ]),
     Line::from(vec![
       "Search on Add: ".primary().bold(),
-      search_on_add.default(),
+      search_on_add.default_color(),
     ]),
   ]);
 
@@ -225,7 +228,7 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .clone()
       .overview,
   )
-  .default();
+  .default_color();
 
   let paragraph = Paragraph::new(overview)
     .block(borderless_block())

@@ -1,4 +1,5 @@
-use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
+use crate::models::Route;
+use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::{SonarrCommandBody, SonarrHistoryItem, SonarrRelease};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
@@ -13,10 +14,10 @@ mod sonarr_seasons_network_tests;
 impl Network<'_, '_> {
   pub(in crate::network::sonarr_network) async fn toggle_sonarr_season_monitoring(
     &mut self,
-    series_id_season_number_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<()> {
-    let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
-    let (series_id, season_number) = series_id_season_number_tuple;
+    let event = SonarrEvent::ToggleSeasonMonitoring(series_id, season_number);
 
     let detail_event = SonarrEvent::GetSeriesDetails(series_id);
     info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
@@ -93,10 +94,10 @@ impl Network<'_, '_> {
 
   pub(in crate::network::sonarr_network) async fn get_season_releases(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetSeasonReleases(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::GetSeasonReleases(series_id, season_number);
     info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
 
     let request_props = self
@@ -111,21 +112,18 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrRelease>>(request_props, |release_vec, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
+        let season_details_modal = app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .get_or_insert_default();
 
         let season_releases_vec = release_vec
           .into_iter()
           .filter(|release| release.full_season)
           .collect();
 
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
+        season_details_modal
           .season_releases
           .set_items(season_releases_vec);
       })
@@ -134,10 +132,10 @@ impl Network<'_, '_> {
 
   pub(in crate::network::sonarr_network) async fn get_sonarr_season_history(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Vec<SonarrHistoryItem>> {
-    let event = SonarrEvent::GetSeasonHistory(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::GetSeasonHistory(series_id, season_number);
     info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
 
     let params = format!("seriesId={series_id}&seasonNumber={season_number}",);
@@ -147,38 +145,35 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |history_items, mut app| {
-        if app.data.sonarr_data.season_details_modal.is_none() {
-          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
-        }
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Sonarr(ActiveSonarrBlock::SeasonHistorySortPrompt, _)
+        );
 
-        let mut history_vec = history_items;
-        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-        app
+        let season_details_modal = app
           .data
           .sonarr_data
           .season_details_modal
-          .as_mut()
-          .unwrap()
-          .season_history
-          .set_items(history_vec);
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_mut()
-          .unwrap()
-          .season_history
-          .apply_sorting_toggle(false);
+          .get_or_insert_default();
+
+        if !is_sorting {
+          let mut history_vec = history_items;
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          season_details_modal.season_history.set_items(history_vec);
+          season_details_modal
+            .season_history
+            .apply_sorting_toggle(false);
+        }
       })
       .await
   }
 
   pub(in crate::network::sonarr_network) async fn trigger_automatic_season_search(
     &mut self,
-    series_season_id_tuple: (i64, i64),
+    series_id: i64,
+    season_number: i64,
   ) -> Result<Value> {
-    let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_season_id_tuple);
-    let (series_id, season_number) = series_season_id_tuple;
+    let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_id, season_number);
     info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
 
     let body = SonarrCommandBody {
