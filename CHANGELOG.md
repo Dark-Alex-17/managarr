@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.7.0 (2026-01-21)
+
+### Feat
+
+- Blocklist support in Lidarr in both the CLI and TUI
+- CLI and TUI support for track history and track details in Lidarr
+- Lidarr UI support for album details popup
+- Implemented TUI handler support for the Album Details popup in Lidarr
+- Bulk added CLI support for tracks and album functionalities in Lidarr
+- Implemented the manual artist discography search tab in Lidarr's artist details UI
+- Lidarr CLI support for downloading a release
+- CLI support for searching for discography releases in Lidarr
+- Added TUI and CLI support for viewing Artist history in Lidarr
+- Full Lidarr system support for both the CLI and TUI
+- Full CLI and TUI support for the Lidarr Indexers tab
+- Full support for adding a root folder in Lidarr from both the CLI and TUI
+- naive lidarr root folder tab implementation. Needs improved add logic
+- Downloads tab support in Lidarr
+- Created a History tab in the Radarr UI and created a list history command and mark-history-item-as-failed command for Radarr
+- Implemented the Lidarr History tab and CLI support
+- TUI support for deleting a Lidarr album from the artist details popup
+- CLI support for deleting an album from Lidarr
+- Completed support for viewing Lidarr artist details
+- Full CLI and TUI support for adding an artist to Lidarr
+- Include the Lidarr artist disambiguation in the title of the Edit Artist popup
+- Initial Lidarr support for searching for new artists
+- Lidarr CLI commands to list quality profiles and metadata profiles
+- Improved CLI readability by creating a separate Global Options section for global flags
+- CLI support for deleting a tag in Lidarr
+- Lidarr CLI support for listing and adding tags
+- Added CLI and TUI support for editing Lidarr artists
+- Support for updating all Lidarr artists in both the CLI and TUI
+- Added Lidarr CLI support for fetching the host config and the security config
+- Created Lidarr commands: 'get artist-details' and 'get system-status'
+- Fetch the artist members as part of the artist details query
+- Support for toggling the monitoring of a given artist via the CLI and TUI
+- Full support for deleting an artist via CLI and TUI
+- TUI support for Lidarr library
+- CLI support for listing artists
+- Improved UI speed and responsiveness
+
+### Fix
+
+- Sonarr network wasn't checking for the user to be using the sorting block when populating season details
+- Sonarr CLI was not properly filtering out episode and season releases when manually searching for releases
+- Sonarr manual search TUI and CLI incorrectly displaying the same unfiltered results for both season and episode searches
+- Slowed down the automatic text scrolling in tables so the text is readable
+- Expanded the history item details size so that it can include all the available information for a given item; was previously being cut off on some screens
+- Bug in submitting the update series prompt in the series details UI in Sonarr
+- Don't include Lidarr artist disambiguation in Edit popup title when it is empty
+- Refactored how quality profiles, language profiles, and metadata profiles are populated for each servarr so they sort using the ID to mimic the web UI better
+- Added the correct keybinding context to the Lidarr edit artist popup
+- Improved fault tolerance for search result tables and test all indexer results tables
+- Prevented additional empty slice errors in indexer tables
+- Fixed a bug in all Servarr implementations to not try to get the current selection of a search table when an error is returned from the API
+- Fixed an issue with the Managarr table that would incorrectly try to display things before is_loading was ready
+- Fixed a bug where the edit collection popup would not display when opening it from collection details
+
+### Refactor
+
+- Refactored the SonarrEvent enum to not unnecessarily wrap dual series_id and season_number values in a tuple when both values can be passed directly
+- Improved and simplified the implementation of history details for both Sonarr and Lidarr
+- Let serde serialize Add Series and Add Movie enums instead of calling to_string up front
+- Use is_multiple_of for the tick counter in the UI module
+- Updated all model tests to use purpose-built assertions to improve readability and maintainability
+- Updated all handler tests to use purpose built assertions to improve readability and maintainability
+- Used is_multiple_of to make life easier and cleaner in the app module
+- Refactored all cli tests to use purpose-built assertions
+- Improved test assertions in the app module
+- Created dedicated proptests and assertions to clean up the handler unit tests
+- Migrated the handle_table_events macro into a trait for better IDE support, created a TableEventAdapter wrapper for the KeyEventHandlers to make it so that the trait can be used properly and a simple function to replace the previous call to the handle_table_events macro
+- Simplified both the table_handler macro and the stateful_table implementation
+- Improved error handling for the tail-logs subcommand to propagate errors up the stack instead of exiting there.
+- Added accessor methods to servarr_data structs, replaced for loops with functional iterator chains, eliminated mutable state tracking, and updated network module to use get_or_insert_default() for modal options
+- Improved error handling project-wide and cleaned up some regexes with unnecessary escapes (tail_logs and interpolate_env_vars)
+- Refactored to use more idiomatic let-else statements where applicable
+
 ## v0.6.3 (2025-12-13)
 
 ### Fix
