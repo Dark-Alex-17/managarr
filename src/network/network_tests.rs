@@ -862,6 +862,7 @@ pub(in crate::network) mod test_utils {
         host,
         port,
         api_token: Some("test1234".to_owned()),
+        monitored_storage_paths: Some(vec!["/path1".to_owned()]),
         ..ServarrConfig::default()
       };
 

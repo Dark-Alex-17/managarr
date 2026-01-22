@@ -436,6 +436,8 @@ pub struct ServarrConfig {
     serialize_with = "serialize_header_map"
   )]
   pub custom_headers: Option<HeaderMap>,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var_string_vec")]
+  pub monitored_storage_paths: Option<Vec<String>>,
 }
 
 impl ServarrConfig {
@@ -482,6 +484,7 @@ impl Default for ServarrConfig {
       api_token_file: None,
       ssl_cert_path: None,
       custom_headers: None,
+      monitored_storage_paths: None,
     }
   }
 }
@@ -544,6 +547,24 @@ where
       }
       Ok(Some(header_map))
     }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_optional_env_var_string_vec<'de, D>(
+  deserializer: D,
+) -> Result<Option<Vec<String>>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let opt: Option<Vec<String>> = Option::deserialize(deserializer)?;
+  match opt {
+    Some(vec) => Ok(Some(
+      vec
+        .into_iter()
+        .map(|it| interpolate_env_vars(&it))
+        .collect(),
+    )),
     None => Ok(None),
   }
 }

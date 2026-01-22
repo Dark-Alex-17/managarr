@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use clap::{Subcommand, command};
+use indoc::formatdoc;
 use tokio::sync::Mutex;
 
 use crate::{
@@ -27,7 +28,10 @@ pub enum RadarrListCommand {
     #[arg(long, help = "How many downloads to fetch", default_value_t = 500)]
     count: u64,
   },
-  #[command(about = "List disk space details for all provisioned root folders in Radarr")]
+  #[command(about = formatdoc!(
+    "List disk space details for all provisioned root folders in Radarr
+    (returns unfiltered response; i.e. ignores 'monitored_storage_paths' config field)")
+  )]
   DiskSpace,
   #[command(about = "Fetch all Radarr history events")]
   History {

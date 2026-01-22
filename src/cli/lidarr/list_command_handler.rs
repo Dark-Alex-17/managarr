@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use clap::{Subcommand, arg};
+use indoc::formatdoc;
 use serde_json::json;
 use tokio::sync::Mutex;
 
@@ -59,7 +60,10 @@ pub enum LidarrListCommand {
   Artists,
   #[command(about = "List all items in the Lidarr blocklist")]
   Blocklist,
-  #[command(about = "List disk space details for all provisioned root folders in Sonarr")]
+  #[command(about = formatdoc!(
+    "List disk space details for all provisioned root folders in Lidarr
+    (returns unfiltered response; i.e. ignores 'monitored_storage_paths' config field)")
+  )]
   DiskSpace,
   #[command(about = "List all active downloads in Lidarr")]
   Downloads {

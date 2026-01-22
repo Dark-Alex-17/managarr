@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use clap::Subcommand;
+use indoc::formatdoc;
 use tokio::sync::Mutex;
 
 use crate::{
@@ -25,7 +26,10 @@ pub enum SonarrListCommand {
     #[arg(long, help = "How many downloads to fetch", default_value_t = 500)]
     count: u64,
   },
-  #[command(about = "List disk space details for all provisioned root folders in Sonarr")]
+  #[command(about = formatdoc!(
+    "List disk space details for all provisioned root folders in Sonarr
+    (returns unfiltered response; i.e. ignores 'monitored_storage_paths' config field)")
+  )]
   DiskSpace,
   #[command(about = "List the episodes for the series with the given ID")]
   Episodes {

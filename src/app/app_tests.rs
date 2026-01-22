@@ -509,6 +509,56 @@ mod tests {
 
   #[test]
   #[serial]
+  fn test_deserialize_optional_env_var_string_vec_is_present() {
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_STRING_VEC_OPTION", "/path1") };
+    let expected_monitored_paths = ["/path1", "/path2"];
+    let yaml_data = r#"
+      monitored_storage_paths:
+        - ${TEST_VAR_DESERIALIZE_STRING_VEC_OPTION}
+        - /path2
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.monitored_storage_paths, &expected_monitored_paths);
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_STRING_VEC_OPTION") };
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_string_vec_does_not_overwrite_non_env_value() {
+    unsafe {
+      std::env::set_var(
+        "TEST_VAR_DESERIALIZE_STRING_VEC_OPTION_NO_OVERWRITE",
+        "/path3",
+      )
+    };
+    let expected_monitored_paths = ["/path1", "/path2"];
+    let yaml_data = r#"
+      monitored_storage_paths:
+        - /path1
+        - /path2
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.monitored_storage_paths, &expected_monitored_paths);
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_STRING_VEC_OPTION_NO_OVERWRITE") };
+  }
+
+  #[test]
+  fn test_deserialize_optional_env_var_string_vec_empty() {
+    let yaml_data = r#"
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_none!(config.monitored_storage_paths);
+  }
+
+  #[test]
+  #[serial]
   fn test_deserialize_optional_u16_env_var_is_present() {
     unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1") };
     let yaml_data = r#"
@@ -620,10 +670,11 @@ mod tests {
     let api_token = "thisisatest".to_owned();
     let api_token_file = "/root/.config/api_token".to_owned();
     let ssl_cert_path = "/some/path".to_owned();
+    let monitored_storage = vec!["/path1".to_owned(), "/path2".to_owned()];
     let mut custom_headers = HeaderMap::new();
     custom_headers.insert("X-Custom-Header", "value".parse().unwrap());
     let expected_str = format!(
-      "ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}) }}"
+      "ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}), monitored_storage_paths: Some([\"/path1\", \"/path2\"]) }}"
     );
     let servarr_config = ServarrConfig {
       name: Some(name),
@@ -635,6 +686,7 @@ mod tests {
       api_token_file: Some(api_token_file),
       ssl_cert_path: Some(ssl_cert_path),
       custom_headers: Some(custom_headers),
+      monitored_storage_paths: Some(monitored_storage),
     };
 
     assert_str_eq!(format!("{servarr_config:?}"), expected_str);
