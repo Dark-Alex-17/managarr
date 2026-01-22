@@ -101,28 +101,7 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<DiskSpace>>(request_props, |disk_space_vec, mut app| {
-        if let Some(paths) = app
-          .server_tabs
-          .get_active_config()
-          .as_ref()
-          .expect("Servarr config is undefined")
-          .monitored_storage_paths
-          .as_ref()
-          && !paths.is_empty()
-        {
-          app.data.lidarr_data.disk_space_vec = disk_space_vec
-            .into_iter()
-            .filter(|it| {
-              if let Some(path) = it.path.as_ref() {
-                paths.contains(path)
-              } else {
-                true
-              }
-            })
-            .collect();
-        } else {
-          app.data.lidarr_data.disk_space_vec = disk_space_vec;
-        }
+        app.data.lidarr_data.disk_space_vec = disk_space_vec;
       })
       .await
   }

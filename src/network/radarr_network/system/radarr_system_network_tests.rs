@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::{App, ServarrConfig};
   use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus};
   use crate::models::servarr_models::{
@@ -12,8 +11,6 @@ mod tests {
   use chrono::DateTime;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
-  use std::sync::Arc;
-  use tokio::sync::Mutex;
 
   #[tokio::test]
   async fn test_handle_get_radarr_diskspace_event() {
@@ -33,11 +30,6 @@ mod tests {
       .build_for(RadarrEvent::GetDiskSpace)
       .await;
     let mut network = test_network(&app);
-    let filtered_disk_space_vec = vec![DiskSpace {
-      path: Some("/path1".to_owned()),
-      free_space: 1111,
-      total_space: 2222,
-    }];
     let disk_space_vec = vec![
       DiskSpace {
         path: Some("/path1".to_owned()),
@@ -61,65 +53,6 @@ mod tests {
     mock.assert_async().await;
     assert_eq!(
       app.lock().await.data.radarr_data.disk_space_vec,
-      filtered_disk_space_vec
-    );
-    assert_eq!(disk_space, disk_space_vec);
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_radarr_diskspace_event_populates_data_with_all_storage_when_monitored_storage_paths_is_empty()
-   {
-    let (mock, base_app, _server) = MockServarrApi::get()
-      .returns(json!([
-        {
-          "path": "/path1",
-          "freeSpace": 1111,
-          "totalSpace": 2222,
-        },
-        {
-          "path": "/path2",
-          "freeSpace": 3333,
-          "totalSpace": 4444
-        }
-      ]))
-      .build_for(RadarrEvent::GetDiskSpace)
-      .await;
-    let mut app = App::test_default();
-    let servarr_config = ServarrConfig {
-      monitored_storage_paths: Some(vec![]),
-      ..base_app.lock().await.server_tabs.tabs[0]
-        .config
-        .as_ref()
-        .unwrap()
-        .clone()
-    };
-    app.server_tabs.tabs[0].config = Some(servarr_config);
-    let app_arc = Arc::new(Mutex::new(app));
-
-    let mut network = test_network(&app_arc);
-    let disk_space_vec = vec![
-      DiskSpace {
-        path: Some("/path1".to_owned()),
-        free_space: 1111,
-        total_space: 2222,
-      },
-      DiskSpace {
-        path: Some("/path2".to_owned()),
-        free_space: 3333,
-        total_space: 4444,
-      },
-    ];
-
-    let RadarrSerdeable::DiskSpaces(disk_space) = network
-      .handle_radarr_event(RadarrEvent::GetDiskSpace)
-      .await
-      .unwrap()
-    else {
-      panic!("Expected DiskSpaces")
-    };
-    mock.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.disk_space_vec,
       disk_space_vec
     );
     assert_eq!(disk_space, disk_space_vec);
