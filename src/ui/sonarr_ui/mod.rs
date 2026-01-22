@@ -149,10 +149,16 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
     for i in 0..disk_space_vec.len() {
       let DiskSpace {
+        path,
         free_space,
         total_space,
+        ..
       } = &disk_space_vec[i];
-      let title = format!("Disk {}", i + 1);
+      let title = if let Some(path) = path {
+        path
+      } else {
+        &format!("Disk {}", i + 1)
+      };
       let ratio = if *total_space == 0 {
         0f64
       } else {

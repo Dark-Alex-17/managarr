@@ -113,10 +113,12 @@ mod tests {
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!([
         {
+          "path": "/path1",
           "freeSpace": 1111,
           "totalSpace": 2222,
         },
         {
+          "path": "/path2",
           "freeSpace": 3333,
           "totalSpace": 4444
         }
@@ -127,10 +129,12 @@ mod tests {
     let mut network = test_network(&app);
     let disk_space_vec = vec![
       DiskSpace {
+        path: Some("/path1".to_owned()),
         free_space: 1111,
         total_space: 2222,
       },
       DiskSpace {
+        path: Some("/path2".to_owned()),
         free_space: 3333,
         total_space: 4444,
       },

@@ -296,6 +296,7 @@ mod tests {
   #[test]
   fn test_lidarr_serdeable_from_disk_spaces() {
     let disk_spaces = vec![DiskSpace {
+      path: Some("/path".to_owned()),
       free_space: 1,
       total_space: 1,
     }];

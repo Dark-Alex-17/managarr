@@ -83,6 +83,7 @@ pub struct CommandBody {
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DiskSpace {
+  pub path: Option<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub free_space: i64,
   #[serde(deserialize_with = "super::from_i64")]

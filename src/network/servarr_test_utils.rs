@@ -4,6 +4,7 @@ use chrono::DateTime;
 
 pub fn diskspace() -> DiskSpace {
   DiskSpace {
+    path: Some("/path".to_owned()),
     free_space: 6500,
     total_space: 8675309,
   }
