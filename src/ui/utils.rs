@@ -1,3 +1,5 @@
+use crate::app::App;
+use crate::models::servarr_models::{DiskSpace, RootFolder};
 use crate::ui::THEME;
 use crate::ui::styles::{
   ManagarrStyle, default_style, failure_style, primary_style, secondary_style,
@@ -7,6 +9,8 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, ListItem, Paragraph, Wrap};
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -177,5 +181,117 @@ pub(super) fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -
     text.warning()
   } else {
     text.success()
+  }
+}
+
+pub(super) fn extract_monitored_root_folders(
+  app: &App<'_>,
+  root_folders: Vec<RootFolder>,
+) -> Vec<RootFolder> {
+  let monitored_paths = app
+    .server_tabs
+    .get_active_config()
+    .as_ref()
+    .unwrap()
+    .monitored_storage_paths
+    .as_ref();
+
+  if let Some(monitored_paths) = monitored_paths
+    && !monitored_paths.is_empty()
+  {
+    let monitored_paths: Vec<PathBuf> = monitored_paths.iter().map(PathBuf::from).collect();
+
+    let mut collapsed_folders: HashMap<PathBuf, (RootFolder, Vec<String>)> = HashMap::new();
+    let mut unmatched_folders: Vec<RootFolder> = Vec::new();
+
+    for root_folder in root_folders {
+      let root_path = Path::new(&root_folder.path);
+
+      let matching_monitored_path = monitored_paths
+        .iter()
+        .filter(|mp| root_path.starts_with(mp))
+        .max_by_key(|mp| mp.components().count());
+
+      if let Some(monitored_path) = matching_monitored_path {
+        let subfolder_name = root_path
+          .strip_prefix(monitored_path)
+          .ok()
+          .and_then(|p| p.components().next())
+          .map(|c| c.as_os_str().to_string_lossy().to_string())
+          .unwrap_or_default();
+
+        collapsed_folders
+          .entry(monitored_path.clone())
+          .and_modify(|(_, subfolders)| {
+            if !subfolder_name.is_empty() && !subfolders.contains(&subfolder_name) {
+              subfolders.push(subfolder_name.clone());
+            }
+          })
+          .or_insert_with(|| {
+            let subfolders = if subfolder_name.is_empty() {
+              vec![]
+            } else {
+              vec![subfolder_name]
+            };
+            (root_folder.clone(), subfolders)
+          });
+      } else {
+        unmatched_folders.push(root_folder);
+      }
+    }
+
+    let mut result: Vec<RootFolder> = collapsed_folders
+      .into_iter()
+      .map(|(monitored_path, (mut root_folder, mut subfolders))| {
+        subfolders.sort();
+        let path_str = monitored_path.to_string_lossy();
+        root_folder.path = if subfolders.is_empty() {
+          path_str.to_string()
+        } else {
+          format!(
+            "{}/[{}]",
+            path_str.trim_end_matches('/'),
+            subfolders.join(",")
+          )
+        };
+        root_folder
+      })
+      .collect();
+
+    result.extend(unmatched_folders);
+    result.sort_by(|a, b| a.path.cmp(&b.path));
+    result
+  } else {
+    root_folders
+  }
+}
+
+pub(super) fn extract_monitored_disk_space_vec(
+  app: &App<'_>,
+  disk_space_vec: Vec<DiskSpace>,
+) -> Vec<DiskSpace> {
+  let monitored_paths = app
+    .server_tabs
+    .get_active_config()
+    .as_ref()
+    .unwrap()
+    .monitored_storage_paths
+    .as_ref();
+  if let Some(monitored_paths) = monitored_paths
+    && !monitored_paths.is_empty()
+  {
+    let paths: Vec<PathBuf> = monitored_paths.iter().map(PathBuf::from).collect();
+    disk_space_vec
+      .into_iter()
+      .filter(|it| {
+        if let Some(path) = it.path.as_ref() {
+          paths.iter().any(|p| path == p)
+        } else {
+          true
+        }
+      })
+      .collect()
+  } else {
+    disk_space_vec
   }
 }

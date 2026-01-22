@@ -1,9 +1,12 @@
 #[cfg(test)]
 mod test {
+  use crate::app::{App, ServarrConfig};
+  use crate::models::servarr_models::{DiskSpace, RootFolder};
   use crate::ui::styles::{ManagarrStyle, default_style, failure_style, secondary_style};
   use crate::ui::utils::{
     borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style,
-    get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border,
+    extract_monitored_disk_space_vec, extract_monitored_root_folders, get_width_from_percentage,
+    layout_block, layout_block_bottom_border, layout_block_top_border,
     layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
     style_log_list_item, title_block, title_block_centered, title_style, unstyled_title_block,
   };
@@ -276,6 +279,281 @@ mod test {
         text.success()
       ),
     }
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_collapses_subfolders() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec!["/nfs".to_owned()]),
+      ..ServarrConfig::default()
+    });
+    let root_folders = vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs/cartoons".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs/tv".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 3,
+        path: "/nfs/reality".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+    ];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders);
+
+    assert_eq!(monitored_root_folders.len(), 1);
+    assert_eq!(monitored_root_folders[0].path, "/nfs/[cartoons,reality,tv]");
+    assert_eq!(monitored_root_folders[0].free_space, 100);
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_uses_most_specific_monitored_path() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec!["/nfs".to_owned(), "/".to_owned()]),
+      ..ServarrConfig::default()
+    });
+    let root_folders = vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs/cartoons".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs/tv".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 3,
+        path: "/other/movies".to_string(),
+        accessible: true,
+        free_space: 200,
+        unmapped_folders: None,
+      },
+    ];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders);
+
+    assert_eq!(monitored_root_folders.len(), 2);
+    assert_eq!(monitored_root_folders[0].path, "/[other]");
+    assert_eq!(monitored_root_folders[0].free_space, 200);
+    assert_eq!(monitored_root_folders[1].path, "/nfs/[cartoons,tv]");
+    assert_eq!(monitored_root_folders[1].free_space, 100);
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_preserves_unmatched_folders() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec!["/nfs".to_owned()]),
+      ..ServarrConfig::default()
+    });
+    let root_folders = vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs/tv".to_string(),
+        accessible: true,
+        free_space: 100,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/other/movies".to_string(),
+        accessible: true,
+        free_space: 200,
+        unmapped_folders: None,
+      },
+    ];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders);
+
+    assert_eq!(monitored_root_folders.len(), 2);
+    assert_eq!(monitored_root_folders[0].path, "/nfs/[tv]");
+    assert_eq!(monitored_root_folders[1].path, "/other/movies");
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_returns_all_when_monitored_storage_paths_is_empty() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec![]),
+      ..ServarrConfig::default()
+    });
+    let root_folders = vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs".to_string(),
+        accessible: true,
+        free_space: 10,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs/some/subpath".to_string(),
+        accessible: true,
+        free_space: 10,
+        unmapped_folders: None,
+      },
+    ];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders.clone());
+
+    assert_eq!(monitored_root_folders, root_folders);
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_returns_all_when_monitored_storage_paths_is_none() {
+    let app = App::test_default();
+    let root_folders = vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs".to_string(),
+        accessible: true,
+        free_space: 10,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs/some/subpath".to_string(),
+        accessible: true,
+        free_space: 10,
+        unmapped_folders: None,
+      },
+    ];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders.clone());
+
+    assert_eq!(monitored_root_folders, root_folders);
+  }
+
+  #[test]
+  fn test_extract_monitored_root_folders_exact_match_shows_no_brackets() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec!["/nfs/tv".to_owned()]),
+      ..ServarrConfig::default()
+    });
+    let root_folders = vec![RootFolder {
+      id: 1,
+      path: "/nfs/tv".to_string(),
+      accessible: true,
+      free_space: 100,
+      unmapped_folders: None,
+    }];
+
+    let monitored_root_folders = extract_monitored_root_folders(&app, root_folders);
+
+    assert_eq!(monitored_root_folders.len(), 1);
+    assert_eq!(monitored_root_folders[0].path, "/nfs/tv");
+  }
+
+  #[test]
+  fn test_extract_monitored_disk_space_vec() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(vec!["/nfs".to_owned()]),
+      ..ServarrConfig::default()
+    });
+    let disk_space = DiskSpace {
+      path: Some("/nfs".to_string()),
+      free_space: 10,
+      total_space: 1000,
+    };
+    let disk_space_with_empty_path = DiskSpace {
+      path: None,
+      free_space: 10,
+      total_space: 1000,
+    };
+    let disk_spaces = vec![
+      disk_space.clone(),
+      disk_space_with_empty_path.clone(),
+      DiskSpace {
+        path: Some("/nfs/some/subpath".to_string()),
+        free_space: 10,
+        total_space: 1000,
+      },
+    ];
+
+    let monitored_disk_space = extract_monitored_disk_space_vec(&app, disk_spaces);
+
+    assert_eq!(
+      monitored_disk_space,
+      vec![disk_space, disk_space_with_empty_path]
+    );
+  }
+
+  #[test]
+  fn test_extract_monitored_disk_space_vec_returns_all_when_monitored_storage_paths_is_empty() {
+    let mut app = App::test_default();
+    app.server_tabs.tabs[0].config = Some(ServarrConfig {
+      monitored_storage_paths: Some(Vec::new()),
+      ..ServarrConfig::default()
+    });
+    let disk_spaces = vec![
+      DiskSpace {
+        path: Some("/nfs".to_string()),
+        free_space: 10,
+        total_space: 1000,
+      },
+      DiskSpace {
+        path: None,
+        free_space: 10,
+        total_space: 1000,
+      },
+      DiskSpace {
+        path: Some("/nfs/some/subpath".to_string()),
+        free_space: 10,
+        total_space: 1000,
+      },
+    ];
+
+    let monitored_disk_space = extract_monitored_disk_space_vec(&app, disk_spaces.clone());
+
+    assert_eq!(monitored_disk_space, disk_spaces);
+  }
+
+  #[test]
+  fn test_extract_monitored_disk_space_vec_returns_all_when_monitored_storage_paths_is_none() {
+    let app = App::test_default();
+    let disk_spaces = vec![
+      DiskSpace {
+        path: Some("/nfs".to_string()),
+        free_space: 10,
+        total_space: 1000,
+      },
+      DiskSpace {
+        path: None,
+        free_space: 10,
+        total_space: 1000,
+      },
+      DiskSpace {
+        path: Some("/nfs/some/subpath".to_string()),
+        free_space: 10,
+        total_space: 1000,
+      },
+    ];
+
+    let monitored_disk_space = extract_monitored_disk_space_vec(&app, disk_spaces.clone());
+
+    assert_eq!(monitored_disk_space, disk_spaces);
   }
 
   enum PeerStyle {

@@ -1,5 +1,3 @@
-use std::{cmp, iter};
-
 #[cfg(test)]
 use crate::ui::ui_test_utils::test_utils::Utc;
 use blocklist::BlocklistUi;
@@ -18,8 +16,18 @@ use ratatui::{
   widgets::Paragraph,
 };
 use root_folders::RootFoldersUi;
+use std::{cmp, iter};
 use system::SystemUi;
 
+use super::{
+  DrawUi, draw_tabs,
+  styles::ManagarrStyle,
+  utils::{
+    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+  },
+  widgets::loading_block::LoadingBlock,
+};
+use crate::ui::utils::{extract_monitored_disk_space_vec, extract_monitored_root_folders};
 use crate::{
   app::App,
   logos::SONARR_LOGO,
@@ -30,15 +38,6 @@ use crate::{
     sonarr_models::DownloadRecord,
   },
   utils::convert_to_gb,
-};
-
-use super::{
-  DrawUi, draw_tabs,
-  styles::ManagarrStyle,
-  utils::{
-    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
-  },
-  widgets::loading_block::LoadingBlock,
 };
 
 mod blocklist;
@@ -147,13 +146,14 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     f.render_widget(uptime_paragraph, stat_item_areas[1]);
     f.render_widget(storage, stat_item_areas[2]);
 
-    for i in 0..disk_space_vec.len() {
+    let monitored_disk_space_vec = extract_monitored_disk_space_vec(app, disk_space_vec.clone());
+    for i in 0..monitored_disk_space_vec.len() {
       let DiskSpace {
         path,
         free_space,
         total_space,
         ..
-      } = &disk_space_vec[i];
+      } = &monitored_disk_space_vec[i];
       let title = if let Some(path) = path {
         path
       } else {
@@ -170,12 +170,13 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       f.render_widget(space_gauge, stat_item_areas[i + 3]);
     }
 
-    f.render_widget(folders, stat_item_areas[disk_space_vec.len() + 3]);
+    f.render_widget(folders, stat_item_areas[monitored_disk_space_vec.len() + 3]);
 
-    for i in 0..root_folders.items.len() {
+    let monitored_root_folders = extract_monitored_root_folders(app, root_folders.items.clone());
+    for i in 0..monitored_root_folders.len() {
       let RootFolder {
         path, free_space, ..
-      } = &root_folders.items[i];
+      } = &monitored_root_folders[i];
       let space: f64 = convert_to_gb(*free_space);
       let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
@@ -183,7 +184,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
       f.render_widget(
         root_folder_space,
-        stat_item_areas[i + disk_space_vec.len() + 4],
+        stat_item_areas[i + monitored_disk_space_vec.len() + 4],
       )
     }
   } else {
