@@ -59,6 +59,8 @@ pub enum LidarrListCommand {
   Artists,
   #[command(about = "List all items in the Lidarr blocklist")]
   Blocklist,
+  #[command(about = "List disk space details for all provisioned root folders in Sonarr")]
+  DiskSpace,
   #[command(about = "List all active downloads in Lidarr")]
   Downloads {
     #[arg(long, help = "How many downloads to fetch", default_value_t = 500)]
@@ -206,6 +208,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetBlocklist.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::DiskSpace => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetDiskSpace.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

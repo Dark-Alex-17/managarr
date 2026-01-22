@@ -28,6 +28,7 @@ mod tests {
       #[values(
         "artists",
         "blocklist",
+        "disk-space",
         "indexers",
         "metadata-profiles",
         "quality-profiles",
@@ -435,6 +436,7 @@ mod tests {
     #[rstest]
     #[case(LidarrListCommand::Artists, LidarrEvent::ListArtists)]
     #[case(LidarrListCommand::Blocklist, LidarrEvent::GetBlocklist)]
+    #[case(LidarrListCommand::DiskSpace, LidarrEvent::GetDiskSpace)]
     #[case(LidarrListCommand::Indexers, LidarrEvent::GetIndexers)]
     #[case(LidarrListCommand::MetadataProfiles, LidarrEvent::GetMetadataProfiles)]
     #[case(LidarrListCommand::QualityProfiles, LidarrEvent::GetQualityProfiles)]
