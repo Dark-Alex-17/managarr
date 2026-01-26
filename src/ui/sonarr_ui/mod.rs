@@ -100,6 +100,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       start_time,
       ..
     } = &app.data.sonarr_data;
+    let monitored_disk_space_vec = extract_monitored_disk_space_vec(app, disk_space_vec.clone());
+    let monitored_root_folders = extract_monitored_root_folders(app, root_folders.items.clone());
 
     let mut constraints = vec![
       Constraint::Length(1),
@@ -110,7 +112,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     constraints.append(
       &mut iter::repeat_n(
         Constraint::Length(1),
-        disk_space_vec.len() + root_folders.items.len() + 1,
+        monitored_disk_space_vec.len() + monitored_root_folders.len() + 1,
       )
       .collect(),
     );
@@ -146,7 +148,6 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     f.render_widget(uptime_paragraph, stat_item_areas[1]);
     f.render_widget(storage, stat_item_areas[2]);
 
-    let monitored_disk_space_vec = extract_monitored_disk_space_vec(app, disk_space_vec.clone());
     for i in 0..monitored_disk_space_vec.len() {
       let DiskSpace {
         path,
@@ -172,7 +173,6 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
     f.render_widget(folders, stat_item_areas[monitored_disk_space_vec.len() + 3]);
 
-    let monitored_root_folders = extract_monitored_root_folders(app, root_folders.items.clone());
     for i in 0..monitored_root_folders.len() {
       let RootFolder {
         path, free_space, ..

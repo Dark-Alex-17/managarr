@@ -380,6 +380,13 @@ lidarr:
   - host: 192.168.0.86
     port: 8686
     api_token: ${MY_LIDARR_API_TOKEN} # Example of configuring using environment variables
+    monitored_storage_paths: # Filter which Root Folders or Disk Storage you want displayed in the UI's 'Stats' block
+      # Note: Setting these values does not affect what shows up in the 'Root Folders' tab of the UI.
+      - /nfs    # An example disk (i.e. '<servarr> list disk-space' command) you want displayed in the UI under 'Storage:'
+      - /media  # An example root folder you want displayed in the UI
+                # Root folders collapse up to the super-directory to reduce duplication in the UI. For example:
+                # if you have root folders '/media/tv', '/media/cartoons' and '/media/reality', and you set this
+                # monitored path, the UI will show '/media/[tv,cartoons,reality]' under Root Folders
 whisparr:
   - host: 192.168.0.69
     port: 6969

@@ -469,13 +469,18 @@ mod test {
   fn test_extract_monitored_disk_space_vec() {
     let mut app = App::test_default();
     app.server_tabs.tabs[0].config = Some(ServarrConfig {
-      monitored_storage_paths: Some(vec!["/nfs".to_owned()]),
+      monitored_storage_paths: Some(vec!["/data".to_owned(), "/downloads".to_owned()]),
       ..ServarrConfig::default()
     });
     let disk_space = DiskSpace {
-      path: Some("/nfs".to_string()),
+      path: Some("/data".to_string()),
       free_space: 10,
       total_space: 1000,
+    };
+    let disk_space_2 = DiskSpace {
+      path: Some("/downloads".to_string()),
+      free_space: 100,
+      total_space: 10000,
     };
     let disk_space_with_empty_path = DiskSpace {
       path: None,
@@ -486,17 +491,18 @@ mod test {
       disk_space.clone(),
       disk_space_with_empty_path.clone(),
       DiskSpace {
-        path: Some("/nfs/some/subpath".to_string()),
-        free_space: 10,
-        total_space: 1000,
+        path: Some("/downloads/".to_string()),
+        free_space: 100,
+        total_space: 10000,
       },
+      disk_space_2.clone(),
     ];
 
     let monitored_disk_space = extract_monitored_disk_space_vec(&app, disk_spaces);
 
     assert_eq!(
       monitored_disk_space,
-      vec![disk_space, disk_space_with_empty_path]
+      vec![disk_space, disk_space_with_empty_path, disk_space_2]
     );
   }
 

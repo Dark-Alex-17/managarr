@@ -9,7 +9,7 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, ListItem, Paragraph, Wrap};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 #[cfg(test)]
@@ -280,17 +280,22 @@ pub(super) fn extract_monitored_disk_space_vec(
   if let Some(monitored_paths) = monitored_paths
     && !monitored_paths.is_empty()
   {
-    let paths: Vec<PathBuf> = monitored_paths.iter().map(PathBuf::from).collect();
-    disk_space_vec
-      .into_iter()
-      .filter(|it| {
-        if let Some(path) = it.path.as_ref() {
-          paths.iter().any(|p| path == p)
-        } else {
-          true
+    let monitored: HashSet<&str> = monitored_paths.iter().map(|s| s.as_str()).collect();
+    let mut seen_paths = HashSet::new();
+    let mut filtered_disk_space_vec = Vec::with_capacity(disk_space_vec.len());
+
+    for ds in disk_space_vec {
+      match ds.path.as_deref() {
+        None => filtered_disk_space_vec.push(ds),
+        Some(p) => {
+          if monitored.contains(p) && seen_paths.insert(p.to_owned()) {
+            filtered_disk_space_vec.push(ds)
+          }
         }
-      })
-      .collect()
+      }
+    }
+
+    filtered_disk_space_vec
   } else {
     disk_space_vec
   }
