@@ -127,6 +127,16 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
+
+  if matches!(args.command, Some(Command::ConfigPath)) {
+    println!(
+      "{}",
+      confy::get_configuration_file_path("managarr", "config")?.display()
+    );
+
+    return Ok(());
+  }
+
   let mut config = if let Some(ref config_file) = args.global.config_file {
     load_config(config_file.to_str().expect("Invalid config file specified"))?
   } else {
@@ -170,10 +180,7 @@ async fn main() -> Result<()> {
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
       Command::TailLogs { no_color } => tail_logs(no_color).await?,
-      Command::ConfigPath => println!(
-        "{}",
-        confy::get_configuration_file_path("managarr", "config")?.display()
-      ),
+      _ => {}
     },
     None => {
       let app_nw = Arc::clone(&app);
