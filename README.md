@@ -341,24 +341,11 @@ $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
 but all servers will require you to input the API token.
 
-The configuration file is located somewhere different for each OS.
+The configuration file is located somewhere different for each OS, so run the following command to print out the default
+location of the `managarr` configuration file for your system:
 
-You can use `managarr config-path` to locate the default configuration file for your system. In general, the default
-config file paths for each system is listed below:
-
-### Linux
-```
-$HOME/.config/managarr/config.yml
-```
-
-### Mac
-```
-$HOME/Library/Application Support/managarr/config.yml
-```
-
-### Windows
-```
-%APPDATA%/Roaming/managarr/config.yml
+```shell
+managarr config-path
 ```
 
 ## Specify Which Configuration File to Use
