@@ -259,6 +259,8 @@ Commands:
   lidarr       Commands for manging your Lidarr instance
   completions  Generate shell completions for the Managarr CLI
   tail-logs    Tail Managarr logs
+  config-path  Print the full path to the default configuration file.
+               This file can be changed to another location using the '--config-file' flag
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -266,14 +268,23 @@ Options:
   -V, --version  Print version
 
 Global Options:
-      --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
-      --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
-      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
-      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
-      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+      --disable-spinner              Disable the spinner (can sometimes make parsing output
+                                     challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config-file <CONFIG_FILE>    The Managarr configuration file to use; defaults to the
+                                     path shown by 'managarr config-path' [env:
+                                     MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env:
+                                     MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env:
+                                     MANAGARR_THEME=]
+      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify
+                                     the name of the instance configuration that you want to
+                                     use.
                                      
-                                     This is useful when you have multiple instances of the same Servarr defined in your config file.
-                                     By default, if left empty, the first configured Servarr instance listed in the config file will be used.
+                                     This is useful when you have multiple instances of the
+                                     same Servarr defined in your config file.
+                                     By default, if left empty, the first configured Servarr
+                                     instance listed in the config file will be used.
 ```
 
 All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Sonarr, you would run:
@@ -331,6 +342,9 @@ Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is 
 but all servers will require you to input the API token.
 
 The configuration file is located somewhere different for each OS.
+
+You can use `managarr config-path` to locate the default configuration file for your system. In general, the default
+config file paths for each system is listed below:
 
 ### Linux
 ```
