@@ -86,7 +86,7 @@ struct GlobalOpts {
     global = true,
     value_parser,
     env = "MANAGARR_CONFIG_FILE",
-    help = "The Managarr configuration file to use"
+    help = "The Managarr configuration file to use; defaults to the path shown by 'managarr config-path'"
   )]
   config_file: Option<PathBuf>,
   #[arg(
@@ -170,6 +170,10 @@ async fn main() -> Result<()> {
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
       Command::TailLogs { no_color } => tail_logs(no_color).await?,
+      Command::ConfigPath => println!(
+        "{}",
+        confy::get_configuration_file_path("managarr", "config")?.display()
+      ),
     },
     None => {
       let app_nw = Arc::clone(&app);

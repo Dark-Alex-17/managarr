@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Subcommand, command};
 use clap_complete::Shell;
+use indoc::indoc;
 use lidarr::{LidarrCliHandler, LidarrCommand};
 use radarr::{RadarrCliHandler, RadarrCommand};
 use sonarr::{SonarrCliHandler, SonarrCommand};
@@ -43,6 +44,12 @@ pub enum Command {
     #[arg(long, help = "Disable colored log output")]
     no_color: bool,
   },
+
+  #[command(about = indoc!{"
+      Print the full path to the default configuration file.
+      This file can be changed to another location using the '--config-file' flag
+    "})]
+  ConfigPath,
 }
 
 pub trait CliCommandHandler<'a, 'b, T: Into<Command>> {
