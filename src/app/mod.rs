@@ -346,11 +346,11 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-  pub fn validate(&self) {
+  pub fn validate(&self, config_path: &str) {
     if self.lidarr.is_none() && self.radarr.is_none() && self.sonarr.is_none() {
-      log_and_print_error(
-        "No Servarr configuration provided in the specified configuration file".to_owned(),
-      );
+      log_and_print_error(format!(
+        "No Servarrs are configured in the file: {config_path}"
+      ));
       process::exit(1);
     }
 
