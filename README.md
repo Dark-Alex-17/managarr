@@ -365,18 +365,20 @@ radarr:
     port: 7878
     api_token: someApiToken1234567890
     ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
-sonarr:
-  - uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
-    api_token: someApiToken1234567890
     
+  - uri: http://htpc.local/radarr # Example of using the 'uri' key instead of 'host' and 'port'
+    api_token: someApiToken1234567890
+
+sonarr:
+  - host: 192.168.0.89
+    port: 8989
+    api_token_file: /root/.config/sonarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
+
   - name: Anime Sonarr # An example of a custom name for a secondary Sonarr instance
-    host: 192.168.0.89
+    host: 192.168.1.89
     port: 8989
     api_token: someApiToken1234567890
-readarr:
-  - host: 192.168.0.87 
-    port: 8787
-    api_token_file: /root/.config/readarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
+
 lidarr:
   - host: 192.168.0.86
     port: 8686
@@ -388,26 +390,14 @@ lidarr:
                 # Root folders collapse up to the super-directory to reduce duplication in the UI. For example:
                 # if you have root folders '/media/tv', '/media/cartoons' and '/media/reality', and you set this
                 # monitored path, the UI will show '/media/[tv,cartoons,reality]' under Root Folders
-whisparr:
-  - host: 192.168.0.69
-    port: 6969
+
+  - host: 192.168.1.86
+    port: 8686
     api_token: someApiToken1234567890
-    ssl_cert_path: /path/to/whisparr.crt
+    ssl_cert_path: /path/to/lidarr_1.crt
     custom_headers: # Example of adding custom headers to all requests to the Servarr instance
       traefik-auth-bypass-key: someBypassKey1234567890
       SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
-bazarr:
-  - host: 192.168.0.67
-    port: 6767
-    api_token: someApiToken1234567890
-prowlarr:
-  - host: 192.168.0.96
-    port: 9696
-    api_token: someApiToken1234567890
-tautulli:
-  - host: 192.168.0.81
-    port: 8181
-    api_token: someApiToken1234567890
 ```
 
 ### Example Multi-Instance Configuration:
