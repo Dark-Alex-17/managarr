@@ -1,20 +1,20 @@
 use chrono::Utc;
 use deunicode::deunicode;
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::Line;
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use regex::Regex;
 
 use crate::app::App;
-use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
-use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, ARTIST_DETAILS_BLOCKS};
 use crate::models::Route;
+use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
+use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
-use crate::ui::styles::{secondary_style, ManagarrStyle};
+use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::decorate_peer_style;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
@@ -24,7 +24,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 use ratatui::layout::Alignment;
 use ratatui::text::Text;
