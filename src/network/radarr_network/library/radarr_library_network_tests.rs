@@ -4,6 +4,7 @@ mod tests {
     AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, EditMovieParams,
     MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrReleaseDownloadBody,
   };
+  use crate::models::servarr_data::Notification;
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::SortOption;
@@ -164,14 +165,58 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    assert!(
-      network
-        .handle_radarr_event(RadarrEvent::DownloadRelease(expected_body))
-        .await
-        .is_ok()
-    );
+    let result = network
+      .handle_radarr_event(RadarrEvent::DownloadRelease(expected_body))
+      .await;
 
     mock.assert_async().await;
+    assert_ok!(result);
+    assert_some_eq_x!(
+      &app.lock().await.notification,
+      &Notification::new(
+        "Download Result".to_owned(),
+        "Download request sent successfully".to_owned(),
+        true,
+      )
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_download_radarr_release_event_sets_failure_notification_on_error() {
+    let expected_body = RadarrReleaseDownloadBody {
+      guid: "1234".to_owned(),
+      indexer_id: 2,
+      movie_id: 1,
+    };
+    let body = json!({
+      "guid": "1234",
+      "indexerId": 2,
+      "movieId": 1
+    });
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(body)
+      .returns(json!({}))
+      .status(500)
+      .build_for(RadarrEvent::DownloadRelease(expected_body.clone()))
+      .await;
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_radarr_event(RadarrEvent::DownloadRelease(expected_body))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_is_empty!(app.error.text);
+    assert_some_eq_x!(
+      &app.notification,
+      &Notification::new(
+        "Download Failed".to_owned(),
+        "Download request failed. Check the logs for more details.".to_owned(),
+        false,
+      )
+    );
   }
 
   #[tokio::test]

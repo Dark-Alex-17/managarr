@@ -116,6 +116,8 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
     } else {
       app.keymapping_table = None;
     }
+  } else if matches_key!(esc, key) && app.notification.is_some() {
+    app.notification.take();
   } else {
     match app.get_current_route() {
       _ if app.keymapping_table.is_some() => {

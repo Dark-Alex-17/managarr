@@ -13,6 +13,7 @@ use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
 use crate::cli::Command;
+use crate::models::servarr_data::Notification;
 use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
@@ -38,6 +39,7 @@ pub struct App<'a> {
   pub server_tabs: TabState,
   pub keymapping_table: Option<StatefulTable<KeybindingItem>>,
   pub error: HorizontallyScrollableText,
+  pub notification: Option<Notification>,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
   pub tick_count: u64,
@@ -254,6 +256,7 @@ impl Default for App<'_> {
       cancellation_token: CancellationToken::new(),
       keymapping_table: None,
       error: HorizontallyScrollableText::default(),
+      notification: None,
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
       tick_until_poll: 400,
@@ -346,11 +349,11 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-  pub fn validate(&self) {
+  pub fn validate(&self, config_path: &str) {
     if self.lidarr.is_none() && self.radarr.is_none() && self.sonarr.is_none() {
-      log_and_print_error(
-        "No Servarr configuration provided in the specified configuration file".to_owned(),
-      );
+      log_and_print_error(format!(
+        "No Servarrs are configured in the file: {config_path}"
+      ));
       process::exit(1);
     }
 
@@ -436,6 +439,8 @@ pub struct ServarrConfig {
     serialize_with = "serialize_header_map"
   )]
   pub custom_headers: Option<HeaderMap>,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var_string_vec")]
+  pub monitored_storage_paths: Option<Vec<String>>,
 }
 
 impl ServarrConfig {
@@ -482,6 +487,7 @@ impl Default for ServarrConfig {
       api_token_file: None,
       ssl_cert_path: None,
       custom_headers: None,
+      monitored_storage_paths: None,
     }
   }
 }
@@ -544,6 +550,24 @@ where
       }
       Ok(Some(header_map))
     }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_optional_env_var_string_vec<'de, D>(
+  deserializer: D,
+) -> Result<Option<Vec<String>>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let opt: Option<Vec<String>> = Option::deserialize(deserializer)?;
+  match opt {
+    Some(vec) => Ok(Some(
+      vec
+        .into_iter()
+        .map(|it| interpolate_env_vars(&it))
+        .collect(),
+    )),
     None => Ok(None),
   }
 }

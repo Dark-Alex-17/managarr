@@ -259,6 +259,8 @@ Commands:
   lidarr       Commands for manging your Lidarr instance
   completions  Generate shell completions for the Managarr CLI
   tail-logs    Tail Managarr logs
+  config-path  Print the full path to the default configuration file.
+               This file can be changed to another location using the '--config-file' flag
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -266,14 +268,23 @@ Options:
   -V, --version  Print version
 
 Global Options:
-      --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
-      --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
-      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
-      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
-      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+      --disable-spinner              Disable the spinner (can sometimes make parsing output
+                                     challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config-file <CONFIG_FILE>    The Managarr configuration file to use; defaults to the
+                                     path shown by 'managarr config-path' [env:
+                                     MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env:
+                                     MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env:
+                                     MANAGARR_THEME=]
+      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify
+                                     the name of the instance configuration that you want to
+                                     use.
                                      
-                                     This is useful when you have multiple instances of the same Servarr defined in your config file.
-                                     By default, if left empty, the first configured Servarr instance listed in the config file will be used.
+                                     This is useful when you have multiple instances of the
+                                     same Servarr defined in your config file.
+                                     By default, if left empty, the first configured Servarr
+                                     instance listed in the config file will be used.
 ```
 
 All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Sonarr, you would run:
@@ -330,21 +341,11 @@ $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
 but all servers will require you to input the API token.
 
-The configuration file is located somewhere different for each OS.
+The configuration file is located somewhere different for each OS, so run the following command to print out the default
+location of the `managarr` configuration file for your system:
 
-### Linux
-```
-$HOME/.config/managarr/config.yml
-```
-
-### Mac
-```
-$HOME/Library/Application Support/managarr/config.yml
-```
-
-### Windows
-```
-%APPDATA%/Roaming/managarr/config.yml
+```shell
+managarr config-path
 ```
 
 ## Specify Which Configuration File to Use
@@ -364,42 +365,39 @@ radarr:
     port: 7878
     api_token: someApiToken1234567890
     ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
-sonarr:
-  - uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
-    api_token: someApiToken1234567890
     
+  - uri: http://htpc.local/radarr # Example of using the 'uri' key instead of 'host' and 'port'
+    api_token: someApiToken1234567890
+
+sonarr:
+  - host: 192.168.0.89
+    port: 8989
+    api_token_file: /root/.config/sonarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
+
   - name: Anime Sonarr # An example of a custom name for a secondary Sonarr instance
-    host: 192.168.0.89
+    host: 192.168.1.89
     port: 8989
     api_token: someApiToken1234567890
-readarr:
-  - host: 192.168.0.87 
-    port: 8787
-    api_token_file: /root/.config/readarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
+
 lidarr:
   - host: 192.168.0.86
     port: 8686
     api_token: ${MY_LIDARR_API_TOKEN} # Example of configuring using environment variables
-whisparr:
-  - host: 192.168.0.69
-    port: 6969
+    monitored_storage_paths: # Filter which Root Folders or Disk Storage you want displayed in the UI's 'Stats' block
+      # Note: Setting these values does not affect what shows up in the 'Root Folders' tab of the UI.
+      - /nfs    # An example disk (i.e. '<servarr> list disk-space' command) you want displayed in the UI under 'Storage:'
+      - /media  # An example root folder you want displayed in the UI
+                # Root folders collapse up to the super-directory to reduce duplication in the UI. For example:
+                # if you have root folders '/media/tv', '/media/cartoons' and '/media/reality', and you set this
+                # monitored path, the UI will show '/media/[tv,cartoons,reality]' under Root Folders
+
+  - host: 192.168.1.86
+    port: 8686
     api_token: someApiToken1234567890
-    ssl_cert_path: /path/to/whisparr.crt
+    ssl_cert_path: /path/to/lidarr_1.crt
     custom_headers: # Example of adding custom headers to all requests to the Servarr instance
       traefik-auth-bypass-key: someBypassKey1234567890
       SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
-bazarr:
-  - host: 192.168.0.67
-    port: 6767
-    api_token: someApiToken1234567890
-prowlarr:
-  - host: 192.168.0.96
-    port: 9696
-    api_token: someApiToken1234567890
-tautulli:
-  - host: 192.168.0.81
-    port: 8181
-    api_token: someApiToken1234567890
 ```
 
 ### Example Multi-Instance Configuration:

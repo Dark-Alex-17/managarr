@@ -2,7 +2,7 @@
 #[macro_use]
 extern crate assertables;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{
   Args, CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version,
 };
@@ -86,7 +86,7 @@ struct GlobalOpts {
     global = true,
     value_parser,
     env = "MANAGARR_CONFIG_FILE",
-    help = "The Managarr configuration file to use"
+    help = "The Managarr configuration file to use; defaults to the path shown by 'managarr config-path'"
   )]
   config_file: Option<PathBuf>,
   #[arg(
@@ -127,15 +127,30 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
-  let mut config = if let Some(ref config_file) = args.global.config_file {
-    load_config(config_file.to_str().expect("Invalid config file specified"))?
+  let config_file_path = confy::get_configuration_file_path("managarr", "config")?;
+  let default_config_path = config_file_path.display().to_string();
+
+  if matches!(args.command, Some(Command::ConfigPath)) {
+    println!("{default_config_path}");
+    return Ok(());
+  }
+
+  let (mut config, config_path) = if let Some(ref config_file) = args.global.config_file {
+    (
+      load_config(config_file.to_str().expect("Invalid config file specified"))?,
+      config_file.display().to_string(),
+    )
   } else {
-    confy::load("managarr", "config")?
+    (
+      confy::load("managarr", "config")
+        .with_context(|| format!("Config file at '{default_config_path}' is invalid"))?,
+      default_config_path,
+    )
   };
   let theme_name = config.theme.clone();
   let spinner_disabled = args.global.disable_spinner;
   debug!("Managarr loaded using config: {config:?}");
-  config.validate();
+  config.validate(&config_path);
   config.post_process_initialization();
 
   let reqwest_client = build_network_client(&config);
@@ -170,6 +185,11 @@ async fn main() -> Result<()> {
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
       Command::TailLogs { no_color } => tail_logs(no_color).await?,
+      Command::ConfigPath => {
+        unreachable!(
+          "ConfigPath command is handled before this match and should be unreachable here"
+        );
+      }
     },
     None => {
       let app_nw = Arc::clone(&app);

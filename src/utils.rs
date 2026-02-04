@@ -146,7 +146,7 @@ pub(super) fn load_config(path: &str) -> Result<AppConfig> {
       Ok(config)
     }
     Err(e) => {
-      log_and_print_error(format!("Unable to open config file: {e:?}"));
+      log_and_print_error(format!("Unable to open config file '{path}': {e:?}"));
       process::exit(1);
     }
   }

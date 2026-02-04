@@ -20,10 +20,10 @@ mod tests {
   use crate::handlers::{handle_events, populate_keymapping_table};
   use crate::models::HorizontallyScrollableText;
   use crate::models::Route;
-  use crate::models::servarr_data::ActiveKeybindingBlock;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_data::{ActiveKeybindingBlock, Notification};
   use crate::models::servarr_models::KeybindingItem;
   use crate::models::stateful_table::StatefulTable;
 
@@ -174,6 +174,26 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_handle_clear_notification() {
+    let mut app = App::test_default();
+    app.notification = Some(Notification::new(
+      "Test".to_owned(),
+      "Test".to_owned(),
+      true,
+    ));
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
+
+    handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
+
+    assert_none!(app.notification);
+    assert_eq!(
+      app.get_current_route(),
+      ActiveRadarrBlock::MovieDetails.into()
+    );
+  }
+
   #[rstest]
   fn test_handle_prompt_toggle_left_right_radarr(#[values(Key::Left, Key::Right)] key: Key) {
     let mut app = App::test_default();
@@ -282,6 +302,39 @@ mod tests {
       expected_keybinding_items,
       app.keymapping_table.unwrap().items
     );
+  }
+
+  #[test]
+  fn test_handle_events_esc_clears_notification() {
+    let mut app = App::test_default();
+    app.notification = Some(Notification::new(
+      "Download Result".to_owned(),
+      "Download request sent successfully".to_owned(),
+      true,
+    ));
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+
+    handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
+
+    assert_none!(app.notification);
+    assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+  }
+
+  #[test]
+  fn test_handle_events_esc_does_not_clear_notification_when_none() {
+    let mut app = App::test_default();
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie::default()]);
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
+
+    handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
+
+    assert_none!(app.notification);
+    assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
   }
 
   fn context_clue_to_keybinding_item(key: &KeyBinding, desc: &&str) -> KeybindingItem {

@@ -59,7 +59,7 @@ pub enum LidarrListCommand {
   Artists,
   #[command(about = "List all items in the Lidarr blocklist")]
   Blocklist,
-  #[command(about = "List disk space details for all provisioned root folders in Sonarr")]
+  #[command(about = "List disk space details for all provisioned root folders in Lidarr")]
   DiskSpace,
   #[command(about = "List all active downloads in Lidarr")]
   Downloads {

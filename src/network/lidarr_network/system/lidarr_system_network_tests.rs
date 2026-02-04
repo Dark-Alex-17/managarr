@@ -16,21 +16,34 @@ mod tests {
   async fn test_handle_get_diskspace_event() {
     let diskspace_json = json!([
       {
+        "path": "/path1",
         "freeSpace": 1111,
         "totalSpace": 2222,
       },
       {
+        "path": "/path2",
         "freeSpace": 3333,
         "totalSpace": 4444
       }
     ]);
-    let response: Vec<DiskSpace> = serde_json::from_value(diskspace_json.clone()).unwrap();
     let (mock, app, _server) = MockServarrApi::get()
       .returns(diskspace_json)
       .build_for(LidarrEvent::GetDiskSpace)
       .await;
     app.lock().await.server_tabs.set_index(2);
     let mut network = test_network(&app);
+    let disk_space_vec = vec![
+      DiskSpace {
+        path: Some("/path1".to_owned()),
+        free_space: 1111,
+        total_space: 2222,
+      },
+      DiskSpace {
+        path: Some("/path2".to_owned()),
+        free_space: 3333,
+        total_space: 4444,
+      },
+    ];
 
     let result = network.handle_lidarr_event(LidarrEvent::GetDiskSpace).await;
 
@@ -40,8 +53,11 @@ mod tests {
       panic!("Expected DiskSpaces");
     };
 
-    assert_eq!(disk_spaces, response);
-    assert!(!app.lock().await.data.lidarr_data.disk_space_vec.is_empty());
+    assert_eq!(
+      app.lock().await.data.lidarr_data.disk_space_vec,
+      disk_space_vec
+    );
+    assert_eq!(disk_spaces, disk_space_vec);
   }
 
   #[tokio::test]

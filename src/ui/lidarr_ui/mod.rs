@@ -1,5 +1,3 @@
-use std::{cmp, iter};
-
 #[cfg(test)]
 use crate::ui::ui_test_utils::test_utils::Utc;
 use chrono::Duration;
@@ -14,6 +12,7 @@ use ratatui::{
   text::Text,
   widgets::Paragraph,
 };
+use std::{cmp, iter};
 
 use super::{
   DrawUi, draw_tabs,
@@ -28,6 +27,7 @@ use crate::ui::lidarr_ui::downloads::DownloadsUi;
 use crate::ui::lidarr_ui::indexers::IndexersUi;
 use crate::ui::lidarr_ui::root_folders::RootFoldersUi;
 use crate::ui::lidarr_ui::system::SystemUi;
+use crate::ui::utils::{extract_monitored_disk_space_vec, extract_monitored_root_folders};
 use crate::{
   app::App,
   logos::LIDARR_LOGO,
@@ -100,6 +100,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       start_time,
       ..
     } = &app.data.lidarr_data;
+    let monitored_disk_space_vec = extract_monitored_disk_space_vec(app, disk_space_vec.clone());
+    let monitored_root_folders = extract_monitored_root_folders(app, root_folders.items.clone());
 
     let mut constraints = vec![
       Constraint::Length(1),
@@ -110,7 +112,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     constraints.append(
       &mut iter::repeat_n(
         Constraint::Length(1),
-        disk_space_vec.len() + root_folders.items.len() + 1,
+        monitored_disk_space_vec.len() + monitored_root_folders.len() + 1,
       )
       .collect(),
     );
@@ -146,12 +148,12 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     f.render_widget(uptime_paragraph, stat_item_areas[1]);
     f.render_widget(storage, stat_item_areas[2]);
 
-    for i in 0..disk_space_vec.len() {
+    for i in 0..monitored_disk_space_vec.len() {
       let DiskSpace {
         path,
         free_space,
         total_space,
-      } = &disk_space_vec[i];
+      } = &monitored_disk_space_vec[i];
       let title = if let Some(path) = path {
         path
       } else {
@@ -168,12 +170,12 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       f.render_widget(space_gauge, stat_item_areas[i + 3]);
     }
 
-    f.render_widget(folders, stat_item_areas[disk_space_vec.len() + 3]);
+    f.render_widget(folders, stat_item_areas[monitored_disk_space_vec.len() + 3]);
 
-    for i in 0..root_folders.items.len() {
+    for i in 0..monitored_root_folders.len() {
       let RootFolder {
         path, free_space, ..
-      } = &root_folders.items[i];
+      } = &monitored_root_folders[i];
       let space: f64 = convert_to_gb(*free_space);
       let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
@@ -181,7 +183,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
       f.render_widget(
         root_folder_space,
-        stat_item_areas[i + disk_space_vec.len() + 4],
+        stat_item_areas[i + monitored_disk_space_vec.len() + 4],
       )
     }
   } else {

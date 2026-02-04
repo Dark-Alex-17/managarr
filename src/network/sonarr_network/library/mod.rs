@@ -1,3 +1,4 @@
+use crate::models::servarr_data::Notification;
 use crate::models::sonarr_models::SonarrReleaseDownloadBody;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
@@ -31,8 +32,26 @@ impl Network<'_, '_> {
       )
       .await;
 
-    self
-      .handle_request::<SonarrReleaseDownloadBody, Value>(request_props, |_, _| ())
-      .await
+    let result = self
+      .handle_request::<SonarrReleaseDownloadBody, Value>(request_props, |_, mut app| {
+        app.notification = Some(Notification::new(
+          "Download Result".to_owned(),
+          "Download request sent successfully".to_owned(),
+          true,
+        ));
+      })
+      .await;
+
+    if result.is_err() {
+      let mut app = self.app.lock().await;
+      std::mem::take(&mut app.error.text);
+      app.notification = Some(Notification::new(
+        "Download Failed".to_owned(),
+        "Download request failed. Check the logs for more details.".to_owned(),
+        false,
+      ));
+    }
+
+    result
   }
 }
