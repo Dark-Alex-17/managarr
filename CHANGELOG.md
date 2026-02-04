@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.7.1 (2026-02-04)
+
+### Feat
+
+- Added support for a system-wide notification popup mechanism that works across Servarrs
+- Implemented a 'config-path' command to print out the default Managarr configuration file path to help address #54
+- Full support for filtering disks and aggregating root folders in the UI's 'Stats' block
+- proper collapsing of root folder paths in the stats layer of the UI
+- Added config option to filter for specific disk space paths to display in the UI (CLI is unaffected)
+- Improved disk-space UI and CLI that shows the actual path being monitored instead of just a disk number
+- Implemented the forgotten lidarr list disk-space command
+
+### Fix
+
+- Improved the system notification feature so it can persist between modals
+- Sonarr API updated to somtimes allow either seeders or leechers to be null
+- Improved the first-time run behavior so that it outputs the default configuration file it tries to load to help users locate the file on first-runs
+- 'managarr config-path' should work without a pre-existing config already in place [#54]
+
+### Refactor
+
+- Removed the filtering of monitored_storage_paths from the networking module and migrated all of it to the UI
+
 ## v0.7.0 (2026-01-21)
 
 ### Feat
