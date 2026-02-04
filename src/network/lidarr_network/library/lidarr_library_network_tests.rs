@@ -3,7 +3,7 @@ mod tests {
   use crate::models::lidarr_models::LidarrReleaseDownloadBody;
   use crate::models::servarr_data::Notification;
   use crate::network::lidarr_network::LidarrEvent;
-  use crate::network::network_tests::test_utils::{test_network, MockServarrApi};
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use pretty_assertions::assert_eq;
   use serde_json::json;
 

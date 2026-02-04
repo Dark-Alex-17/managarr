@@ -174,6 +174,26 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_handle_clear_notification() {
+    let mut app = App::test_default();
+    app.notification = Some(Notification::new(
+      "Test".to_owned(),
+      "Test".to_owned(),
+      true,
+    ));
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
+
+    handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
+
+    assert_none!(app.notification);
+    assert_eq!(
+      app.get_current_route(),
+      ActiveRadarrBlock::MovieDetails.into()
+    );
+  }
+
   #[rstest]
   fn test_handle_prompt_toggle_left_right_radarr(#[values(Key::Left, Key::Right)] key: Key) {
     let mut app = App::test_default();

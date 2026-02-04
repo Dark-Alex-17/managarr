@@ -2,7 +2,7 @@
 mod tests {
   use crate::models::servarr_data::Notification;
   use crate::models::sonarr_models::SonarrReleaseDownloadBody;
-  use crate::network::network_tests::test_utils::{test_network, MockServarrApi};
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
   use pretty_assertions::assert_eq;
   use serde_json::json;
