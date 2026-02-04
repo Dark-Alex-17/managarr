@@ -20,67 +20,67 @@ members = [
 ]
 
 [dependencies]
-anyhow = "1.0.68"
-backtrace = "0.3.74"
+anyhow = "1.0.100"
+backtrace = "0.3.76"
 bimap = { version = "0.6.3", features = ["serde"] }
-chrono = { version = "0.4.38", features = ["serde"] }
+chrono = { version = "0.4.43", features = ["serde"] }
 confy = { version = "2.0.0", default-features = false, features = [
   "yaml_conf",
 ] }
 crossterm = "0.28.1"
 derivative = "2.2.0"
-human-panic = "2.0.2"
-indoc = "2.0.0"
-log = "0.4.17"
-log4rs = { version = "1.2.0", features = ["file_appender"] }
-regex = "1.11.1"
-reqwest = { version = "0.12.9", features = ["json"] }
-serde_yaml = "0.9.16"
-serde_json = "1.0.91"
-serde = { version = "1.0.214", features = ["derive"] }
+human-panic = "2.0.6"
+indoc = "2.0.7"
+log = "0.4.29"
+log4rs = { version = "1.4.0", features = ["file_appender"] }
+regex = "1.12.2"
+reqwest = { version = "0.12.28", features = ["json"] }
+serde_yaml = "0.9.34"
+serde_json = "1.0.149"
+serde = { version = "1.0.228", features = ["derive"] }
 strum = { version = "0.26.3", features = ["derive"] }
 strum_macros = "0.26.4"
-tokio = { version = "1.44.2", features = ["full"] }
-tokio-util = "0.7.8"
+tokio = { version = "1.49.0", features = ["full"] }
+tokio-util = "0.7.18"
 ratatui = { version = "0.30.0", features = [
   "all-widgets",
   "unstable-widget-ref",
 ] }
-urlencoding = "2.1.2"
-clap = { version = "4.5.20", features = [
+urlencoding = "2.1.3"
+clap = { version = "4.5.56", features = [
   "derive",
   "cargo",
   "env",
   "wrap_help",
 ] }
-clap_complete = "4.5.33"
+clap_complete = "4.5.65"
 itertools = "0.14.0"
-ctrlc = "3.4.5"
-colored = "3.0.0"
-async-trait = "0.1.83"
+ctrlc = "3.5.1"
+colored = "3.1.1"
+async-trait = "0.1.89"
 dirs-next = "2.0.0"
 managarr-tree-widget = "0.25.0"
-indicatif = "0.17.9"
-derive_setters = "0.1.6"
-deunicode = "1.6.0"
-openssl = { version = "0.10.70", features = ["vendored"] }
+indicatif = "0.17.11"
+derive_setters = "0.1.9"
+deunicode = "1.6.2"
+openssl = { version = "0.10.75", features = ["vendored"] }
 veil = "0.2.0"
 validate_theme_derive = "0.1.0"
 enum_display_style_derive = "0.1.0"
 
 [dev-dependencies]
-assert_cmd = "2.0.16"
-mockall = "0.13.0"
-mockito = "1.0.0"
-pretty_assertions = "1.3.0"
-proptest = "1.6.0"
+assert_cmd = "2.1.2"
+mockall = "0.13.1"
+mockito = "1.7.1"
+pretty_assertions = "1.4.1"
+proptest = "1.9.0"
 rstest = "0.25.0"
-serial_test = "3.2.0"
-assertables = "9.8.2"
-insta = "1.41.1"
+serial_test = "3.3.1"
+assertables = "9.8.4"
+insta = "1.46.1"
 
 [dev-dependencies.cargo-husky]
-version = "1"
+version = "1.5.0"
 default-features = false
 features = ["user-hooks"]
 
