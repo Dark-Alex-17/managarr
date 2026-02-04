@@ -185,7 +185,11 @@ async fn main() -> Result<()> {
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
       Command::TailLogs { no_color } => tail_logs(no_color).await?,
-      _ => {}
+      Command::ConfigPath => {
+        unreachable!(
+          "ConfigPath command is handled before this match and should be unreachable here"
+        );
+      }
     },
     None => {
       let app_nw = Arc::clone(&app);
