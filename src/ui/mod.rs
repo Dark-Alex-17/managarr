@@ -14,6 +14,7 @@ use sonarr_ui::SonarrUi;
 use utils::layout_block;
 
 use crate::app::App;
+use crate::models::servarr_data::Notification;
 use crate::models::servarr_models::KeybindingItem;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
@@ -25,7 +26,8 @@ use crate::ui::utils::{
 };
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Size;
+use crate::ui::widgets::message::Message;
+use crate::ui::widgets::popup::{Popup, Size};
 
 mod builtin_themes;
 mod lidarr_ui;
@@ -93,6 +95,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
       LidarrUi::draw(f, app, table_area);
     }
     _ => (),
+  }
+
+  if let Some(notification) = &app.notification {
+    draw_notification_popup(f, notification);
   }
 
   if app.keymapping_table.is_some() {
@@ -181,6 +187,22 @@ pub fn draw_help_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   f.render_widget(Clear, table_area);
   f.render_widget(background_block(), table_area);
   f.render_widget(keymapping_table, table_area);
+}
+
+fn draw_notification_popup(f: &mut Frame<'_>, notification: &Notification) {
+  let style = if notification.success {
+    styles::success_style().bold()
+  } else {
+    styles::failure_style().bold()
+  };
+
+  let popup = Popup::new(
+    Message::new(notification.message.as_str())
+      .title(notification.title.as_str())
+      .style(style),
+  )
+  .size(Size::Message);
+  f.render_widget(popup, f.area());
 }
 
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {

@@ -13,6 +13,7 @@ use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
 use crate::cli::Command;
+use crate::models::servarr_data::Notification;
 use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
@@ -38,6 +39,7 @@ pub struct App<'a> {
   pub server_tabs: TabState,
   pub keymapping_table: Option<StatefulTable<KeybindingItem>>,
   pub error: HorizontallyScrollableText,
+  pub notification: Option<Notification>,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
   pub tick_count: u64,
@@ -254,6 +256,7 @@ impl Default for App<'_> {
       cancellation_token: CancellationToken::new(),
       keymapping_table: None,
       error: HorizontallyScrollableText::default(),
+      notification: None,
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
       tick_until_poll: 400,

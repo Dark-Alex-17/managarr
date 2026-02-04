@@ -2,11 +2,11 @@ use lidarr_handlers::LidarrHandler;
 use radarr_handlers::RadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
-use crate::app::App;
 use crate::app::context_clues::{
-  ContextClueProvider, SERVARR_CONTEXT_CLUES, ServarrContextClueProvider,
+  ContextClueProvider, ServarrContextClueProvider, SERVARR_CONTEXT_CLUES,
 };
 use crate::app::key_binding::KeyBinding;
+use crate::app::App;
 use crate::event::Key;
 use crate::handlers::keybinding_handler::KeybindingHandler;
 use crate::matches_key;
@@ -116,6 +116,7 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
     } else {
       app.keymapping_table = None;
     }
+  } else if matches_key!(esc, key) && handle_clear_notification(app) {
   } else {
     match app.get_current_route() {
       _ if app.keymapping_table.is_some() => {
@@ -181,6 +182,10 @@ fn handle_clear_errors(app: &mut App<'_>) {
   if !app.error.text.is_empty() {
     app.error = HorizontallyScrollableText::default();
   }
+}
+
+fn handle_clear_notification(app: &mut App<'_>) -> bool {
+  app.notification.take().is_some()
 }
 
 fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {

@@ -3,6 +3,7 @@ use crate::models::radarr_models::{
   EditMovieParams, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
   RadarrReleaseDownloadBody,
 };
+use crate::models::servarr_data::Notification;
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -85,9 +86,27 @@ impl Network<'_, '_> {
       .request_props_from(event, RequestMethod::Post, Some(params), None, None)
       .await;
 
-    self
-      .handle_request::<RadarrReleaseDownloadBody, Value>(request_props, |_, _| ())
-      .await
+    let result = self
+      .handle_request::<RadarrReleaseDownloadBody, Value>(request_props, |_, mut app| {
+        app.notification = Some(Notification::new(
+          "Download Result".to_owned(),
+          "Download request sent successfully".to_owned(),
+          true,
+        ));
+      })
+      .await;
+
+    if result.is_err() {
+      let mut app = self.app.lock().await;
+      std::mem::take(&mut app.error.text);
+      app.notification = Some(Notification::new(
+        "Download Failed".to_owned(),
+        "Download request failed. Check the logs for more details.".to_owned(),
+        false,
+      ));
+    }
+
+    result
   }
 
   pub(in crate::network::radarr_network) async fn edit_movie(
