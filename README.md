@@ -55,9 +55,9 @@ Run Managarr as a docker container by mounting your `config.yml` file to `/root/
 docker run --rm -it -v /home/aclarke/.config/managarr/config.yml:/root/.config/managarr/config.yml darkalex17/managarr:latest
 ```
 
-You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
+You can also clone this repo and run `just build-docker` to build a docker image locally and run it using the above command.
 
-Please note that you will need to create and popular your configuration file first before starting the container. Otherwise, the container will fail to start.
+Please note that you will need to create and populate your configuration file first before starting the container. Otherwise, the container will fail to start.
 
 **Note:** If you run into errors using relative file paths when mounting the volume with the configuration file, try using an absolute path.
 
