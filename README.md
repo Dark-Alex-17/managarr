@@ -364,7 +364,13 @@ radarr:
   - host: 192.168.0.78
     port: 7878
     api_token: someApiToken1234567890
-    ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
+    ssl_cert_path: /path/to/radarr.crt # Use a self-signed SSL certificate to connect to this Servarr
+                                       # Enables SSL regardless of the value of the 'ssl'
+
+  - host: 192.168.0.79
+    port: 7878
+    api_token: someApiToken1234567890
+    ssl: true # Use SSL to connect to this Servarr (public certs)
     
   - uri: http://htpc.local/radarr # Example of using the 'uri' key instead of 'host' and 'port'
     api_token: someApiToken1234567890

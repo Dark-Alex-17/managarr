@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{Subcommand, arg};
+use clap::Subcommand;
 use serde_json::json;
 use tokio::sync::Mutex;
 

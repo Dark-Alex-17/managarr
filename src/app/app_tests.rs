@@ -449,6 +449,78 @@ mod tests {
 
   #[test]
   #[serial]
+  fn test_deserialize_optional_env_var_bool_is_bool() {
+    let yaml_data = r#"
+      host: localhost
+      api_token: "test123"
+      ssl: true
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.ssl, &true);
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_bool_is_string() {
+    let yaml_data = r#"
+      host: localhost
+      api_token: "test123"
+      ssl: "true"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.ssl, &true);
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_bool_is_present() {
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_BOOL", "true") };
+    let yaml_data = r#"
+      host: localhost
+      api_token: "test123"
+      ssl: ${TEST_VAR_DESERIALIZE_OPTION_BOOL}
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.ssl, &true);
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_BOOL") };
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_bool_defaults_to_false() {
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_BOOL_FALSEY", "test") };
+    let yaml_data = r#"
+      host: localhost
+      api_token: "test123"
+      ssl: ${TEST_VAR_DESERIALIZE_OPTION_BOOL_FALSEY}
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_some_eq_x!(&config.ssl, &false);
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_BOOL_FALSEY") };
+  }
+
+  #[test]
+  fn test_deserialize_optional_env_var_bool_empty() {
+    let yaml_data = r#"
+      host: localhost
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_none!(config.ssl);
+  }
+
+  #[test]
+  #[serial]
   fn test_deserialize_optional_env_var_header_map_is_present() {
     unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_HEADER_OPTION", "localhost") };
     let expected_custom_headers = {
@@ -674,7 +746,7 @@ mod tests {
     let mut custom_headers = HeaderMap::new();
     custom_headers.insert("X-Custom-Header", "value".parse().unwrap());
     let expected_str = format!(
-      "ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}), monitored_storage_paths: Some([\"/path1\", \"/path2\"]) }}"
+      "ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl: Some(true), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}), monitored_storage_paths: Some([\"/path1\", \"/path2\"]) }}"
     );
     let servarr_config = ServarrConfig {
       name: Some(name),
@@ -685,6 +757,7 @@ mod tests {
       api_token: Some(api_token),
       api_token_file: Some(api_token_file),
       ssl_cert_path: Some(ssl_cert_path),
+      ssl: Some(true),
       custom_headers: Some(custom_headers),
       monitored_storage_paths: Some(monitored_storage),
     };

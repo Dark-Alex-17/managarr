@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{ArgAction, Subcommand, arg};
+use clap::{ArgAction, Subcommand};
 use tokio::sync::Mutex;
 
 use super::LidarrCommand;

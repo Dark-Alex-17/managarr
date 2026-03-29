@@ -409,7 +409,7 @@ mod tests {
   #[tokio::test]
   #[should_panic(expected = "Servarr config is undefined")]
   #[rstest]
-  async fn test_request_props_from_requires_radarr_config_to_be_present_for_all_network_events(
+  async fn test_request_props_from_requires_config_to_be_present_for_all_network_events(
     #[values(RadarrEvent::HealthCheck, SonarrEvent::HealthCheck)] network_event: impl Into<NetworkEvent>
     + NetworkResource,
   ) {
@@ -469,6 +469,82 @@ mod tests {
       port: Some(8080),
       api_token: Some(api_token.clone()),
       ssl_cert_path: Some("/test/cert.crt".to_owned()),
+      ..ServarrConfig::default()
+    };
+    {
+      let mut app = app_arc.lock().await;
+      app.server_tabs.tabs[0].config = Some(servarr_config.clone());
+      app.server_tabs.tabs[1].config = Some(servarr_config);
+    }
+    let network = test_network(&app_arc);
+
+    let request_props = network
+      .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    assert_str_eq!(
+      request_props.uri,
+      format!("https://192.168.0.123:8080/api/v3{resource}")
+    );
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
+  }
+
+  #[rstest]
+  #[tokio::test]
+  async fn test_request_props_from_custom_config_ssl_doesnt_affect_ssl_cert_path(
+    #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
+    + NetworkResource,
+    #[values(Some(true), Some(false), None)] ssl_option: Option<bool>,
+  ) {
+    let api_token = "testToken1234".to_owned();
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let resource = network_event.resource();
+    let servarr_config = ServarrConfig {
+      host: Some("192.168.0.123".to_owned()),
+      port: Some(8080),
+      api_token: Some(api_token.clone()),
+      ssl_cert_path: Some("/test/cert.crt".to_owned()),
+      ssl: ssl_option,
+      ..ServarrConfig::default()
+    };
+    {
+      let mut app = app_arc.lock().await;
+      app.server_tabs.tabs[0].config = Some(servarr_config.clone());
+      app.server_tabs.tabs[1].config = Some(servarr_config);
+    }
+    let network = test_network(&app_arc);
+
+    let request_props = network
+      .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    assert_str_eq!(
+      request_props.uri,
+      format!("https://192.168.0.123:8080/api/v3{resource}")
+    );
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
+  }
+
+  #[rstest]
+  #[tokio::test]
+  async fn test_request_props_uses_ssl_property(
+    #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
+    + NetworkResource,
+  ) {
+    let api_token = "testToken1234".to_owned();
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let resource = network_event.resource();
+    let servarr_config = ServarrConfig {
+      host: Some("192.168.0.123".to_owned()),
+      port: Some(8080),
+      api_token: Some(api_token.clone()),
+      ssl: Some(true),
       ..ServarrConfig::default()
     };
     {

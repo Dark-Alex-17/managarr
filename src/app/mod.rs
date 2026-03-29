@@ -431,6 +431,8 @@ pub struct ServarrConfig {
   pub api_token: Option<String>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub api_token_file: Option<String>,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var_bool")]
+  pub ssl: Option<bool>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
   #[serde(
@@ -486,6 +488,7 @@ impl Default for ServarrConfig {
       api_token: Some(String::new()),
       api_token_file: None,
       ssl_cert_path: None,
+      ssl: None,
       custom_headers: None,
       monitored_storage_paths: None,
     }
@@ -529,6 +532,29 @@ where
       Ok(Some(interpolated))
     }
     None => Ok(None),
+  }
+}
+
+fn deserialize_optional_env_var_bool<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  #[derive(Deserialize)]
+  #[serde(untagged)]
+  enum StringOrBool {
+    Bool(bool),
+    String(String),
+  }
+
+  match StringOrBool::deserialize(deserializer)? {
+    StringOrBool::Bool(b) => Ok(Some(b)),
+    StringOrBool::String(s) => {
+      let val = interpolate_env_vars(&s)
+        .to_lowercase()
+        .parse()
+        .unwrap_or(false);
+      Ok(Some(val))
+    }
   }
 }
 
