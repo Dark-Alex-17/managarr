@@ -364,13 +364,16 @@ radarr:
   - host: 192.168.0.78
     port: 7878
     api_token: someApiToken1234567890
-    ssl_cert_path: /path/to/radarr.crt # Use a self-signed SSL certificate to connect to this Servarr
+    ssl_cert_path: /path/to/radarr.crt # Use the specified SSL certificate to connect to this Servarr
                                        # Enables SSL regardless of the value of the 'ssl'
+                                       # See the SSL Configuration section below for more information
 
   - host: 192.168.0.79
     port: 7878
     api_token: someApiToken1234567890
-    ssl: true # Use SSL to connect to this Servarr (public certs)
+    ssl: true # Use SSL to connect to this Servarr
+              # This will assume that you have the SSL certificate installed to your system trust store
+              # See the SSL Configuration section below for more information
     
   - uri: http://htpc.local/radarr # Example of using the 'uri' key instead of 'host' and 'port'
     api_token: someApiToken1234567890
@@ -404,6 +407,59 @@ lidarr:
     custom_headers: # Example of adding custom headers to all requests to the Servarr instance
       traefik-auth-bypass-key: someBypassKey1234567890
       SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
+```
+
+### SSL Configuration
+If your Servarr is using SSL or self-signed certificates, you may need to specify additional configuration options to connect without issues.
+
+
+**If your Servarr's domain CA is installed in the system's trust store:**
+Then you can simply specify `ssl: true` and Managarr will be able to connect to your Servarr:
+
+```yaml
+radarr:
+  - host: 192.168.0.78
+    port: 7878
+    api_token: yourApiTokenHere
+    ssl: true
+```
+
+
+**If your Servarr's domain CA is not installed:**
+You'll either need to specify the path to the certificate via the `ssl_cert_path` property, or you'll need to install the certificate into your system store.
+
+To acquire the cert for your Servarr's domain, you can use the following command:
+```shell
+openssl s_client -show-certs -connect <your-servarr-domain.com>:<port> </dev/null |\
+  sed -n -e '/-.BEGIN/,/-.END/ p' > /path/to/your/servarr.pem
+```
+
+Now, you can either specify `ssl_cert_path: /path/to/your/servarr.pem`:
+
+Example configuration with a certificate that's not installed to the system trust store:
+```yaml
+radarr:
+  - host: 192.168.0.78
+    port: 7878
+    api_token: yourApiTokenHere
+    ssl_cert_path: /path/to/your/certificate.crt
+```
+
+Or install the certificate into your system's trust store.
+
+For example, if you're on a Debian-based system and have `ca-certificates` installed (`sudo apt install ca-certificates`):
+```shell
+sudo mv /path/to/your/servarr.pem /usr/local/share/ca-certificates/servarr.pem
+sudo update-ca-certificates
+```
+
+Example configuration with a certificate that is installed to the system trust store:
+```yaml
+radarr:
+  - host: 192.168.0.78
+    port: 7878
+    api_token: yourApiTokenHere
+    ssl: true
 ```
 
 ### Example Multi-Instance Configuration:
