@@ -85,5 +85,5 @@ build build_type='debug':
 
 # Build the docker image
 [group: 'build']
-build-docker:
-    @DOCKER_BUILDKIT=1 docker build --rm -t {{IMG_NAME}}:{{VERSION}} .
+build-docker version=VERSION:
+    @DOCKER_BUILDKIT=1 docker build --rm -t {{IMG_NAME}}:{{version}} .
