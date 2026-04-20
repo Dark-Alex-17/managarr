@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.7.2 (2026-04-20)
+
+### Feat
+
+- Created a separate 'ssl' property for the config so users don't have to specify an ssl_cert_path to use SSL or use the uri workaround for HTTPS API access
+
 ## v0.7.1 (2026-02-04)
 
 ### Feat
