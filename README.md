@@ -3,7 +3,6 @@
 ![Check](https://github.com/Dark-Alex-17/managarr/actions/workflows/check.yml/badge.svg)
 ![Test](https://github.com/Dark-Alex-17/managarr/actions/workflows/test.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
-![LOC](https://tokei.rs/b1/github/Dark-Alex-17/managarr?category=code)
 [![crates.io link](https://img.shields.io/crates/v/managarr.svg)](https://crates.io/crates/managarr)
 ![Release](https://img.shields.io/github/v/release/Dark-Alex-17/managarr?color=%23c694ff)
 [![codecov](https://codecov.io/gh/Dark-Alex-17/managarr/graph/badge.svg?token=33G179TW67)](https://codecov.io/gh/Dark-Alex-17/managarr)
