@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{Subcommand, command};
+use clap::Subcommand;
 use clap_complete::Shell;
 use indoc::indoc;
 use lidarr::{LidarrCliHandler, LidarrCommand};

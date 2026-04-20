@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use add_command_handler::{LidarrAddCommand, LidarrAddCommandHandler};
 use anyhow::Result;
-use clap::{Subcommand, arg};
+use clap::Subcommand;
 use delete_command_handler::{LidarrDeleteCommand, LidarrDeleteCommandHandler};
 use edit_command_handler::{LidarrEditCommand, LidarrEditCommandHandler};
 use get_command_handler::{LidarrGetCommand, LidarrGetCommandHandler};

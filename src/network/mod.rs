@@ -229,6 +229,7 @@ impl<'a, 'b> Network<'a, 'b> {
       uri,
       api_token,
       ssl_cert_path,
+      ssl,
       custom_headers: custom_headers_option,
       ..
     } = app
@@ -245,7 +246,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let mut uri = if let Some(servarr_uri) = uri {
       format!("{servarr_uri}/api/{api_version}{resource}")
     } else {
-      let protocol = if ssl_cert_path.is_some() {
+      let protocol = if ssl_cert_path.is_some() || ssl.unwrap_or(false) {
         "https"
       } else {
         "http"
