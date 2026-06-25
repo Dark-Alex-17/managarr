@@ -104,7 +104,7 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
     .seek(SeekFrom::End(0))
     .with_context(|| "Unable to tail log file")?;
 
-  tokio::spawn(async move {
+  tokio::task::spawn_blocking(move || {
     let mut line_buf = String::new();
     loop {
       line_buf.clear();
@@ -114,7 +114,7 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
             continue;
           }
 
-          tokio::time::sleep(Duration::from_millis(100)).await;
+          std::thread::sleep(Duration::from_millis(100));
         }
         Ok(_) => {
           let line = line_buf.trim_end();
@@ -126,7 +126,7 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
           }
         }
         Err(_) => {
-          tokio::time::sleep(Duration::from_millis(100)).await;
+          std::thread::sleep(Duration::from_millis(100));
         }
       }
     }
@@ -134,7 +134,7 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
   .await?
 }
 
-fn was_log_rotated(file_path: &PathBuf, reader: &mut BufReader<File>) -> bool {
+pub(crate) fn was_log_rotated(file_path: &PathBuf, reader: &mut BufReader<File>) -> bool {
   let current_pos = reader.stream_position().unwrap_or(0);
   let file_len = fs::metadata(file_path).map(|m| m.len()).unwrap_or(0);
 
