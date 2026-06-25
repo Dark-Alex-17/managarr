@@ -10,7 +10,10 @@ use anyhow::{Context, anyhow};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{LevelFilter, error};
-use log4rs::append::file::FileAppender;
+use log4rs::append::rolling_file::RollingFileAppender;
+use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
+use log4rs::append::rolling_file::policy::compound::roll::fixed_window::FixedWindowRoller;
+use log4rs::append::rolling_file::policy::compound::trigger::size::SizeTrigger;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use regex::Regex;
@@ -47,12 +50,24 @@ pub fn get_log_path() -> PathBuf {
 }
 
 pub fn init_logging_config() -> log4rs::Config {
-  let logfile = FileAppender::builder()
+  let log_path = get_log_path();
+  let archive_pattern = log_path
+    .with_file_name("managarr.{}.log")
+    .to_string_lossy()
+    .into_owned();
+
+  let trigger = SizeTrigger::new(10 * 1024 * 1024);
+  let roller = FixedWindowRoller::builder()
+    .build(&archive_pattern, 3)
+    .expect("Failed to build log roller");
+  let policy = CompoundPolicy::new(Box::new(trigger), Box::new(roller));
+
+  let logfile = RollingFileAppender::builder()
     .encoder(Box::new(PatternEncoder::new(
       "{d(%Y-%m-%d %H:%M:%S%.3f)(utc)} <{i}> [{l}] {f}:{L} - {m}{n}",
     )))
-    .build(get_log_path())
-    .unwrap();
+    .build(log_path, Box::new(policy))
+    .expect("Failed to build rolling file appender");
 
   log4rs::Config::builder()
     .appender(Appender::builder().build("logfile", Box::new(logfile)))
@@ -89,21 +104,48 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
     .seek(SeekFrom::End(0))
     .with_context(|| "Unable to tail log file")?;
 
-  let mut lines = reader.lines();
-
-  tokio::spawn(async move {
+  tokio::task::spawn_blocking(move || {
+    let mut line_buf = String::new();
     loop {
-      if let Some(Ok(line)) = lines.next() {
-        if no_color {
-          println!("{line}");
-        } else {
-          let colored_line = colorize_log_line(&line, &re);
-          println!("{colored_line}");
+      line_buf.clear();
+      match reader.read_line(&mut line_buf) {
+        Ok(0) => {
+          if was_log_rotated(&file_path, &mut reader) {
+            continue;
+          }
+
+          std::thread::sleep(Duration::from_millis(100));
+        }
+        Ok(_) => {
+          let line = line_buf.trim_end();
+          if no_color {
+            println!("{line}");
+          } else {
+            let colored_line = colorize_log_line(line, &re);
+            println!("{colored_line}");
+          }
+        }
+        Err(_) => {
+          std::thread::sleep(Duration::from_millis(100));
         }
       }
     }
   })
   .await?
+}
+
+pub(crate) fn was_log_rotated(file_path: &PathBuf, reader: &mut BufReader<File>) -> bool {
+  let current_pos = reader.stream_position().unwrap_or(0);
+  let file_len = fs::metadata(file_path).map(|m| m.len()).unwrap_or(0);
+
+  if file_len < current_pos
+    && let Ok(new_file) = File::open(file_path)
+  {
+    *reader = BufReader::new(new_file);
+    return true;
+  }
+
+  false
 }
 
 fn colorize_log_line(line: &str, re: &Regex) -> String {

@@ -106,10 +106,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for IndexerSettingsHandl
           indexer_settings.maximum_size -= 1;
         }
       }
-      ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput => {
-        if indexer_settings.rss_sync_interval > 0 {
-          indexer_settings.rss_sync_interval -= 1;
-        }
+      ActiveLidarrBlock::IndexerSettingsRssSyncIntervalInput
+        if indexer_settings.rss_sync_interval > 0 =>
+      {
+        indexer_settings.rss_sync_interval -= 1;
       }
       _ => (),
     }

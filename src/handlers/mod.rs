@@ -139,8 +139,8 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
 
 pub fn populate_keymapping_table(app: &mut App<'_>) {
   let context_clue_to_keybinding_item = |key: &KeyBinding, desc: &&str| {
-    let (key, alt_key) = if key.alt.is_some() {
-      (key.key.to_string(), key.alt.as_ref().unwrap().to_string())
+    let (key, alt_key) = if let Some(key1) = key.alt {
+      (key.key.to_string(), key1.to_string())
     } else {
       (key.key.to_string(), String::new())
     };

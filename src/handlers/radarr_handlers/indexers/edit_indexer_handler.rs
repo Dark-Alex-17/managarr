@@ -507,18 +507,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
             .tags
         );
       }
-      ActiveRadarrBlock::EditIndexerPrompt => {
+      ActiveRadarrBlock::EditIndexerPrompt
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::EditIndexerConfirmPrompt
-          && matches_key!(confirm, self.key)
-        {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, self.key) =>
+      {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action =
+          Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

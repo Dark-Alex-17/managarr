@@ -158,7 +158,7 @@ impl Network<'_, '_> {
 
         if !is_sorting {
           let mut history_vec = history_items;
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           season_details_modal.season_history.set_items(history_vec);
           season_details_modal
             .season_history

@@ -60,7 +60,7 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<Episode>>(request_props, |mut episode_vec, mut app| {
-        episode_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        episode_vec.sort_by_key(|a| a.id);
         if !matches!(
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::EpisodesSortPrompt, _)
@@ -151,7 +151,7 @@ impl Network<'_, '_> {
           .get_or_insert_default();
 
         let mut history_vec = history_response.records;
-        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        history_vec.sort_by_key(|a| a.id);
         episode_details_modal.episode_history.set_items(history_vec);
         episode_details_modal
           .episode_history

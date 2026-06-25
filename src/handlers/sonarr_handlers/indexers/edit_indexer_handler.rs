@@ -506,18 +506,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditIndexerHandler<'
             .tags
         );
       }
-      ActiveSonarrBlock::EditIndexerPrompt => {
+      ActiveSonarrBlock::EditIndexerPrompt
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::EditIndexerConfirmPrompt
-          && matches_key!(confirm, self.key)
-        {
-          self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::EditIndexer(self.build_edit_indexer_params()));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, self.key) =>
+      {
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::EditIndexer(self.build_edit_indexer_params()));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

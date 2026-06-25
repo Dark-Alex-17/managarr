@@ -893,7 +893,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
 
       let mut expected_vec = movies_vec();
-      expected_vec.sort_by(|a, b| a.id.cmp(&b.id));
+      expected_vec.sort_by_key(|a| a.id);
       expected_vec.reverse();
 
       TableHandlerUnit::new(

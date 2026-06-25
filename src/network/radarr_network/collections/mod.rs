@@ -128,7 +128,7 @@ impl Network<'_, '_> {
           app.get_current_route(),
           Route::Radarr(ActiveRadarrBlock::CollectionsSortPrompt, _)
         ) {
-          collections_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          collections_vec.sort_by_key(|a| a.id);
           app.data.radarr_data.collections.set_items(collections_vec);
           app.data.radarr_data.collections.apply_sorting_toggle(false);
         }

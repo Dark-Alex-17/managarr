@@ -10,7 +10,7 @@ homepage = "https://github.com/Dark-Alex-17/managarr"
 readme = "README.md"
 edition = "2024"
 license = "MIT"
-rust-version = "1.89.0"
+rust-version = "1.95.0"
 exclude = [".github", "CONTRIBUTING.md", "*.log", "tags"]
 
 [workspace]
@@ -32,7 +32,7 @@ derivative = "2.2.0"
 human-panic = "2.0.6"
 indoc = "2.0.7"
 log = "0.4.29"
-log4rs = { version = "1.4.0", features = ["file_appender"] }
+log4rs = { version = "1.4.0", features = ["rolling_file_appender", "compound_policy", "size_trigger", "fixed_window_roller"] }
 regex = "1.12.2"
 reqwest = { version = "0.13.2", features = ["json"] }
 serde_yaml = "0.9.34"
@@ -63,7 +63,7 @@ managarr-tree-widget = "0.25.0"
 indicatif = "0.17.11"
 derive_setters = "0.1.9"
 deunicode = "1.6.2"
-openssl = { version = "0.10.75", features = ["vendored"] }
+openssl = { version = "0.10.79", features = ["vendored"] }
 veil = "0.2.0"
 validate_theme_derive = "0.1.0"
 enum_display_style_derive = "0.1.0"

@@ -114,10 +114,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput => {
         indexer_settings.availability_delay -= 1;
       }
-      ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput => {
-        if indexer_settings.rss_sync_interval > 0 {
-          indexer_settings.rss_sync_interval -= 1;
-        }
+      ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput
+        if indexer_settings.rss_sync_interval > 0 =>
+      {
+        indexer_settings.rss_sync_interval -= 1;
       }
       _ => (),
     }
@@ -272,19 +272,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
             .whitelisted_hardcoded_subs
         )
       }
-      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::IndexerSettingsConfirmPrompt
-          && matches_key!(confirm, self.key)
-        {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(
-            RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()),
-          );
-          self.app.should_refresh = true;
+          && matches_key!(confirm, self.key) =>
+      {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action = Some(
+          RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()),
+        );
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

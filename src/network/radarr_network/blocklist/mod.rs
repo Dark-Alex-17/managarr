@@ -83,7 +83,7 @@ impl Network<'_, '_> {
           Route::Radarr(ActiveRadarrBlock::BlocklistSortPrompt, _)
         ) {
           let mut blocklist_vec = blocklist_resp.records;
-          blocklist_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          blocklist_vec.sort_by_key(|a| a.id);
           app.data.radarr_data.blocklist.set_items(blocklist_vec);
           app.data.radarr_data.blocklist.apply_sorting_toggle(false);
         }

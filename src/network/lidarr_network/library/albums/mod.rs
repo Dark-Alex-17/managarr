@@ -33,7 +33,7 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<Album>>(request_props, |mut albums_vec, mut app| {
-        albums_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        albums_vec.sort_by_key(|a| a.id);
         app.data.lidarr_data.albums.set_items(albums_vec);
       })
       .await
@@ -89,7 +89,7 @@ impl Network<'_, '_> {
             .get_or_insert_default();
 
           let mut history_vec = history_items;
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           album_details_modal.album_history.set_items(history_vec);
           album_details_modal
             .album_history

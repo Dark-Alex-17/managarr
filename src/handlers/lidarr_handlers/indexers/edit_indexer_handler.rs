@@ -506,18 +506,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for EditIndexerHandler<'
             .tags
         );
       }
-      ActiveLidarrBlock::EditIndexerPrompt => {
+      ActiveLidarrBlock::EditIndexerPrompt
         if self.app.data.lidarr_data.selected_block.get_active_block()
           == ActiveLidarrBlock::EditIndexerConfirmPrompt
-          && matches_key!(confirm, self.key)
-        {
-          self.app.data.lidarr_data.prompt_confirm = true;
-          self.app.data.lidarr_data.prompt_confirm_action =
-            Some(LidarrEvent::EditIndexer(self.build_edit_indexer_params()));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, self.key) =>
+      {
+        self.app.data.lidarr_data.prompt_confirm = true;
+        self.app.data.lidarr_data.prompt_confirm_action =
+          Some(LidarrEvent::EditIndexer(self.build_edit_indexer_params()));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

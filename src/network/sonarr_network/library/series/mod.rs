@@ -315,7 +315,7 @@ impl Network<'_, '_> {
         let series_history = app.data.sonarr_data.series_history.get_or_insert_default();
 
         if !is_sorting {
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           series_history.set_items(history_vec);
           series_history.apply_sorting_toggle(false);
         }
@@ -337,7 +337,7 @@ impl Network<'_, '_> {
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::SeriesSortPrompt, _)
         ) {
-          series_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          series_vec.sort_by_key(|a| a.id);
           app.data.sonarr_data.series.set_items(series_vec);
           app.data.sonarr_data.series.apply_sorting_toggle(false);
         }

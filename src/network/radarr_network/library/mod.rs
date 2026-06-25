@@ -270,7 +270,7 @@ impl Network<'_, '_> {
           app.get_current_route(),
           Route::Radarr(ActiveRadarrBlock::MoviesSortPrompt, _)
         ) {
-          movie_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          movie_vec.sort_by_key(|a| a.id);
           app.data.radarr_data.movies.set_items(movie_vec);
           app.data.radarr_data.movies.apply_sorting_toggle(false);
         }

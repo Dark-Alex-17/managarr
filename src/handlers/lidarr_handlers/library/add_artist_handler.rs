@@ -591,16 +591,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for AddArtistHandler<'a,
             .tags
         )
       }
-      ActiveLidarrBlock::AddArtistPrompt => {
+      ActiveLidarrBlock::AddArtistPrompt
         if self.app.data.lidarr_data.selected_block.get_active_block()
           == ActiveLidarrBlock::AddArtistConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.lidarr_data.prompt_confirm = true;
-          self.app.data.lidarr_data.prompt_confirm_action =
-            Some(LidarrEvent::AddArtist(self.build_add_artist_body()));
-          self.app.pop_navigation_stack();
-        }
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.lidarr_data.prompt_confirm = true;
+        self.app.data.lidarr_data.prompt_confirm_action =
+          Some(LidarrEvent::AddArtist(self.build_add_artist_body()));
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

@@ -31,7 +31,7 @@ impl Network<'_, '_> {
           Route::Lidarr(ActiveLidarrBlock::HistorySortPrompt, _)
         ) {
           let mut history_vec = history_response.records;
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           app.data.lidarr_data.history.set_items(history_vec);
           app.data.lidarr_data.history.apply_sorting_toggle(false);
         }

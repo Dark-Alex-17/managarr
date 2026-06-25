@@ -107,9 +107,8 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
     } else {
       queued
     };
-    let started_string = if event.started.is_some() {
-      let started =
-        convert_to_minutes_hours_days(Utc::now().sub(event.started.unwrap()).num_minutes());
+    let started_string = if let Some(date_time) = event.started {
+      let started = convert_to_minutes_hours_days(Utc::now().sub(date_time).num_minutes());
 
       if started != "now" {
         format!("{started} ago")
@@ -120,8 +119,8 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
       String::new()
     };
 
-    let duration = if event.duration.is_some() {
-      &event.duration.as_ref().unwrap()[..8]
+    let duration = if let Some(dur) = &event.duration {
+      &dur[..8]
     } else {
       ""
     };
