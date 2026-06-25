@@ -338,7 +338,38 @@ $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
 
 # Configuration
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
-but all servers will require you to input the API token.
+but all servers will require you to input the API token. This means that for each Servarr you configure,
+if you define only the `api_token`, Managarr will assume the Servarr is running on `localhost` and on the
+default port for that respective service. That is:
+
+| Servarr | Default Host | Default Port |
+|---------|--------------|--------------|
+| Radarr  | `localhost`  | 7878         |
+| Sonarr  | `localhost`  | 8989         |
+| Lidarr  | `localhost`  | 8686         |
+
+> [!TIP]
+> In general, all Servarrs store their API tokens under Settings -> General -> Security -> API Key in their web UIs.
+
+## Minimum Configuration Requirements
+The following configuration file will connect to each Servarr running on localhost with their default ports. The only
+requirement for each is the specification of an API token.
+
+```yaml
+radarr:
+  # Connect to Radarr running on localhost:7878
+  - api_token: <your-radarr-api-token-here>
+
+sonarr:
+  # Connect to sonarr running on localhost:8989
+  - api_token: <your-sonarr-api-token-here>
+
+lidarr:
+  # Connect to lidarr running on localhost:8686
+  - api_token: <your-lidarr-api-token-here>
+```
+
+## Configuration File Location
 
 The configuration file is located somewhere different for each OS, so run the following command to print out the default
 location of the `managarr` configuration file for your system:
