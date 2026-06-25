@@ -63,7 +63,7 @@ managarr-tree-widget = "0.25.0"
 indicatif = "0.17.11"
 derive_setters = "0.1.9"
 deunicode = "1.6.2"
-openssl = { version = "0.10.75", features = ["vendored"] }
+openssl = { version = "0.10.79", features = ["vendored"] }
 veil = "0.2.0"
 validate_theme_derive = "0.1.0"
 enum_display_style_derive = "0.1.0"
