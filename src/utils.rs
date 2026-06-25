@@ -59,7 +59,7 @@ pub fn init_logging_config() -> log4rs::Config {
   let trigger = SizeTrigger::new(10 * 1024 * 1024);
   let roller = FixedWindowRoller::builder()
     .build(&archive_pattern, 3)
-    .unwrap();
+    .expect("Failed to build log roller");
   let policy = CompoundPolicy::new(Box::new(trigger), Box::new(roller));
 
   let logfile = RollingFileAppender::builder()
@@ -67,7 +67,7 @@ pub fn init_logging_config() -> log4rs::Config {
       "{d(%Y-%m-%d %H:%M:%S%.3f)(utc)} <{i}> [{l}] {f}:{L} - {m}{n}",
     )))
     .build(log_path, Box::new(policy))
-    .unwrap();
+    .expect("Failed to build rolling file appender");
 
   log4rs::Config::builder()
     .appender(Appender::builder().build("logfile", Box::new(logfile)))
@@ -105,8 +105,9 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
     .with_context(|| "Unable to tail log file")?;
 
   tokio::spawn(async move {
+    let mut line_buf = String::new();
     loop {
-      let mut line_buf = String::new();
+      line_buf.clear();
       match reader.read_line(&mut line_buf) {
         Ok(0) => {
           if was_log_rotated(&file_path, &mut reader) {
@@ -128,7 +129,6 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
           tokio::time::sleep(Duration::from_millis(100)).await;
         }
       }
-      line_buf.clear();
     }
   })
   .await?
