@@ -52,33 +52,24 @@ impl DrawUi for IndexersUi {
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         ActiveRadarrBlock::TestIndexer => {
-          if app.is_loading || app.data.radarr_data.indexer_test_errors.is_none() {
+          if let Some(result) = app.data.radarr_data.indexer_test_errors.as_ref().filter(|_| !app.is_loading) {
+            let popup = if !result.is_empty() {
+              Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
+            } else {
+              let message = Message::new("Indexer test succeeded!")
+                .title("Success")
+                .style(success_style().bold());
+              Popup::new(message).size(Size::Message)
+            };
+
+            f.render_widget(popup, f.area());
+          } else {
             let loading_popup = Popup::new(LoadingBlock::new(
               app.is_loading || app.data.radarr_data.indexer_test_errors.is_none(),
               title_block("Testing Indexer"),
             ))
             .size(Size::LargeMessage);
             f.render_widget(loading_popup, f.area());
-          } else {
-            let popup = {
-              let result = app
-                .data
-                .radarr_data
-                .indexer_test_errors
-                .as_ref()
-                .expect("Test result is unpopulated");
-
-              if !result.is_empty() {
-                Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
-              } else {
-                let message = Message::new("Indexer test succeeded!")
-                  .title("Success")
-                  .style(success_style().bold());
-                Popup::new(message).size(Size::Message)
-              }
-            };
-
-            f.render_widget(popup, f.area());
           }
         }
         ActiveRadarrBlock::DeleteIndexerPrompt => {

@@ -125,11 +125,8 @@ where
     if let Some(content) = self.content
       && !self.is_loading
     {
-      let (table_contents, table_state) = if content.filtered_items.is_some() {
-        (
-          content.filtered_items.as_ref().unwrap(),
-          content.filtered_state.as_mut().unwrap(),
-        )
+      let (table_contents, table_state) = if let Some(items) = &content.filtered_items {
+        (items, content.filtered_state.as_mut().unwrap())
       } else {
         (&content.items, &mut content.state)
       };
@@ -153,10 +150,11 @@ where
 
         StatefulWidget::render(table, table_area, buf, table_state);
 
-        if content.sort.is_some() && self.is_sorting {
-          let selectable_list = SelectableList::new(content.sort.as_mut().unwrap(), |item| {
-            ListItem::new(Text::from(item.name))
-          });
+        if let Some(sort) = &mut content.sort
+          && self.is_sorting
+        {
+          let selectable_list =
+            SelectableList::new(sort, |item| ListItem::new(Text::from(item.name)));
           Popup::new(selectable_list)
             .dimensions(20, 50)
             .render(table_area, buf);

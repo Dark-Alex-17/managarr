@@ -428,18 +428,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for EditArtistHandler<'a
             .tags
         )
       }
-      ActiveLidarrBlock::EditArtistPrompt => {
+      ActiveLidarrBlock::EditArtistPrompt
         if self.app.data.lidarr_data.selected_block.get_active_block()
           == ActiveLidarrBlock::EditArtistConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.lidarr_data.prompt_confirm = true;
-          self.app.data.lidarr_data.prompt_confirm_action =
-            Some(LidarrEvent::EditArtist(self.build_edit_artist_params()));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.lidarr_data.prompt_confirm = true;
+        self.app.data.lidarr_data.prompt_confirm_action =
+          Some(LidarrEvent::EditArtist(self.build_edit_artist_params()));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

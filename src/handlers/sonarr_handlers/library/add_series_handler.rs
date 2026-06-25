@@ -606,16 +606,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
             .tags
         )
       }
-      ActiveSonarrBlock::AddSeriesPrompt => {
+      ActiveSonarrBlock::AddSeriesPrompt
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::AddSeriesConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::AddSeries(self.build_add_series_body()));
-          self.app.pop_navigation_stack();
-        }
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::AddSeries(self.build_add_series_body()));
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

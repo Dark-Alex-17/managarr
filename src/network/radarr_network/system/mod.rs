@@ -67,7 +67,7 @@ impl Network<'_, '_> {
         let log_lines = logs
           .into_iter()
           .map(|log| {
-            if log.exception.is_some() {
+            if let Some(exception) = log.exception {
               HorizontallyScrollableText::from(format!(
                 "{}|{}|{}|{}|{}",
                 log.time,
@@ -80,10 +80,7 @@ impl Network<'_, '_> {
                   .exception_type
                   .as_ref()
                   .expect("exception_type must exist when exception is present"),
-                log
-                  .exception
-                  .as_ref()
-                  .expect("exception must exist in this branch")
+                exception
               ))
             } else {
               HorizontallyScrollableText::from(format!(

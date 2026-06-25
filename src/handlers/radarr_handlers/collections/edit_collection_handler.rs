@@ -354,19 +354,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
             .path
         )
       }
-      ActiveRadarrBlock::EditCollectionPrompt => {
+      ActiveRadarrBlock::EditCollectionPrompt
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::EditCollectionConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(
-            self.build_edit_collection_params(),
-          ));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(
+          self.build_edit_collection_params(),
+        ));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

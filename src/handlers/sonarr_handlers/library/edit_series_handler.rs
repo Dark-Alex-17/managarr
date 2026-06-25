@@ -450,18 +450,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
             .tags
         )
       }
-      ActiveSonarrBlock::EditSeriesPrompt => {
+      ActiveSonarrBlock::EditSeriesPrompt
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::EditSeriesConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::EditSeries(self.build_edit_series_params()));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::EditSeries(self.build_edit_series_params()));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

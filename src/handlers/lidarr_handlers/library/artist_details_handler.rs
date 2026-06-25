@@ -293,16 +293,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
           self.app.data.lidarr_data.selected_block =
             BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
         }
-        _ if matches_key!(toggle_monitoring, key) => {
-          if !self.app.data.lidarr_data.albums.is_empty() {
-            self.app.data.lidarr_data.prompt_confirm = true;
-            self.app.data.lidarr_data.prompt_confirm_action =
-              Some(LidarrEvent::ToggleAlbumMonitoring(self.extract_album_id()));
+        _ if matches_key!(toggle_monitoring, key)
+          && !self.app.data.lidarr_data.albums.is_empty() =>
+        {
+          self.app.data.lidarr_data.prompt_confirm = true;
+          self.app.data.lidarr_data.prompt_confirm_action =
+            Some(LidarrEvent::ToggleAlbumMonitoring(self.extract_album_id()));
 
-            self
-              .app
-              .pop_and_push_navigation_stack(self.active_lidarr_block.into());
-          }
+          self
+            .app
+            .pop_and_push_navigation_stack(self.active_lidarr_block.into());
         }
         _ => (),
       },

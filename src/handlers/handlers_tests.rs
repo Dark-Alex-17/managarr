@@ -231,8 +231,8 @@ mod tests {
     let expected_keybinding_items = Vec::from(SERVARR_CONTEXT_CLUES)
       .iter()
       .map(|(key, desc)| {
-        let (key, alt_key) = if key.alt.is_some() {
-          (key.key.to_string(), key.alt.as_ref().unwrap().to_string())
+        let (key, alt_key) = if let Some(key1) = key.alt {
+          (key.key.to_string(), key1.to_string())
         } else {
           (key.key.to_string(), String::new())
         };
@@ -338,8 +338,8 @@ mod tests {
   }
 
   fn context_clue_to_keybinding_item(key: &KeyBinding, desc: &&str) -> KeybindingItem {
-    let (key, alt_key) = if key.alt.is_some() {
-      (key.key.to_string(), key.alt.as_ref().unwrap().to_string())
+    let (key, alt_key) = if let Some(key1) = key.alt {
+      (key.key.to_string(), key1.to_string())
     } else {
       (key.key.to_string(), String::new())
     };

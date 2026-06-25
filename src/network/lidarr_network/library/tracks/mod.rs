@@ -55,7 +55,7 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<Track>>(request_props, |mut track_vec, mut app| {
-        track_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        track_vec.sort_by_key(|a| a.id);
         let album_details_modal = app
           .data
           .lidarr_data
@@ -238,7 +238,7 @@ impl Network<'_, '_> {
             .into_iter()
             .filter(|it| it.track_id == track_id)
             .collect();
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           track_details_modal.track_history.set_items(history_vec);
           track_details_modal
             .track_history

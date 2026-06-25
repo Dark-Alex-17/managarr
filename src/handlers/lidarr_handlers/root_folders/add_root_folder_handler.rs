@@ -505,19 +505,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for AddRootFolderHandler
             .tags
         )
       }
-      ActiveLidarrBlock::AddRootFolderPrompt => {
+      ActiveLidarrBlock::AddRootFolderPrompt
         if self.app.data.lidarr_data.selected_block.get_active_block()
           == ActiveLidarrBlock::AddRootFolderConfirmPrompt
-          && matches_key!(confirm, key)
-        {
-          self.app.data.lidarr_data.prompt_confirm = true;
-          self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::AddRootFolder(
-            self.build_add_root_folder_body(),
-          ));
-          self.app.should_refresh = true;
+          && matches_key!(confirm, key) =>
+      {
+        self.app.data.lidarr_data.prompt_confirm = true;
+        self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::AddRootFolder(
+          self.build_add_root_folder_body(),
+        ));
+        self.app.should_refresh = true;
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

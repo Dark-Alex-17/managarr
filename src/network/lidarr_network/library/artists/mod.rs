@@ -64,7 +64,7 @@ impl Network<'_, '_> {
           app.get_current_route(),
           Route::Lidarr(ActiveLidarrBlock::ArtistsSortPrompt, _)
         ) {
-          artists_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          artists_vec.sort_by_key(|a| a.id);
           app.data.lidarr_data.artists.set_items(artists_vec);
           app.data.lidarr_data.artists.apply_sorting_toggle(false);
         }
@@ -309,7 +309,7 @@ impl Network<'_, '_> {
         let artist_history = &mut app.data.lidarr_data.artist_history;
 
         if !is_sorting {
-          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          history_vec.sort_by_key(|a| a.id);
           artist_history.set_items(history_vec);
           artist_history.apply_sorting_toggle(false);
         }
