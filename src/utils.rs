@@ -10,7 +10,10 @@ use anyhow::{Context, anyhow};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{LevelFilter, error};
-use log4rs::append::file::FileAppender;
+use log4rs::append::rolling_file::policy::compound::roll::fixed_window::FixedWindowRoller;
+use log4rs::append::rolling_file::policy::compound::trigger::size::SizeTrigger;
+use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
+use log4rs::append::rolling_file::RollingFileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use regex::Regex;
@@ -47,11 +50,23 @@ pub fn get_log_path() -> PathBuf {
 }
 
 pub fn init_logging_config() -> log4rs::Config {
-  let logfile = FileAppender::builder()
+  let log_path = get_log_path();
+  let archive_pattern = log_path
+    .with_file_name("managarr.{}.log")
+    .to_string_lossy()
+    .into_owned();
+
+  let trigger = SizeTrigger::new(10 * 1024 * 1024);
+  let roller = FixedWindowRoller::builder()
+    .build(&archive_pattern, 3)
+    .unwrap();
+  let policy = CompoundPolicy::new(Box::new(trigger), Box::new(roller));
+
+  let logfile = RollingFileAppender::builder()
     .encoder(Box::new(PatternEncoder::new(
       "{d(%Y-%m-%d %H:%M:%S%.3f)(utc)} <{i}> [{l}] {f}:{L} - {m}{n}",
     )))
-    .build(get_log_path())
+    .build(log_path, Box::new(policy))
     .unwrap();
 
   log4rs::Config::builder()
