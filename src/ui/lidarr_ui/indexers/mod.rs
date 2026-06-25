@@ -52,7 +52,13 @@ impl DrawUi for IndexersUi {
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
       Route::Lidarr(active_lidarr_block, _) => match active_lidarr_block {
         ActiveLidarrBlock::TestIndexer => {
-          if let Some(result) = app.data.lidarr_data.indexer_test_errors.as_ref().filter(|_| !app.is_loading) {
+          if let Some(result) = app
+            .data
+            .lidarr_data
+            .indexer_test_errors
+            .as_ref()
+            .filter(|_| !app.is_loading)
+          {
             let popup = if !result.is_empty() {
               Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
             } else {

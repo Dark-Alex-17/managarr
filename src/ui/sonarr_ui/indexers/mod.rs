@@ -52,7 +52,13 @@ impl DrawUi for IndexersUi {
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
       Route::Sonarr(active_sonarr_block, _) => match active_sonarr_block {
         ActiveSonarrBlock::TestIndexer => {
-          if let Some(result) = app.data.sonarr_data.indexer_test_errors.as_ref().filter(|_| !app.is_loading) {
+          if let Some(result) = app
+            .data
+            .sonarr_data
+            .indexer_test_errors
+            .as_ref()
+            .filter(|_| !app.is_loading)
+          {
             let popup = if !result.is_empty() {
               Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
             } else {
