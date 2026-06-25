@@ -104,21 +104,48 @@ pub async fn tail_logs(no_color: bool) -> Result<()> {
     .seek(SeekFrom::End(0))
     .with_context(|| "Unable to tail log file")?;
 
-  let mut lines = reader.lines();
-
   tokio::spawn(async move {
     loop {
-      if let Some(Ok(line)) = lines.next() {
-        if no_color {
-          println!("{line}");
-        } else {
-          let colored_line = colorize_log_line(&line, &re);
-          println!("{colored_line}");
+      let mut line_buf = String::new();
+      match reader.read_line(&mut line_buf) {
+        Ok(0) => {
+          if was_log_rotated(&file_path, &mut reader) {
+            continue;
+          }
+
+          tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        Ok(_) => {
+          let line = line_buf.trim_end();
+          if no_color {
+            println!("{line}");
+          } else {
+            let colored_line = colorize_log_line(line, &re);
+            println!("{colored_line}");
+          }
+        }
+        Err(_) => {
+          tokio::time::sleep(Duration::from_millis(100)).await;
         }
       }
+      line_buf.clear();
     }
   })
   .await?
+}
+
+fn was_log_rotated(file_path: &PathBuf, reader: &mut BufReader<File>) -> bool {
+  let current_pos = reader.stream_position().unwrap_or(0);
+  let file_len = fs::metadata(file_path).map(|m| m.len()).unwrap_or(0);
+
+  if file_len < current_pos
+    && let Ok(new_file) = File::open(file_path)
+  {
+    *reader = BufReader::new(new_file);
+    return true;
+  }
+
+  false
 }
 
 fn colorize_log_line(line: &str, re: &Regex) -> String {
