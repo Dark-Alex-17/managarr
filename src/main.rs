@@ -276,22 +276,30 @@ async fn start_ui(
 
   let input_events = Events::new();
 
-  loop {
+  {
     let mut app = app.lock().await;
-
     terminal.draw(|f| ui(f, &mut app))?;
+  }
 
+  loop {
     match input_events.next()? {
       Some(InputEvent::KeyEvent(key)) => {
+        let mut app = app.lock().await;
+
         if key == Key::Char('q') && !app.ignore_special_keys_for_textbox_input {
           break;
         }
 
         handlers::handle_events(key, &mut app);
+        terminal.draw(|f| ui(f, &mut app))?;
       }
 
-      Some(InputEvent::Tick) => app.on_tick().await,
-      _ => {}
+      Some(InputEvent::Tick) => {
+        let mut app = app.lock().await;
+        app.on_tick().await;
+        terminal.draw(|f| ui(f, &mut app))?;
+      }
+      None => break,
     }
   }
 

@@ -353,6 +353,48 @@ mod tests {
     );
   }
 
+  #[tokio::test]
+  async fn test_handle_request_non_success_code_uses_json_message_for_error_body() {
+    let mut server = Server::new_async().await;
+    let async_server = server
+      .mock("GET", "/test")
+      .match_header("X-Api-Key", "test1234")
+      .with_status(500)
+      .with_body(json!({
+        "message": "database is locked\ndatabase is locked",
+        "description": "at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker"
+      }).to_string())
+      .create_async()
+      .await;
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let mut network = test_network(&app_arc);
+
+    let resp = network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Get,
+          body: None,
+          api_token: "test1234".to_owned(),
+          ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
+        },
+        |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
+      )
+      .await;
+
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app_arc.lock().await.error.text,
+      "Request failed. Received 500 Internal Server Error response code with body: database is locked database is locked"
+    );
+    assert!(resp.is_err());
+    assert_str_eq!(
+      resp.unwrap_err().to_string(),
+      "Request failed. Received 500 Internal Server Error response code with body: database is locked database is locked"
+    );
+  }
+
   #[rstest]
   #[tokio::test]
   async fn test_call_api(
