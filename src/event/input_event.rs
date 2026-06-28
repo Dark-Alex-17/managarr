@@ -19,7 +19,7 @@ pub struct Events {
   rx: Receiver<InputEvent<Key>>,
 }
 
-const DEFAULT_TICK_RATE_MS: u64 = 100;
+const DEFAULT_TICK_RATE_MS: u64 = 50;
 
 fn configured_tick_rate_ms_from(raw: Option<&str>) -> u64 {
   raw
@@ -78,18 +78,15 @@ mod tests {
   use super::*;
 
   #[test]
-  fn defaults_to_a_slower_idle_tick_rate() {
-    assert_eq!(DEFAULT_TICK_RATE_MS, 100);
-    assert_eq!(configured_tick_rate_ms_from(None), 100);
+  fn defaults_to_original_tick_rate() {
+    assert_eq!(DEFAULT_TICK_RATE_MS, 50);
+    assert_eq!(configured_tick_rate_ms_from(None), 50);
   }
 
   #[test]
   fn parses_positive_tick_rates_and_rejects_invalid_values() {
     assert_eq!(configured_tick_rate_ms_from(Some("250")), 250);
-    assert_eq!(
-      configured_tick_rate_ms_from(Some("0")),
-      DEFAULT_TICK_RATE_MS
-    );
+    assert_eq!(configured_tick_rate_ms_from(Some("0")), DEFAULT_TICK_RATE_MS);
     assert_eq!(
       configured_tick_rate_ms_from(Some("abc")),
       DEFAULT_TICK_RATE_MS

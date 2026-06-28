@@ -1,11 +1,13 @@
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use lidarr_network::LidarrEvent;
 use log::{debug, error, warn};
 use regex::Regex;
+
+static WHITESPACE_RE: OnceLock<Regex> = OnceLock::new();
 use reqwest::{Client, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -144,7 +146,7 @@ impl<'a, 'b> Network<'a, 'b> {
             } else {
               let status = response.status();
               let response_body = response.text().await.unwrap_or_default();
-              let error_body = format_error_body(&response_body)?;
+              let error_body = format_error_body(&response_body);
 
               error!("Request failed. Received {status} response code with body: {response_body}");
               self.app.lock().await.handle_error(anyhow!("Request failed. Received {status} response code with body: {error_body}"));
@@ -277,8 +279,8 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 }
 
-fn format_error_body(response_body: &str) -> Result<String> {
-  let whitespace_regex = Regex::new(r"\s+")?;
+fn format_error_body(response_body: &str) -> String {
+  let re = WHITESPACE_RE.get_or_init(|| Regex::new(r"\s+").unwrap());
   let body = serde_json::from_str::<Value>(response_body)
     .ok()
     .and_then(|value| {
@@ -291,7 +293,7 @@ fn format_error_body(response_body: &str) -> Result<String> {
     })
     .unwrap_or_else(|| response_body.replace('\n', " "));
 
-  Ok(whitespace_regex.replace_all(&body, " ").to_string())
+  re.replace_all(&body, " ").to_string()
 }
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
