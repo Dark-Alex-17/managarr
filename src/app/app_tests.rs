@@ -5,6 +5,7 @@ mod tests {
   use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
   use serde_json::Value;
   use serial_test::serial;
+  use std::time::{Duration, Instant};
   use tokio::sync::mpsc;
 
   use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
@@ -80,7 +81,7 @@ mod tests {
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.server_tabs.tabs, expected_tab_routes);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 64);
+    assert_eq!(app.scroll_interval, Duration::from_millis(100));
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.ui_scroll_tick_count, 0);
     assert!(!app.is_loading);
@@ -101,7 +102,7 @@ mod tests {
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 64);
+    assert_eq!(app.scroll_interval, Duration::from_millis(100));
     assert_eq!(app.tick_count, 0);
     assert!(!app.is_loading);
     assert!(!app.is_routing);
@@ -247,22 +248,23 @@ mod tests {
   #[test]
   fn test_on_ui_scroll_tick() {
     let mut app = App {
-      ticks_until_scroll: 1,
+      scroll_interval: Duration::ZERO,
       ..App::default()
     };
 
+    // Zero interval: elapsed() >= scroll_interval is always true, so every
+    // call should signal "scroll now" (ui_scroll_tick_count == 0)
+    app.on_ui_scroll_tick();
     assert_eq!(app.ui_scroll_tick_count, 0);
-    assert_eq!(app.tick_count, 0);
 
     app.on_ui_scroll_tick();
+    assert_eq!(app.ui_scroll_tick_count, 0);
 
+    // Long interval with a fresh timestamp: should signal "not yet" (count == 1)
+    app.scroll_interval = Duration::from_secs(60);
+    app.last_scroll = Instant::now();
+    app.on_ui_scroll_tick();
     assert_eq!(app.ui_scroll_tick_count, 1);
-    assert_eq!(app.tick_count, 0);
-
-    app.on_ui_scroll_tick();
-
-    assert_eq!(app.ui_scroll_tick_count, 0);
-    assert_eq!(app.tick_count, 0);
   }
 
   #[tokio::test]
