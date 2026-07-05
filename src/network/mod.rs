@@ -6,8 +6,6 @@ use async_trait::async_trait;
 use lidarr_network::LidarrEvent;
 use log::{debug, error, warn};
 use regex::Regex;
-
-static WHITESPACE_RE: OnceLock<Regex> = OnceLock::new();
 use reqwest::{Client, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -34,6 +32,8 @@ mod utils;
 mod network_tests;
 #[cfg(test)]
 pub mod servarr_test_utils;
+
+static WHITESPACE_RE: OnceLock<Regex> = OnceLock::new();
 
 #[cfg_attr(test, automock)]
 #[async_trait]

@@ -271,7 +271,7 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       album.title.scroll_left_or_reset(
         get_width_from_percentage(area, 33),
         *album == current_selection,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
       let monitored = if album.monitored { "🏷" } else { "" };
       let album_type = album.album_type.clone().unwrap_or_default();
@@ -376,7 +376,7 @@ fn draw_artist_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         source_title.scroll_left_or_reset(
           get_width_from_percentage(area, 40),
           current_selection == *history_item,
-          app.ui_scroll_tick_count == 0,
+          app.should_text_scroll,
         );
 
         Row::new(vec![
@@ -490,7 +490,7 @@ fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         get_width_from_percentage(area, 35),
         current_selection == *release
           && active_lidarr_block != ActiveLidarrBlock::ManualArtistSearchConfirmPrompt,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
       let size = convert_to_gb(*size);
       let rejected_str = if *rejected { "⛔" } else { "" };

@@ -96,7 +96,7 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       movie.title.scroll_left_or_reset(
         get_width_from_percentage(area, 20),
         current_selection == *blocklist_item,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
 
       let languages_string = languages

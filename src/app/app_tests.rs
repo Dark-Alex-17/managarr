@@ -83,7 +83,7 @@ mod tests {
     assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.scroll_interval, Duration::from_millis(100));
     assert_eq!(app.tick_count, 0);
-    assert_eq!(app.ui_scroll_tick_count, 0);
+    assert!(!app.should_text_scroll);
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
@@ -252,19 +252,16 @@ mod tests {
       ..App::default()
     };
 
-    // Zero interval: elapsed() >= scroll_interval is always true, so every
-    // call should signal "scroll now" (ui_scroll_tick_count == 0)
     app.on_ui_scroll_tick();
-    assert_eq!(app.ui_scroll_tick_count, 0);
+    assert!(app.should_text_scroll);
 
     app.on_ui_scroll_tick();
-    assert_eq!(app.ui_scroll_tick_count, 0);
+    assert!(app.should_text_scroll);
 
-    // Long interval with a fresh timestamp: should signal "not yet" (count == 1)
     app.scroll_interval = Duration::from_secs(60);
     app.last_scroll = Instant::now();
     app.on_ui_scroll_tick();
-    assert_eq!(app.ui_scroll_tick_count, 1);
+    assert!(!app.should_text_scroll);
   }
 
   #[tokio::test]

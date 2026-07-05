@@ -266,7 +266,7 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           source_title.scroll_left_or_reset(
             get_width_from_percentage(area, 40),
             current_selection == *history_item,
-            app.ui_scroll_tick_count == 0,
+            app.should_text_scroll,
           );
 
           Row::new(vec![
@@ -377,7 +377,7 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             get_width_from_percentage(area, 30),
             current_selection == *release
               && active_sonarr_block != ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
-            app.ui_scroll_tick_count == 0,
+            app.should_text_scroll,
           );
           let size = convert_to_gb(*size);
           let rejected_str = if *rejected { "⛔" } else { "" };

@@ -96,7 +96,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       artist.artist_name.scroll_left_or_reset(
         get_width_from_percentage(area, 25),
         *artist == current_selection,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
       let monitored = if artist.monitored { "🏷" } else { "" };
       let artist_type = artist.artist_type.clone().unwrap_or_default();
