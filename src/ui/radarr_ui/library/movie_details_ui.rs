@@ -250,7 +250,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       movie_history_item.source_title.scroll_left_or_reset(
         get_width_from_percentage(area, 34),
         current_selection == *movie_history_item,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
 
       Row::new(vec![
@@ -402,7 +402,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         get_width_from_percentage(area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
       let size = convert_to_gb(*size);
       let rejected_str = if *rejected { "⛔" } else { "" };

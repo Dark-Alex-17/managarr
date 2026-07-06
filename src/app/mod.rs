@@ -7,6 +7,7 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 use std::{fs, process};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
@@ -41,9 +42,10 @@ pub struct App<'a> {
   pub error: HorizontallyScrollableText,
   pub notification: Option<Notification>,
   pub tick_until_poll: u64,
-  pub ticks_until_scroll: u64,
+  pub scroll_interval: Duration,
+  pub last_scroll: Instant,
   pub tick_count: u64,
-  pub ui_scroll_tick_count: u64,
+  pub should_text_scroll: bool,
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
@@ -171,10 +173,11 @@ impl App<'_> {
   }
 
   pub fn on_ui_scroll_tick(&mut self) {
-    if self.ui_scroll_tick_count == self.ticks_until_scroll {
-      self.ui_scroll_tick_count = 0;
+    if self.last_scroll.elapsed() >= self.scroll_interval {
+      self.should_text_scroll = true;
+      self.last_scroll = Instant::now();
     } else {
-      self.ui_scroll_tick_count += 1;
+      self.should_text_scroll = false;
     }
   }
 
@@ -260,9 +263,10 @@ impl Default for App<'_> {
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
       tick_until_poll: 400,
-      ticks_until_scroll: 64,
+      scroll_interval: Duration::from_millis(100),
+      last_scroll: Instant::now(),
       tick_count: 0,
-      ui_scroll_tick_count: 0,
+      should_text_scroll: false,
       is_loading: false,
       is_routing: false,
       should_refresh: false,

@@ -87,7 +87,7 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       output_path.as_ref().unwrap().scroll_left_or_reset(
         get_width_from_percentage(area, 18),
         current_selection == *download_record,
-        app.ui_scroll_tick_count == 0,
+        app.should_text_scroll,
       );
     }
 

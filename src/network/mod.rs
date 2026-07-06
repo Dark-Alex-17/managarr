@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
@@ -9,6 +9,7 @@ use regex::Regex;
 use reqwest::{Client, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use sonarr_network::SonarrEvent;
 use strum_macros::Display;
 use tokio::select;
@@ -31,6 +32,8 @@ mod utils;
 mod network_tests;
 #[cfg(test)]
 pub mod servarr_test_utils;
+
+static WHITESPACE_RE: OnceLock<Regex> = OnceLock::new();
 
 #[cfg_attr(test, automock)]
 #[async_trait]
@@ -142,11 +145,8 @@ impl<'a, 'b> Network<'a, 'b> {
               }
             } else {
               let status = response.status();
-              let whitespace_regex = Regex::new(r"\s+")?;
               let response_body = response.text().await.unwrap_or_default();
-              let error_body = whitespace_regex
-                .replace_all(&response_body.replace('\n', " "), " ")
-                .to_string();
+              let error_body = format_error_body(&response_body);
 
               error!("Request failed. Received {status} response code with body: {response_body}");
               self.app.lock().await.handle_error(anyhow!("Request failed. Received {status} response code with body: {error_body}"));
@@ -277,6 +277,23 @@ impl<'a, 'b> Network<'a, 'b> {
       custom_headers,
     }
   }
+}
+
+fn format_error_body(response_body: &str) -> String {
+  let re = WHITESPACE_RE.get_or_init(|| Regex::new(r"\s+").unwrap());
+  let body = serde_json::from_str::<Value>(response_body)
+    .ok()
+    .and_then(|value| {
+      value
+        .get("message")
+        .or_else(|| value.get("errorMessage"))
+        .or_else(|| value.get("error"))
+        .and_then(Value::as_str)
+        .map(ToOwned::to_owned)
+    })
+    .unwrap_or_else(|| response_body.replace('\n', " "));
+
+  re.replace_all(&body, " ").to_string()
 }
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]

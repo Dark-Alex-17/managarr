@@ -46,7 +46,7 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
     result.validation_failures.scroll_left_or_reset(
       get_width_from_percentage(area, 86),
       *result == current_selection,
-      app.ui_scroll_tick_count == 0,
+      app.should_text_scroll,
     );
     let pass_fail = if result.is_valid { "+" } else { "x" };
     let row = Row::new(vec![

@@ -139,7 +139,7 @@ fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   app
     .error
-    .scroll_left_or_reset(area.width as usize, true, app.ui_scroll_tick_count == 0);
+    .scroll_left_or_reset(area.width as usize, true, app.should_text_scroll);
 
   let paragraph = Paragraph::new(Text::from(app.error.to_string().failure()))
     .block(block)
