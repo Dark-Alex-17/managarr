@@ -360,10 +360,13 @@ mod tests {
       .mock("GET", "/test")
       .match_header("X-Api-Key", "test1234")
       .with_status(500)
-      .with_body(json!({
-        "message": "database is locked\ndatabase is locked",
-        "description": "at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker"
-      }).to_string())
+      .with_body(
+        json!({
+          "message": "database is locked\ndatabase is locked",
+          "description": "at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker"
+        })
+        .to_string(),
+      )
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::test_default()));
