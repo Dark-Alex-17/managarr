@@ -1,6 +1,6 @@
-use crate::models::lidarr_models::{LidarrTask, LidarrTaskName, SystemStatus};
+use crate::models::lidarr_models::{LidarrTask, LidarrTaskName};
 use crate::models::servarr_models::{
-  CommandBody, DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
+  CommandBody, DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
 };
 use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
 use crate::network::lidarr_network::LidarrEvent;

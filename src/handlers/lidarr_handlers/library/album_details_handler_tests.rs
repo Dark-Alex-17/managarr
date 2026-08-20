@@ -9,10 +9,10 @@ mod tests {
     AlbumDetailsHandler, releases_sorting_options,
   };
   use crate::models::HorizontallyScrollableText;
-  use crate::models::lidarr_models::{LidarrRelease, LidarrReleaseDownloadBody};
+  use crate::models::lidarr_models::LidarrRelease;
   use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
   use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
-  use crate::models::servarr_models::{Quality, QualityWrapper};
+  use crate::models::servarr_models::{Quality, QualityWrapper, ReleaseDownloadBody};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
@@ -297,7 +297,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualAlbumSearch.into());
       assert_some_eq_x!(
         &app.data.lidarr_data.prompt_confirm_action,
-        &LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        &LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: "1234".to_owned(),
           indexer_id: 2,
         })
@@ -654,7 +654,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualAlbumSearch.into());
       assert_some_eq_x!(
         &app.data.lidarr_data.prompt_confirm_action,
-        &LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        &LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: "1234".to_owned(),
           indexer_id: 2,
         })

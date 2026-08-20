@@ -238,6 +238,22 @@ pub struct LogResponse {
   pub records: Vec<Log>,
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct MetadataProfile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub name: String,
+}
+
+impl From<(&i64, &String)> for MetadataProfile {
+  fn from(value: (&i64, &String)) -> Self {
+    MetadataProfile {
+      id: *value.0,
+      name: value.1.clone(),
+    }
+  }
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
@@ -277,6 +293,13 @@ pub struct QueueEvent {
   pub duration: Option<String>,
 }
 
+#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: i64,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
@@ -301,6 +324,13 @@ pub struct SecurityConfig {
   pub password: Option<String>,
   pub api_key: String,
   pub certificate_validation: CertificateValidation,
+}
+
+#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemStatus {
+  pub version: String,
+  pub start_time: DateTime<Utc>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

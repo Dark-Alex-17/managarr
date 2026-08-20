@@ -1,8 +1,8 @@
 use super::{
   HorizontallyScrollableText, Serdeable,
   servarr_models::{
-    DiskSpace, HostConfig, Indexer, IndexerTestResult, QualityProfile, QualityWrapper, RootFolder,
-    SecurityConfig, Tag,
+    DiskSpace, HostConfig, Indexer, IndexerTestResult, MetadataProfile, QualityProfile,
+    QualityWrapper, RootFolder, SecurityConfig, SystemStatus, Tag,
   },
 };
 use crate::models::servarr_models::{IndexerSettings, LogResponse, QueueEvent, Update};
@@ -96,22 +96,6 @@ pub struct ArtistStatistics {
 }
 
 impl Eq for ArtistStatistics {}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct MetadataProfile {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: String,
-}
-
-impl From<(&i64, &String)> for MetadataProfile {
-  fn from(value: (&i64, &String)) -> Self {
-    MetadataProfile {
-      id: *value.0,
-      name: value.1.clone(),
-    }
-  }
-}
 
 #[derive(
   Serialize,
@@ -228,13 +212,6 @@ pub enum DownloadStatus {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -490,13 +467,6 @@ pub struct LidarrRelease {
   pub seeders: Option<Number>,
   pub leechers: Option<Number>,
   pub quality: QualityWrapper,
-}
-
-#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct LidarrReleaseDownloadBody {
-  pub guid: String,
-  pub indexer_id: i64,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

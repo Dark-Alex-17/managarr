@@ -12,9 +12,11 @@ mod tests {
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
       MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
-      RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
+      RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
     },
-    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
+    servarr_models::{
+      HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig, SystemStatus,
+    },
   };
 
   #[test]

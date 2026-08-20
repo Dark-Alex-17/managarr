@@ -17,7 +17,7 @@ use super::{
   HorizontallyScrollableText, Serdeable,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-    QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+    QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
   },
 };
 
@@ -626,10 +626,3 @@ serde_enum_from!(
     Value(Value),
   }
 );
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
-}

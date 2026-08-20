@@ -2,10 +2,12 @@
 mod tests {
   use crate::app::App;
   use crate::models::lidarr_models::{
-    AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+    AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
-  use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
+  use crate::models::servarr_models::{
+    EditIndexerParams, IndexerSettings, MetadataProfile, QualityProfile, Tag,
+  };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, lidarr_network::LidarrEvent};
   use bimap::BiMap;

@@ -1,5 +1,5 @@
-use crate::models::lidarr_models::LidarrReleaseDownloadBody;
 use crate::models::servarr_data::Notification;
+use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -17,9 +17,9 @@ mod lidarr_library_network_tests;
 impl Network<'_, '_> {
   pub(in crate::network::lidarr_network) async fn download_lidarr_release(
     &mut self,
-    lidarr_release_download_body: LidarrReleaseDownloadBody,
+    lidarr_release_download_body: ReleaseDownloadBody,
   ) -> Result<Value> {
-    let event = LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody::default());
+    let event = LidarrEvent::DownloadRelease(ReleaseDownloadBody::default());
     info!("Downloading Lidarr release with params: {lidarr_release_download_body:?}");
 
     let request_props = self
@@ -33,7 +33,7 @@ impl Network<'_, '_> {
       .await;
 
     let result = self
-      .handle_request::<LidarrReleaseDownloadBody, Value>(request_props, |_, mut app| {
+      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, mut app| {
         app.notification = Some(Notification::new(
           "Download Result".to_owned(),
           "Download request sent successfully".to_owned(),

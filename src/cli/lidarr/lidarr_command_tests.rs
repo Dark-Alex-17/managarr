@@ -284,10 +284,8 @@ mod tests {
     use crate::cli::lidarr::manual_search_command_handler::LidarrManualSearchCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
-    use crate::models::lidarr_models::{
-      BlocklistItem, BlocklistResponse, LidarrReleaseDownloadBody, LidarrTaskName,
-    };
-    use crate::models::servarr_models::IndexerSettings;
+    use crate::models::lidarr_models::{BlocklistItem, BlocklistResponse, LidarrTaskName};
+    use crate::models::servarr_models::{IndexerSettings, ReleaseDownloadBody};
     use crate::{
       app::App,
       cli::{
@@ -583,7 +581,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_download_release_command() {
-      let expected_release_download_body = LidarrReleaseDownloadBody {
+      let expected_release_download_body = ReleaseDownloadBody {
         guid: "guid".to_owned(),
         indexer_id: 1,
       };

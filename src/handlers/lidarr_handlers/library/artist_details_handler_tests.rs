@@ -137,8 +137,9 @@ mod tests {
     use crate::event::Key;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
-    use crate::models::lidarr_models::{LidarrHistoryItem, LidarrReleaseDownloadBody};
+    use crate::models::lidarr_models::LidarrHistoryItem;
     use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+    use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
       artist, torrent_release,
@@ -307,7 +308,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualArtistSearch.into());
       assert_eq!(
         app.data.lidarr_data.prompt_confirm_action,
-        Some(LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        Some(LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: release.guid,
           indexer_id: release.indexer_id,
         }))
@@ -449,10 +450,11 @@ mod tests {
     use crate::assert_navigation_pushed;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
-    use crate::models::lidarr_models::{Artist, LidarrReleaseDownloadBody};
+    use crate::models::lidarr_models::Artist;
     use crate::models::servarr_data::lidarr::lidarr_data::{
       ActiveLidarrBlock, EDIT_ARTIST_SELECTION_BLOCKS,
     };
+    use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::torrent_release;
     use crate::{assert_modal_absent, assert_modal_present, assert_navigation_popped};
@@ -801,7 +803,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualArtistSearch.into());
       assert_eq!(
         app.data.lidarr_data.prompt_confirm_action,
-        Some(LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        Some(LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: release.guid,
           indexer_id: release.indexer_id,
         }))

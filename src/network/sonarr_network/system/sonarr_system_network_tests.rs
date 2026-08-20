@@ -2,9 +2,9 @@
 mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_models::{
-    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
+    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
   };
-  use crate::models::sonarr_models::{SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus};
+  use crate::models::sonarr_models::{SonarrSerdeable, SonarrTask, SonarrTaskName};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::updates;

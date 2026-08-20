@@ -13,7 +13,7 @@ use strum_macros::{Display, EnumIter};
 use super::Serdeable;
 use super::servarr_models::{
   DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+  QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
 };
 
 #[cfg(test)]
@@ -399,13 +399,6 @@ pub struct RadarrReleaseDownloadBody {
   pub guid: String,
   pub indexer_id: i64,
   pub movie_id: i64,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]

@@ -7,12 +7,13 @@ mod tests {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord,
     DownloadStatus, DownloadsResponse, LidarrHistoryEventType, LidarrHistoryItem,
-    LidarrHistoryWrapper, LidarrRelease, LidarrTask, MediaInfo, Member, MetadataProfile,
-    MonitorType, NewItemMonitorType, SystemStatus, Track, TrackFile,
+    LidarrHistoryWrapper, LidarrRelease, LidarrTask, MediaInfo, Member, MonitorType,
+    NewItemMonitorType, Track, TrackFile,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
-    QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+    MetadataProfile, QualityProfile, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag,
+    Update,
   };
   use crate::models::{
     Serdeable,

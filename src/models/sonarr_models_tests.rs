@@ -7,13 +7,14 @@ mod tests {
     Serdeable,
     servarr_models::{
       DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Language, Log,
-      LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+      LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag,
+      Update,
     },
     sonarr_models::{
       AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus,
       DownloadsResponse, Episode, EpisodeFile, Series, SeriesMonitor, SeriesStatus, SeriesType,
       SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
-      SonarrTaskName, SystemStatus,
+      SonarrTaskName,
     },
   };
 

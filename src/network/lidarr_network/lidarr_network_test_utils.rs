@@ -6,11 +6,12 @@ pub mod test_utils {
     AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus, DownloadsResponse,
     EditArtistParams, LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem,
     LidarrHistoryWrapper, LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member,
-    MetadataProfile, NewItemMonitorType, Ratings, SystemStatus, Track, TrackFile,
+    NewItemMonitorType, Ratings, Track, TrackFile,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Quality, QualityProfile, QualityWrapper, RootFolder, Tag,
+    Indexer, IndexerField, MetadataProfile, Quality, QualityProfile, QualityWrapper, RootFolder,
+    SystemStatus, Tag,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
