@@ -13,6 +13,7 @@ mod readarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
+  GetDiskSpace,
   GetStatus,
   HealthCheck,
 }
@@ -20,6 +21,7 @@ pub enum ReadarrEvent {
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
       ReadarrEvent::GetStatus => "/system/status",
     }
@@ -38,6 +40,10 @@ impl Network<'_, '_> {
     readarr_event: ReadarrEvent,
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
+      ReadarrEvent::GetDiskSpace => self
+        .get_readarr_diskspace()
+        .await
+        .map(ReadarrSerdeable::from),
       ReadarrEvent::GetStatus => self.get_readarr_status().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
         .get_readarr_healthcheck()

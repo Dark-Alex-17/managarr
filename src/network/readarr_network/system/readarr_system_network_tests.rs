@@ -1,12 +1,81 @@
 #[cfg(test)]
 mod tests {
   use crate::models::readarr_models::ReadarrSerdeable;
-  use crate::models::servarr_models::SystemStatus;
+  use crate::models::servarr_models::{DiskSpace, SystemStatus};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use chrono::DateTime;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_diskspace_event() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
+        {
+          "path": "/nfs/books/",
+          "freeSpace": 11039526748160i64,
+          "totalSpace": 117810875334656i64
+        },
+        {
+          "path": "/config",
+          "label": "",
+          "freeSpace": 783978655744i64,
+          "totalSpace": 1004298338304i64
+        }
+      ]))
+      .build_for(ReadarrEvent::GetDiskSpace)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+    let disk_space_vec = vec![
+      DiskSpace {
+        path: Some("/nfs/books/".to_owned()),
+        free_space: 11039526748160,
+        total_space: 117810875334656,
+      },
+      DiskSpace {
+        path: Some("/config".to_owned()),
+        free_space: 783978655744,
+        total_space: 1004298338304,
+      },
+    ];
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetDiskSpace)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::DiskSpaces(disk_spaces) = result.unwrap() else {
+      panic!("Expected DiskSpaces")
+    };
+
+    assert_eq!(disk_spaces, disk_space_vec);
+    assert_eq!(
+      app.lock().await.data.readarr_data.disk_space_vec,
+      disk_space_vec
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_diskspace_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetDiskSpace)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetDiskSpace)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.disk_space_vec);
+  }
 
   #[tokio::test]
   async fn test_handle_get_readarr_status_event() {

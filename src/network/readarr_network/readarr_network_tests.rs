@@ -6,6 +6,7 @@ mod tests {
   use rstest::rstest;
 
   #[rstest]
+  #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::HealthCheck, "/health")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {

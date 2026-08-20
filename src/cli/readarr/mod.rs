@@ -3,12 +3,14 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::Subcommand;
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
+use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
 use tokio::sync::Mutex;
 
 use super::{CliCommandHandler, Command};
 use crate::{app::App, network::NetworkTrait};
 
 mod get_command_handler;
+mod list_command_handler;
 
 #[cfg(test)]
 #[path = "readarr_command_tests.rs"]
@@ -21,6 +23,11 @@ pub enum ReadarrCommand {
     about = "Commands to fetch details of the resources in your Readarr instance"
   )]
   Get(ReadarrGetCommand),
+  #[command(
+    subcommand,
+    about = "Commands to list attributes from your Readarr instance"
+  )]
+  List(ReadarrListCommand),
 }
 
 impl From<ReadarrCommand> for Command {
@@ -52,6 +59,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
     let result = match self.command {
       ReadarrCommand::Get(get_command) => {
         ReadarrGetCommandHandler::with(self.app, get_command, self.network)
+          .handle()
+          .await?
+      }
+      ReadarrCommand::List(list_command) => {
+        ReadarrListCommandHandler::with(self.app, list_command, self.network)
           .handle()
           .await?
       }
