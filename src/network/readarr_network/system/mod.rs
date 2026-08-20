@@ -1,4 +1,4 @@
-use crate::models::servarr_models::{DiskSpace, SystemStatus};
+use crate::models::servarr_models::{DiskSpace, HostConfig, SystemStatus};
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -23,6 +23,21 @@ impl Network<'_, '_> {
       .handle_request::<(), Vec<DiskSpace>>(request_props, |disk_space_vec, mut app| {
         app.data.readarr_data.disk_space_vec = disk_space_vec;
       })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_host_config(
+    &mut self,
+  ) -> Result<HostConfig> {
+    info!("Fetching Readarr host config");
+    let event = ReadarrEvent::GetHostConfig;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), HostConfig>(request_props, |_, _| ())
       .await
   }
 

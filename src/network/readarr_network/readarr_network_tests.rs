@@ -6,6 +6,7 @@ mod tests {
   use rstest::rstest;
 
   #[rstest]
+  #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::HealthCheck, "/health")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]

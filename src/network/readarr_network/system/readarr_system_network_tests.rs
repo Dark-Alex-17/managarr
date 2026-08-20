@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::ReadarrSerdeable;
-  use crate::models::servarr_models::{DiskSpace, SystemStatus};
+  use crate::models::servarr_models::{DiskSpace, HostConfig, SystemStatus};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use chrono::DateTime;
@@ -75,6 +76,69 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
     assert_is_empty!(app.lock().await.data.readarr_data.disk_space_vec);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_host_config_event() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({
+        "bindAddress": "*",
+        "port": 8787,
+        "urlBase": "",
+        "instanceName": "Readarr",
+        "applicationUrl": "",
+        "enableSsl": false,
+        "sslPort": 6868,
+        "sslCertPath": "",
+        "sslCertPassword": ""
+      }))
+      .build_for(ReadarrEvent::GetHostConfig)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetHostConfig)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::HostConfig(host_config) = result.unwrap() else {
+      panic!("Expected HostConfig")
+    };
+
+    assert_eq!(
+      host_config,
+      HostConfig {
+        bind_address: "*".into(),
+        port: 8787,
+        url_base: Some(HorizontallyScrollableText::default()),
+        instance_name: Some("Readarr".into()),
+        application_url: Some(HorizontallyScrollableText::default()),
+        enable_ssl: false,
+        ssl_port: 6868,
+        ssl_cert_path: Some(String::new()),
+        ssl_cert_password: Some(String::new()),
+      }
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_host_config_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetHostConfig)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetHostConfig)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
   }
 
   #[tokio::test]

@@ -18,6 +18,8 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrGetCommand {
+  #[command(about = "Fetch the host config for your Readarr instance")]
+  HostConfig,
   #[command(about = "Get the system status")]
   SystemStatus,
 }
@@ -49,6 +51,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrGetCommand> for ReadarrGetCommandH
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrGetCommand::HostConfig => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetHostConfig.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrGetCommand::SystemStatus => {
         let resp = self
           .network
