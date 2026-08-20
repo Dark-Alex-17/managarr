@@ -1,4 +1,4 @@
-use crate::models::servarr_models::{DiskSpace, HostConfig, SystemStatus};
+use crate::models::servarr_models::{DiskSpace, HostConfig, SecurityConfig, SystemStatus};
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -38,6 +38,21 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_security_config(
+    &mut self,
+  ) -> Result<SecurityConfig> {
+    info!("Fetching Readarr security config");
+    let event = ReadarrEvent::GetSecurityConfig;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), SecurityConfig>(request_props, |_, _| ())
       .await
   }
 

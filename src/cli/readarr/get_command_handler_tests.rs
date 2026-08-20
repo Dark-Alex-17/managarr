@@ -23,7 +23,7 @@ mod tests {
 
     #[rstest]
     fn test_get_commands_have_no_arg_requirements(
-      #[values("host-config", "system-status")] subcommand: &str,
+      #[values("host-config", "security-config", "system-status")] subcommand: &str,
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "get", subcommand]);
 
@@ -65,6 +65,29 @@ mod tests {
 
       let result =
         ReadarrGetCommandHandler::with(&app_arc, get_host_config_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_security_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetSecurityConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_security_config_command = ReadarrGetCommand::SecurityConfig;
+
+      let result =
+        ReadarrGetCommandHandler::with(&app_arc, get_security_config_command, &mut mock_network)
           .handle()
           .await;
 

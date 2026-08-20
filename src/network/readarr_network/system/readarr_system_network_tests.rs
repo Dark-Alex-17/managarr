@@ -2,7 +2,10 @@
 mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::ReadarrSerdeable;
-  use crate::models::servarr_models::{DiskSpace, HostConfig, SystemStatus};
+  use crate::models::servarr_models::{
+    AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
+    SecurityConfig, SystemStatus,
+  };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use chrono::DateTime;
@@ -135,6 +138,63 @@ mod tests {
 
     let result = network
       .handle_readarr_event(ReadarrEvent::GetHostConfig)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_security_config_event() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({
+        "authenticationMethod": "forms",
+        "authenticationRequired": "enabled",
+        "username": "test",
+        "password": "test",
+        "apiKey": "test1234",
+        "certificateValidation": "enabled"
+      }))
+      .build_for(ReadarrEvent::GetSecurityConfig)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetSecurityConfig)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::SecurityConfig(security_config) = result.unwrap() else {
+      panic!("Expected SecurityConfig")
+    };
+
+    assert_eq!(
+      security_config,
+      SecurityConfig {
+        authentication_method: AuthenticationMethod::Forms,
+        authentication_required: Some(AuthenticationRequired::Enabled),
+        username: Some("test".to_owned()),
+        password: Some("test".to_owned()),
+        api_key: "test1234".to_owned(),
+        certificate_validation: CertificateValidation::Enabled,
+      }
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_security_config_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetSecurityConfig)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetSecurityConfig)
       .await;
 
     mock.assert_async().await;
