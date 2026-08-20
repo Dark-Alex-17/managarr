@@ -7,6 +7,7 @@ mod tests {
 
   #[rstest]
   #[case(ReadarrEvent::HealthCheck, "/health")]
+  #[case(ReadarrEvent::GetStatus, "/system/status")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }

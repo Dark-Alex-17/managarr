@@ -5,12 +5,15 @@ use super::{NetworkEvent, NetworkResource};
 use crate::models::readarr_models::ReadarrSerdeable;
 use crate::network::{Network, RequestMethod};
 
+mod system;
+
 #[cfg(test)]
 #[path = "readarr_network_tests.rs"]
 mod readarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
+  GetStatus,
   HealthCheck,
 }
 
@@ -18,6 +21,7 @@ impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       ReadarrEvent::HealthCheck => "/health",
+      ReadarrEvent::GetStatus => "/system/status",
     }
   }
 }
@@ -34,6 +38,7 @@ impl Network<'_, '_> {
     readarr_event: ReadarrEvent,
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
+      ReadarrEvent::GetStatus => self.get_readarr_status().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
         .get_readarr_healthcheck()
         .await
