@@ -22,6 +22,7 @@ mod tests {
   use crate::models::Route;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+  use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_data::{ActiveKeybindingBlock, Notification};
   use crate::models::servarr_models::KeybindingItem;
@@ -61,9 +62,10 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::Artists, ActiveSonarrBlock::Series)]
+  #[case(0, ActiveReadarrBlock::Authors, ActiveSonarrBlock::Series)]
   #[case(1, ActiveRadarrBlock::Movies, ActiveLidarrBlock::Artists)]
-  #[case(2, ActiveSonarrBlock::Series, ActiveRadarrBlock::Movies)]
+  #[case(2, ActiveSonarrBlock::Series, ActiveReadarrBlock::Authors)]
+  #[case(3, ActiveLidarrBlock::Artists, ActiveRadarrBlock::Movies)]
   fn test_handle_change_tabs<T, U>(
     #[case] index: usize,
     #[case] left_block: T,
@@ -224,6 +226,22 @@ mod tests {
     handle_prompt_toggle(&mut app, key);
 
     assert!(!app.data.sonarr_data.prompt_confirm);
+  }
+
+  #[rstest]
+  fn test_handle_prompt_toggle_left_right_readarr(#[values(Key::Left, Key::Right)] key: Key) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+    assert!(!app.data.readarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, key);
+
+    assert!(app.data.readarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, key);
+
+    assert!(!app.data.readarr_data.prompt_confirm);
   }
 
   #[test]

@@ -19,12 +19,14 @@ use tokio_util::sync::CancellationToken;
 use crate::app::{App, ServarrConfig};
 use crate::models::Serdeable;
 use crate::network::radarr_network::RadarrEvent;
+use crate::network::readarr_network::ReadarrEvent;
 #[cfg(test)]
 use mockall::automock;
 use reqwest::header::HeaderMap;
 
 pub mod lidarr_network;
 pub mod radarr_network;
+pub mod readarr_network;
 pub mod sonarr_network;
 mod utils;
 
@@ -50,6 +52,7 @@ pub enum NetworkEvent {
   Radarr(RadarrEvent),
   Sonarr(SonarrEvent),
   Lidarr(LidarrEvent),
+  Readarr(ReadarrEvent),
 }
 
 #[derive(Clone)]
@@ -73,6 +76,10 @@ impl NetworkTrait for Network<'_, '_> {
         .map(Serdeable::from),
       NetworkEvent::Lidarr(lidarr_event) => self
         .handle_lidarr_event(lidarr_event)
+        .await
+        .map(Serdeable::from),
+      NetworkEvent::Readarr(readarr_event) => self
+        .handle_readarr_event(readarr_event)
         .await
         .map(Serdeable::from),
     };
@@ -242,6 +249,7 @@ impl<'a, 'b> Network<'a, 'b> {
       NetworkEvent::Radarr(_) => (7878, "v3"),
       NetworkEvent::Sonarr(_) => (8989, "v3"),
       NetworkEvent::Lidarr(_) => (8686, "v1"),
+      NetworkEvent::Readarr(_) => (8787, "v1"),
     };
     let mut uri = if let Some(servarr_uri) = uri {
       format!("{servarr_uri}/api/{api_version}{resource}")

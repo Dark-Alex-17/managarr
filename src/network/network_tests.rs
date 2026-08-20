@@ -944,6 +944,7 @@ pub(in crate::network) mod test_utils {
       let network_event_clone: NetworkEvent = network_event.clone().into();
       let api_version = match &network_event_clone {
         NetworkEvent::Lidarr(_) => "v1",
+        NetworkEvent::Readarr(_) => "v1",
         _ => "v3",
       };
       let mut server = Server::new_async().await;

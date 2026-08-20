@@ -365,6 +365,13 @@ pub fn select_cli_configuration(
           config.lidarr.as_ref().expect("Lidarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_lidarr_config);
       }
+      Command::Readarr(_) => {
+        let default_readarr_config =
+          config.readarr.as_ref().expect("Readarr config must exist")[0].clone();
+        app
+          .server_tabs
+          .select_tab_by_config(&default_readarr_config);
+      }
       _ => (),
     }
   }

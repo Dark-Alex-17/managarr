@@ -5,8 +5,10 @@ use crate::app::ServarrConfig;
 use crate::app::context_clues::ContextClue;
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use lidarr_models::LidarrSerdeable;
 use radarr_models::RadarrSerdeable;
+use readarr_models::ReadarrSerdeable;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Number;
@@ -15,6 +17,7 @@ use sonarr_models::SonarrSerdeable;
 
 pub mod lidarr_models;
 pub mod radarr_models;
+pub mod readarr_models;
 pub mod servarr_data;
 pub mod servarr_models;
 pub mod sonarr_models;
@@ -32,7 +35,7 @@ mod model_tests;
 pub enum Route {
   Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
   Sonarr(ActiveSonarrBlock, Option<ActiveSonarrBlock>),
-  Readarr,
+  Readarr(ActiveReadarrBlock, Option<ActiveReadarrBlock>),
   Lidarr(ActiveLidarrBlock, Option<ActiveLidarrBlock>),
   Whisparr,
   Bazarr,
@@ -47,6 +50,7 @@ pub enum Serdeable {
   Radarr(RadarrSerdeable),
   Sonarr(SonarrSerdeable),
   Lidarr(LidarrSerdeable),
+  Readarr(ReadarrSerdeable),
 }
 
 pub trait Scrollable {

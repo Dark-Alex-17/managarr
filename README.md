@@ -20,7 +20,7 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 - [x] ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
 - [x] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
 - [x] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
-- [ ] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
+- [x] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
 - [ ] ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
 - [ ] ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
@@ -256,6 +256,7 @@ Commands:
   radarr       Commands for manging your Radarr instance
   sonarr       Commands for manging your Sonarr instance
   lidarr       Commands for manging your Lidarr instance
+  readarr      Commands for managing your Readarr instance
   completions  Generate shell completions for the Managarr CLI
   tail-logs    Tail Managarr logs
   config-path  Print the full path to the default configuration file.
@@ -347,6 +348,7 @@ default port for that respective service. That is:
 | Radarr  | `localhost`  | 7878         |
 | Sonarr  | `localhost`  | 8989         |
 | Lidarr  | `localhost`  | 8686         |
+| Readarr | `localhost`  | 8787         |
 
 > [!TIP]
 > In general, all Servarrs store their API tokens under Settings -> General -> Security -> API Key in their web UIs.
@@ -367,6 +369,10 @@ sonarr:
 lidarr:
   # Connect to lidarr running on localhost:8686
   - api_token: <your-lidarr-api-token-here>
+
+readarr:
+  # Connect to readarr running on localhost:8787
+  - api_token: <your-readarr-api-token-here>
 ```
 
 ## Configuration File Location

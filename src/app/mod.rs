@@ -17,6 +17,7 @@ use crate::cli::Command;
 use crate::models::servarr_data::Notification;
 use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, ReadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::servarr_models::KeybindingItem;
 use crate::models::stateful_table::StatefulTable;
@@ -30,6 +31,7 @@ pub mod key_binding;
 mod key_binding_tests;
 pub mod lidarr;
 pub mod radarr;
+pub mod readarr;
 pub mod sonarr;
 
 pub struct App<'a> {
@@ -122,6 +124,26 @@ impl App<'_> {
       server_tabs.extend(lidarr_tabs);
     }
 
+    if let Some(readarr_configs) = config.readarr {
+      let mut unnamed_idx = 0;
+      let readarr_tabs = readarr_configs.into_iter().map(|readarr_config| {
+        let name = if let Some(name) = readarr_config.name.clone() {
+          name
+        } else {
+          unnamed_idx += 1;
+          format!("Readarr {unnamed_idx}")
+        };
+
+        TabRoute {
+          title: name,
+          route: ActiveReadarrBlock::Authors.into(),
+          contextual_help: None,
+          config: Some(readarr_config),
+        }
+      });
+      server_tabs.extend(readarr_tabs);
+    }
+
     let weight_sorted_tabs = server_tabs
       .into_iter()
       .sorted_by(|tab1, tab2| {
@@ -204,6 +226,7 @@ impl App<'_> {
         Route::Radarr(active_radarr_block, _) => self.radarr_on_tick(active_radarr_block).await,
         Route::Sonarr(active_sonarr_block, _) => self.sonarr_on_tick(active_sonarr_block).await,
         Route::Lidarr(active_lidarr_block, _) => self.lidarr_on_tick(active_lidarr_block).await,
+        Route::Readarr(active_readarr_block, _) => self.readarr_on_tick(active_readarr_block).await,
         _ => (),
       }
 
@@ -300,6 +323,12 @@ impl App<'_> {
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
+        TabRoute {
+          title: "Readarr".to_owned(),
+          route: ActiveReadarrBlock::Authors.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
       ]),
       ..App::default()
     }
@@ -310,6 +339,7 @@ impl App<'_> {
       data: Data {
         lidarr_data: LidarrData::test_default_fully_populated(),
         radarr_data: RadarrData::test_default_fully_populated(),
+        readarr_data: ReadarrData::test_default_fully_populated(),
         sonarr_data: SonarrData::test_default_fully_populated(),
       },
       server_tabs: TabState::new(vec![
@@ -331,6 +361,12 @@ impl App<'_> {
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
+        TabRoute {
+          title: "Readarr".to_owned(),
+          route: ActiveReadarrBlock::Authors.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
       ]),
       ..App::default()
     }
@@ -341,6 +377,7 @@ impl App<'_> {
 pub struct Data<'a> {
   pub lidarr_data: LidarrData<'a>,
   pub radarr_data: RadarrData<'a>,
+  pub readarr_data: ReadarrData<'a>,
   pub sonarr_data: SonarrData<'a>,
 }
 
@@ -349,12 +386,17 @@ pub struct AppConfig {
   pub theme: Option<String>,
   pub lidarr: Option<Vec<ServarrConfig>>,
   pub radarr: Option<Vec<ServarrConfig>>,
+  pub readarr: Option<Vec<ServarrConfig>>,
   pub sonarr: Option<Vec<ServarrConfig>>,
 }
 
 impl AppConfig {
   pub fn validate(&self, config_path: &str) {
-    if self.lidarr.is_none() && self.radarr.is_none() && self.sonarr.is_none() {
+    if self.lidarr.is_none()
+      && self.radarr.is_none()
+      && self.sonarr.is_none()
+      && self.readarr.is_none()
+    {
       log_and_print_error(format!(
         "No Servarrs are configured in the file: {config_path}"
       ));
@@ -371,6 +413,10 @@ impl AppConfig {
 
     if let Some(lidarr_configs) = &self.lidarr {
       lidarr_configs.iter().for_each(|config| config.validate());
+    }
+
+    if let Some(readarr_configs) = &self.readarr {
+      readarr_configs.iter().for_each(|config| config.validate());
     }
   }
 
@@ -393,6 +439,10 @@ impl AppConfig {
         msg("Lidarr");
         process::exit(1);
       }
+      Command::Readarr(_) if self.readarr.is_none() => {
+        msg("Readarr");
+        process::exit(1);
+      }
       _ => (),
     }
   }
@@ -413,6 +463,12 @@ impl AppConfig {
     if let Some(lidarr_configs) = self.lidarr.as_mut() {
       for lidarr_config in lidarr_configs {
         lidarr_config.post_process_initialization();
+      }
+    }
+
+    if let Some(readarr_configs) = self.readarr.as_mut() {
+      for readarr_config in readarr_configs {
+        readarr_config.post_process_initialization();
       }
     }
   }
