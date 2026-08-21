@@ -16,6 +16,7 @@ pub enum ReadarrEvent {
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
+  GetQueuedEvents,
   GetSecurityConfig,
   GetStatus,
   GetTasks,
@@ -27,7 +28,7 @@ pub enum ReadarrEvent {
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      ReadarrEvent::StartTask(_) => "/command",
+      ReadarrEvent::GetQueuedEvents | ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
@@ -61,6 +62,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetLogs(events) => self
         .get_readarr_logs(events)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetQueuedEvents => self
+        .get_queued_readarr_events()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetSecurityConfig => self

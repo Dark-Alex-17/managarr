@@ -4,7 +4,7 @@ mod tests {
   use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTask, ReadarrTaskName};
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
-    LogResponse, SecurityConfig, SystemStatus, Update,
+    LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
@@ -12,6 +12,96 @@ mod tests {
   use indoc::formatdoc;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
+
+  #[tokio::test]
+  async fn test_handle_get_queued_readarr_events_event() {
+    let queued_events_json = json!([{
+        "name": "CheckHealth",
+        "commandName": "Check Health",
+        "status": "completed",
+        "queued": "2023-05-20T21:29:16Z",
+        "started": "2023-05-20T21:29:16Z",
+        "ended": "2023-05-20T21:29:16Z",
+        "duration": "00:00:00.3524068",
+        "trigger": "manual",
+    }]);
+    let response: Vec<QueueEvent> = serde_json::from_value(queued_events_json.clone()).unwrap();
+    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
+    let expected_event = QueueEvent {
+      name: "CheckHealth".to_owned(),
+      command_name: "Check Health".to_owned(),
+      status: "completed".to_owned(),
+      queued: timestamp,
+      started: Some(timestamp),
+      ended: Some(timestamp),
+      duration: Some("00:00:00.3524068".to_owned()),
+      trigger: "manual".to_owned(),
+    };
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(queued_events_json)
+      .build_for(ReadarrEvent::GetQueuedEvents)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetQueuedEvents)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::QueueEvents(events) = result.unwrap() else {
+      panic!("Expected QueueEvents")
+    };
+
+    assert_eq!(events, response);
+    assert_eq!(
+      app.lock().await.data.readarr_data.queued_events.items,
+      vec![expected_event]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_queued_readarr_events_event_empty_response() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .build_for(ReadarrEvent::GetQueuedEvents)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetQueuedEvents)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::QueueEvents(events) = result.unwrap() else {
+      panic!("Expected QueueEvents")
+    };
+
+    assert_is_empty!(events);
+    assert_is_empty!(app.lock().await.data.readarr_data.queued_events);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_queued_readarr_events_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetQueuedEvents)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetQueuedEvents)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.queued_events);
+  }
 
   #[tokio::test]
   async fn test_handle_get_readarr_diskspace_event() {

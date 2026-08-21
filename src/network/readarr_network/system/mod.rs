@@ -1,6 +1,6 @@
 use crate::models::readarr_models::{ReadarrTask, ReadarrTaskName};
 use crate::models::servarr_models::{
-  CommandBody, DiskSpace, HostConfig, LogResponse, SecurityConfig, SystemStatus, Update,
+  CommandBody, DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
 };
 use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
 use crate::network::readarr_network::ReadarrEvent;
@@ -15,6 +15,27 @@ use serde_json::Value;
 mod readarr_system_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn get_queued_readarr_events(
+    &mut self,
+  ) -> Result<Vec<QueueEvent>> {
+    info!("Fetching Readarr queued events");
+    let event = ReadarrEvent::GetQueuedEvents;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<QueueEvent>>(request_props, |queued_events_vec, mut app| {
+        app
+          .data
+          .readarr_data
+          .queued_events
+          .set_items(queued_events_vec);
+      })
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_readarr_diskspace(
     &mut self,
   ) -> Result<Vec<DiskSpace>> {

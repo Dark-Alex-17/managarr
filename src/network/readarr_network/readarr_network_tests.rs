@@ -6,6 +6,7 @@ mod tests {
   use rstest::rstest;
 
   #[rstest]
+  #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
