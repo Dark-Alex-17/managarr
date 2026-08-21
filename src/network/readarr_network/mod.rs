@@ -3,7 +3,7 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
-use crate::models::servarr_models::{MetadataProfile, QualityProfile};
+use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod system;
@@ -22,6 +22,7 @@ pub enum ReadarrEvent {
   GetQueuedEvents,
   GetSecurityConfig,
   GetStatus,
+  GetTags,
   GetTasks,
   GetUpdates,
   HealthCheck,
@@ -40,6 +41,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
+      ReadarrEvent::GetTags => "/tag",
       ReadarrEvent::GetUpdates => "/update",
     }
   }
@@ -86,6 +88,7 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetStatus => self.get_readarr_status().await.map(ReadarrSerdeable::from),
+      ReadarrEvent::GetTags => self.get_readarr_tags().await.map(ReadarrSerdeable::from),
       ReadarrEvent::GetTasks => self.get_readarr_tasks().await.map(ReadarrSerdeable::from),
       ReadarrEvent::GetUpdates => self.get_readarr_updates().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
@@ -145,6 +148,24 @@ impl Network<'_, '_> {
         app.data.readarr_data.quality_profile_map = quality_profiles
           .into_iter()
           .map(|profile| (profile.id, profile.name))
+          .collect();
+      })
+      .await
+  }
+
+  async fn get_readarr_tags(&mut self) -> Result<Vec<Tag>> {
+    info!("Fetching Readarr tags");
+    let event = ReadarrEvent::GetTags;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<Tag>>(request_props, |tags_vec, mut app| {
+        app.data.readarr_data.tags_map = tags_vec
+          .into_iter()
+          .map(|tag| (tag.id, tag.label))
           .collect();
       })
       .await

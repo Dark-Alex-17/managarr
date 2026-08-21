@@ -35,6 +35,8 @@ pub enum ReadarrListCommand {
   QualityProfiles,
   #[command(about = "List all queued events")]
   QueuedEvents,
+  #[command(about = "List all Readarr tags")]
+  Tags,
   #[command(about = "List all Readarr tasks")]
   Tasks,
   #[command(about = "List all Readarr updates")]
@@ -110,6 +112,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetQueuedEvents.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Tags => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetTags.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

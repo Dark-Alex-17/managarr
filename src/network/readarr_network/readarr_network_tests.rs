@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::models::readarr_models::ReadarrSerdeable;
-  use crate::models::servarr_models::{MetadataProfile, QualityProfile};
+  use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
   use pretty_assertions::{assert_eq, assert_str_eq};
@@ -20,6 +20,7 @@ mod tests {
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]
+  #[case(ReadarrEvent::GetTags, "/tag")]
   #[case(ReadarrEvent::GetUpdates, "/update")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
@@ -237,5 +238,74 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
     assert_is_empty!(app.lock().await.data.readarr_data.quality_profile_map);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_tags_event() {
+    let tags_json = json!([
+      {
+        "id": 1,
+        "label": "huntarr-missing"
+      }
+    ]);
+    let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(tags_json)
+      .build_for(ReadarrEvent::GetTags)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Tags(tags) = result.unwrap() else {
+      panic!("Expected Tags");
+    };
+
+    assert_eq!(tags, response);
+    assert_some_eq_x!(
+      app.lock().await.data.readarr_data.tags_map.get_by_left(&1),
+      &"huntarr-missing".to_owned()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_tags_event_empty_response() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .build_for(ReadarrEvent::GetTags)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Tags(tags) = result.unwrap() else {
+      panic!("Expected Tags");
+    };
+
+    assert_is_empty!(tags);
+    assert_is_empty!(app.lock().await.data.readarr_data.tags_map);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_tags_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetTags)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.tags_map);
   }
 }

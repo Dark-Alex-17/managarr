@@ -30,6 +30,7 @@ mod tests {
         "metadata-profiles",
         "quality-profiles",
         "queued-events",
+        "tags",
         "tasks",
         "updates"
       )]
@@ -237,6 +238,28 @@ mod tests {
         ReadarrListCommandHandler::with(&app_arc, list_queued_events_command, &mut mock_network)
           .handle()
           .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_tags_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetTags.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_tags_command = ReadarrListCommand::Tags;
+
+      let result = ReadarrListCommandHandler::with(&app_arc, list_tags_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }
