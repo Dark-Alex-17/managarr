@@ -29,6 +29,8 @@ pub enum ReadarrListCommand {
     )]
     output_in_log_format: bool,
   },
+  #[command(about = "List all Readarr metadata profiles")]
+  MetadataProfiles,
   #[command(about = "List all Readarr quality profiles")]
   QualityProfiles,
   #[command(about = "List all queued events")]
@@ -89,6 +91,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         } else {
           serde_json::to_string_pretty(&logs)?
         }
+      }
+      ReadarrListCommand::MetadataProfiles => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetMetadataProfiles.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       ReadarrListCommand::QualityProfiles => {
         let resp = self

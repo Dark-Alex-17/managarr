@@ -3,7 +3,7 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
-use crate::models::servarr_models::QualityProfile;
+use crate::models::servarr_models::{MetadataProfile, QualityProfile};
 use crate::network::{Network, RequestMethod};
 
 mod system;
@@ -17,6 +17,7 @@ pub enum ReadarrEvent {
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
+  GetMetadataProfiles,
   GetQualityProfiles,
   GetQueuedEvents,
   GetSecurityConfig,
@@ -35,6 +36,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
       ReadarrEvent::GetLogs(_) => "/log",
+      ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
@@ -65,6 +67,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetLogs(events) => self
         .get_readarr_logs(events)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetMetadataProfiles => self
+        .get_readarr_metadata_profiles()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetQualityProfiles => self
@@ -105,6 +111,24 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_readarr_metadata_profiles(&mut self) -> Result<Vec<MetadataProfile>> {
+    info!("Fetching Readarr metadata profiles");
+    let event = ReadarrEvent::GetMetadataProfiles;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<MetadataProfile>>(request_props, |metadata_profiles, mut app| {
+        app.data.readarr_data.metadata_profile_map = metadata_profiles
+          .into_iter()
+          .map(|profile| (profile.id, profile.name))
+          .collect();
+      })
       .await
   }
 

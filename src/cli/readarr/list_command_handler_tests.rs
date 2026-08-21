@@ -25,7 +25,14 @@ mod tests {
 
     #[rstest]
     fn test_list_commands_have_no_arg_requirements(
-      #[values("disk-space", "quality-profiles", "queued-events", "tasks", "updates")]
+      #[values(
+        "disk-space",
+        "metadata-profiles",
+        "quality-profiles",
+        "queued-events",
+        "tasks",
+        "updates"
+      )]
       subcommand: &str,
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "list", subcommand]);
@@ -160,6 +167,32 @@ mod tests {
 
       assert_ok!(&result);
       assert_str_eq!(result.unwrap(), "[\n  \"readarr log line\"\n]");
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_metadata_profiles_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetMetadataProfiles.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_metadata_profiles_command = ReadarrListCommand::MetadataProfiles;
+
+      let result = ReadarrListCommandHandler::with(
+        &app_arc,
+        list_metadata_profiles_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
     }
 
     #[tokio::test]
