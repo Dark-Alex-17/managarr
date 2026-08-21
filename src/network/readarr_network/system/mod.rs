@@ -1,5 +1,7 @@
-use crate::models::ScrollableText;
-use crate::models::servarr_models::{DiskSpace, HostConfig, SecurityConfig, SystemStatus, Update};
+use crate::models::servarr_models::{
+  DiskSpace, HostConfig, LogResponse, SecurityConfig, SystemStatus, Update,
+};
+use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -40,6 +42,62 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_logs(
+    &mut self,
+    events: u64,
+  ) -> Result<LogResponse> {
+    info!("Fetching Readarr logs");
+    let event = ReadarrEvent::GetLogs(events);
+
+    let params = format!("pageSize={events}&sortDirection=descending&sortKey=time");
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), LogResponse>(request_props, |log_response, mut app| {
+        let mut logs = log_response.records;
+        logs.reverse();
+
+        let log_lines = logs
+          .into_iter()
+          .map(|log| {
+            if let Some(exception) = log.exception {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log
+                  .logger
+                  .as_ref()
+                  .expect("logger must exist when exception is present"),
+                log
+                  .exception_type
+                  .as_ref()
+                  .expect("exception_type must exist when exception is present"),
+                exception
+              ))
+            } else {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().expect("logger must exist in log entry"),
+                log
+                  .message
+                  .as_ref()
+                  .expect("message must exist when exception is not present")
+              ))
+            }
+          })
+          .collect();
+
+        app.data.readarr_data.logs.set_items(log_lines);
+        app.data.readarr_data.logs.scroll_to_bottom();
+      })
       .await
   }
 

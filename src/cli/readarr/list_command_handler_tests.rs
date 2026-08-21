@@ -18,9 +18,10 @@ mod tests {
   }
 
   mod cli {
-    use rstest::rstest;
-
     use super::*;
+    use clap::{Parser, error::ErrorKind};
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
     #[rstest]
     fn test_list_commands_have_no_arg_requirements(
@@ -30,12 +31,39 @@ mod tests {
 
       assert_ok!(&result);
     }
+
+    #[test]
+    fn test_list_logs_events_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "list", "logs", "--events"]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_logs_default_values() {
+      let expected_args = ReadarrListCommand::Logs {
+        events: 500,
+        output_in_log_format: false,
+      };
+      let result = Cli::try_parse_from(["managarr", "readarr", "list", "logs"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(logs_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(logs_command, expected_args);
+    }
   }
 
   mod handler {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
+    use pretty_assertions::assert_str_eq;
     use serde_json::json;
     use tokio::sync::Mutex;
 
@@ -45,7 +73,7 @@ mod tests {
         CliCommandHandler,
         readarr::list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler},
       },
-      models::{Serdeable, readarr_models::ReadarrSerdeable},
+      models::{HorizontallyScrollableText, Serdeable, readarr_models::ReadarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
 
@@ -70,6 +98,67 @@ mod tests {
           .await;
 
       assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_logs_command() {
+      let expected_events = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetLogs(expected_events).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_logs_command = ReadarrListCommand::Logs {
+        events: 1000,
+        output_in_log_format: false,
+      };
+
+      let result = ReadarrListCommandHandler::with(&app_arc, list_logs_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_logs_command_output_in_log_format() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetLogs(1000).into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      app_arc
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .logs
+        .set_items(vec![HorizontallyScrollableText::from("readarr log line")]);
+      let list_logs_command = ReadarrListCommand::Logs {
+        events: 1000,
+        output_in_log_format: true,
+      };
+
+      let result = ReadarrListCommandHandler::with(&app_arc, list_logs_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+      assert_str_eq!(result.unwrap(), "[\n  \"readarr log line\"\n]");
     }
 
     #[tokio::test]

@@ -4,7 +4,7 @@ mod tests {
   use crate::models::readarr_models::ReadarrSerdeable;
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
-    SecurityConfig, SystemStatus, Update,
+    LogResponse, SecurityConfig, SystemStatus, Update,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
@@ -143,6 +143,92 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_logs_event() {
+    let logs_response_json = json!({
+      "page": 1,
+      "pageSize": 500,
+      "sortKey": "time",
+      "sortDirection": "descending",
+      "totalRecords": 2,
+      "records": [
+        {
+          "time": "2023-05-20T21:29:16Z",
+          "level": "info",
+          "logger": "TestLogger",
+          "message": "test message",
+          "id": 1
+        },
+        {
+          "time": "2023-05-20T21:29:16Z",
+          "level": "fatal",
+          "logger": "ReadarrError",
+          "exception": "test exception",
+          "exceptionType": "Some.Big.Bad.Exception",
+          "id": 2
+        }
+      ]
+    });
+    let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
+    let expected_logs = vec![
+      HorizontallyScrollableText::from(
+        "2023-05-20 21:29:16 UTC|FATAL|ReadarrError|Some.Big.Bad.Exception|test exception",
+      ),
+      HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
+    ];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(logs_response_json)
+      .query("pageSize=500&sortDirection=descending&sortKey=time")
+      .build_for(ReadarrEvent::GetLogs(500))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetLogs(500))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::LogResponse(logs) = result.unwrap() else {
+      panic!("Expected LogResponse")
+    };
+
+    assert_eq!(logs, response);
+    assert_eq!(app.lock().await.data.readarr_data.logs.items, expected_logs);
+    assert_str_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .logs
+        .current_selection()
+        .text,
+      "2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_logs_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .query("pageSize=500&sortDirection=descending&sortKey=time")
+      .build_for(ReadarrEvent::GetLogs(500))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetLogs(500))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.logs);
   }
 
   #[tokio::test]

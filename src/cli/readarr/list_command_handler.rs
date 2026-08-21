@@ -19,6 +19,16 @@ mod list_command_handler_tests;
 pub enum ReadarrListCommand {
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
   DiskSpace,
+  #[command(about = "Fetch Readarr logs")]
+  Logs {
+    #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
+    events: u64,
+    #[arg(
+      long,
+      help = "Output the logs in the same format as they appear in the log files"
+    )]
+    output_in_log_format: bool,
+  },
   #[command(about = "List all Readarr updates")]
   Updates,
 }
@@ -30,19 +40,19 @@ impl From<ReadarrListCommand> for Command {
 }
 
 pub(super) struct ReadarrListCommandHandler<'a, 'b> {
-  _app: &'a Arc<Mutex<App<'b>>>,
+  app: &'a Arc<Mutex<App<'b>>>,
   command: ReadarrListCommand,
   network: &'a mut dyn NetworkTrait,
 }
 
 impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListCommandHandler<'a, 'b> {
   fn with(
-    _app: &'a Arc<Mutex<App<'b>>>,
+    app: &'a Arc<Mutex<App<'b>>>,
     command: ReadarrListCommand,
     network: &'a mut dyn NetworkTrait,
   ) -> Self {
     ReadarrListCommandHandler {
-      _app,
+      app,
       command,
       network,
     }
@@ -56,6 +66,23 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
           .handle_network_event(ReadarrEvent::GetDiskSpace.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Logs {
+        events,
+        output_in_log_format,
+      } => {
+        let logs = self
+          .network
+          .handle_network_event(ReadarrEvent::GetLogs(events).into())
+          .await?;
+
+        if output_in_log_format {
+          let log_lines = &self.app.lock().await.data.readarr_data.logs.items;
+
+          serde_json::to_string_pretty(log_lines)?
+        } else {
+          serde_json::to_string_pretty(&logs)?
+        }
       }
       ReadarrListCommand::Updates => {
         let resp = self
