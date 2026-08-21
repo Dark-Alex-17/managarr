@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTask, ReadarrTaskName};
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
     LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
   };
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use chrono::DateTime;
@@ -67,7 +67,18 @@ mod tests {
       .returns(json!([]))
       .build_for(ReadarrEvent::GetQueuedEvents)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .queued_events
+        .set_items(vec![QueueEvent {
+          name: "StaleEvent".to_owned(),
+          ..QueueEvent::default()
+        }]);
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -86,12 +97,24 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_queued_readarr_events_event_failure() {
+    let seeded_event = QueueEvent {
+      name: "StaleEvent".to_owned(),
+      ..QueueEvent::default()
+    };
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetQueuedEvents)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .queued_events
+        .set_items(vec![seeded_event.clone()]);
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -100,7 +123,10 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.queued_events);
+    assert_eq!(
+      app.lock().await.data.readarr_data.queued_events.items,
+      vec![seeded_event]
+    );
   }
 
   #[tokio::test]
@@ -155,12 +181,21 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_readarr_diskspace_event_failure() {
+    let seeded_disk_space = vec![DiskSpace {
+      path: Some("/stale".to_owned()),
+      free_space: 1,
+      total_space: 2,
+    }];
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetDiskSpace)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.disk_space_vec = seeded_disk_space.clone();
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -169,7 +204,10 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.disk_space_vec);
+    assert_eq!(
+      app.lock().await.data.readarr_data.disk_space_vec,
+      seeded_disk_space
+    );
   }
 
   #[tokio::test]
@@ -303,13 +341,18 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_readarr_logs_event_failure() {
+    let seeded_logs = vec![HorizontallyScrollableText::from("stale log entry")];
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .query("pageSize=500&sortDirection=descending&sortKey=time")
       .build_for(ReadarrEvent::GetLogs(500))
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.logs.set_items(seeded_logs.clone());
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -318,7 +361,7 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.logs);
+    assert_eq!(app.lock().await.data.readarr_data.logs.items, seeded_logs);
   }
 
   #[tokio::test]
@@ -417,14 +460,18 @@ mod tests {
       .status(500)
       .build_for(ReadarrEvent::GetStatus)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.version = "stale version".to_owned();
+    }
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetStatus).await;
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.version);
+    assert_str_eq!(app.lock().await.data.readarr_data.version, "stale version");
   }
 
   #[tokio::test]
@@ -489,19 +536,34 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_readarr_tasks_event_failure() {
+    let seeded_task = ReadarrTask {
+      name: "Stale Task".to_owned(),
+      ..ReadarrTask::default()
+    };
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetTasks)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .tasks
+        .set_items(vec![seeded_task.clone()]);
+    }
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetTasks).await;
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.tasks);
+    assert_eq!(
+      app.lock().await.data.readarr_data.tasks.items,
+      vec![seeded_task]
+    );
   }
 
   #[tokio::test]
@@ -595,14 +657,21 @@ mod tests {
       .status(500)
       .build_for(ReadarrEvent::GetUpdates)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.updates = ScrollableText::with_string("stale updates".to_owned());
+    }
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetUpdates).await;
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.updates.get_text());
+    assert_str_eq!(
+      app.lock().await.data.readarr_data.updates.get_text(),
+      "stale updates"
+    );
   }
 
   #[tokio::test]
