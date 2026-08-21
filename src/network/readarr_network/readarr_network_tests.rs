@@ -4,6 +4,7 @@ mod tests {
   use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
+  use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::json;
@@ -117,7 +118,12 @@ mod tests {
       .returns(json!([]))
       .build_for(ReadarrEvent::GetMetadataProfiles)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.metadata_profile_map =
+        BiMap::from_iter([(99i64, "Stale Profile".to_owned())]);
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -136,12 +142,17 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_metadata_profiles_event_failure() {
+    let seeded_map = BiMap::from_iter([(99i64, "Stale Profile".to_owned())]);
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetMetadataProfiles)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.metadata_profile_map = seeded_map.clone();
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -150,7 +161,10 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.metadata_profile_map);
+    assert_eq!(
+      app.lock().await.data.readarr_data.metadata_profile_map,
+      seeded_map
+    );
   }
 
   #[tokio::test]
@@ -204,7 +218,12 @@ mod tests {
       .returns(json!([]))
       .build_for(ReadarrEvent::GetQualityProfiles)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.quality_profile_map =
+        BiMap::from_iter([(99i64, "Stale Profile".to_owned())]);
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -223,12 +242,17 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_quality_profiles_event_failure() {
+    let seeded_map = BiMap::from_iter([(99i64, "Stale Profile".to_owned())]);
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetQualityProfiles)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.quality_profile_map = seeded_map.clone();
+    }
     let mut network = test_network(&app);
 
     let result = network
@@ -237,7 +261,10 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.quality_profile_map);
+    assert_eq!(
+      app.lock().await.data.readarr_data.quality_profile_map,
+      seeded_map
+    );
   }
 
   #[tokio::test]
@@ -277,7 +304,11 @@ mod tests {
       .returns(json!([]))
       .build_for(ReadarrEvent::GetTags)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map = BiMap::from_iter([(99i64, "stale-tag".to_owned())]);
+    }
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
@@ -294,18 +325,23 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_tags_event_failure() {
+    let seeded_map = BiMap::from_iter([(99i64, "stale-tag".to_owned())]);
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)
       .build_for(ReadarrEvent::GetTags)
       .await;
-    app.lock().await.server_tabs.set_index(3);
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map = seeded_map.clone();
+    }
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
 
     mock.assert_async().await;
     assert_err!(result);
-    assert_is_empty!(app.lock().await.data.readarr_data.tags_map);
+    assert_eq!(app.lock().await.data.readarr_data.tags_map, seeded_map);
   }
 }
