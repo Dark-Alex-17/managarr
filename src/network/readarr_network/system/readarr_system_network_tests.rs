@@ -514,4 +514,51 @@ mod tests {
     assert_err!(result);
     assert_is_empty!(app.lock().await.data.readarr_data.updates.get_text());
   }
+
+  #[tokio::test]
+  async fn test_handle_start_readarr_task_event() {
+    let response = json!({ "test": "test" });
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "CheckHealth"
+      }))
+      .returns(response.clone())
+      .build_for(ReadarrEvent::StartTask(ReadarrTaskName::CheckHealth))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::StartTask(ReadarrTaskName::CheckHealth))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Value(value) = result.unwrap() else {
+      panic!("Expected Value")
+    };
+
+    assert_eq!(value, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_start_readarr_task_event_failure() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "CheckHealth"
+      }))
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::StartTask(ReadarrTaskName::CheckHealth))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::StartTask(ReadarrTaskName::CheckHealth))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

@@ -7,6 +7,8 @@ use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
 use tokio::sync::Mutex;
 
 use super::{CliCommandHandler, Command};
+use crate::models::readarr_models::ReadarrTaskName;
+use crate::network::readarr_network::ReadarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
 mod get_command_handler;
@@ -28,6 +30,16 @@ pub enum ReadarrCommand {
     about = "Commands to list attributes from your Readarr instance"
   )]
   List(ReadarrListCommand),
+  #[command(about = "Start the specified Readarr task")]
+  StartTask {
+    #[arg(
+      long,
+      help = "The name of the task to trigger",
+      value_enum,
+      required = true
+    )]
+    task_name: ReadarrTaskName,
+  },
 }
 
 impl From<ReadarrCommand> for Command {
@@ -66,6 +78,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         ReadarrListCommandHandler::with(self.app, list_command, self.network)
           .handle()
           .await?
+      }
+      ReadarrCommand::StartTask { task_name } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::StartTask(task_name).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
     };
 

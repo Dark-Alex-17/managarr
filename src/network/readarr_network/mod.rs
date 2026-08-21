@@ -2,7 +2,7 @@ use anyhow::Result;
 use log::info;
 
 use super::{NetworkEvent, NetworkResource};
-use crate::models::readarr_models::ReadarrSerdeable;
+use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
 use crate::network::{Network, RequestMethod};
 
 mod system;
@@ -21,11 +21,13 @@ pub enum ReadarrEvent {
   GetTasks,
   GetUpdates,
   HealthCheck,
+  StartTask(ReadarrTaskName),
 }
 
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
@@ -70,6 +72,10 @@ impl Network<'_, '_> {
       ReadarrEvent::GetUpdates => self.get_readarr_updates().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
         .get_readarr_healthcheck()
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::StartTask(task_name) => self
+        .start_readarr_task(task_name)
         .await
         .map(ReadarrSerdeable::from),
     }

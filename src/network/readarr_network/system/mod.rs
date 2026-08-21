@@ -1,6 +1,6 @@
-use crate::models::readarr_models::ReadarrTask;
+use crate::models::readarr_models::{ReadarrTask, ReadarrTaskName};
 use crate::models::servarr_models::{
-  DiskSpace, HostConfig, LogResponse, SecurityConfig, SystemStatus, Update,
+  CommandBody, DiskSpace, HostConfig, LogResponse, SecurityConfig, SystemStatus, Update,
 };
 use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
 use crate::network::readarr_network::ReadarrEvent;
@@ -8,6 +8,7 @@ use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use indoc::formatdoc;
 use log::info;
+use serde_json::Value;
 
 #[cfg(test)]
 #[path = "readarr_system_network_tests.rs"]
@@ -229,6 +230,25 @@ impl Network<'_, '_> {
           {updates}"
         ));
       })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn start_readarr_task(
+    &mut self,
+    task: ReadarrTaskName,
+  ) -> Result<Value> {
+    let event = ReadarrEvent::StartTask(task);
+    let task_name = task.to_string();
+    info!("Starting Readarr task: {task_name}");
+
+    let body = CommandBody { name: task_name };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
   }
 }
