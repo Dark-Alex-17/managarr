@@ -1,5 +1,6 @@
 use anyhow::Result;
 use log::info;
+use serde_json::{Value, json};
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
@@ -15,6 +16,7 @@ mod readarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
+  AddTag(String),
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
@@ -44,7 +46,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetRootFolders => "/rootfolder",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
-      ReadarrEvent::GetTags => "/tag",
+      ReadarrEvent::AddTag(_) | ReadarrEvent::GetTags => "/tag",
       ReadarrEvent::GetUpdates => "/update",
     }
   }
@@ -62,6 +64,7 @@ impl Network<'_, '_> {
     readarr_event: ReadarrEvent,
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
+      ReadarrEvent::AddTag(tag) => self.add_readarr_tag(tag).await.map(ReadarrSerdeable::from),
       ReadarrEvent::GetDiskSpace => self
         .get_readarr_diskspace()
         .await
@@ -174,6 +177,27 @@ impl Network<'_, '_> {
           .into_iter()
           .map(|tag| (tag.id, tag.label))
           .collect();
+      })
+      .await
+  }
+
+  async fn add_readarr_tag(&mut self, tag: String) -> Result<Tag> {
+    info!("Adding a new Readarr tag");
+    let event = ReadarrEvent::AddTag(String::new());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(json!({ "label": tag })),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, Tag>(request_props, |tag, mut app| {
+        app.data.readarr_data.tags_map.insert(tag.id, tag.label);
       })
       .await
   }

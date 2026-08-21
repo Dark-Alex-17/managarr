@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use add_command_handler::{ReadarrAddCommand, ReadarrAddCommandHandler};
 use anyhow::Result;
 use clap::Subcommand;
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
@@ -11,6 +12,7 @@ use crate::models::readarr_models::ReadarrTaskName;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
+mod add_command_handler;
 mod get_command_handler;
 mod list_command_handler;
 
@@ -20,6 +22,11 @@ mod readarr_command_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrCommand {
+  #[command(
+    subcommand,
+    about = "Commands to add or create new resources within your Readarr instance"
+  )]
+  Add(ReadarrAddCommand),
   #[command(
     subcommand,
     about = "Commands to fetch details of the resources in your Readarr instance"
@@ -69,6 +76,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrCommand::Add(add_command) => {
+        ReadarrAddCommandHandler::with(self.app, add_command, self.network)
+          .handle()
+          .await?
+      }
       ReadarrCommand::Get(get_command) => {
         ReadarrGetCommandHandler::with(self.app, get_command, self.network)
           .handle()

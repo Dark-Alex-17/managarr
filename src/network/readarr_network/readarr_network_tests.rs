@@ -22,6 +22,7 @@ mod tests {
   #[case(ReadarrEvent::GetRootFolders, "/rootfolder")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]
+  #[case(ReadarrEvent::AddTag(String::new()), "/tag")]
   #[case(ReadarrEvent::GetTags, "/tag")]
   #[case(ReadarrEvent::GetUpdates, "/update")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {
@@ -340,6 +341,70 @@ mod tests {
     let mut network = test_network(&app);
 
     let result = network.handle_readarr_event(ReadarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_eq!(app.lock().await.data.readarr_data.tags_map, seeded_map);
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_readarr_tag_event() {
+    let tag_json = json!({
+      "id": 2,
+      "label": "managarr-verify"
+    });
+    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "managarr-verify" }))
+      .returns(tag_json)
+      .build_for(ReadarrEvent::AddTag("managarr-verify".to_owned()))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map = BiMap::from_iter([(1i64, "huntarr-missing".to_owned())]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddTag("managarr-verify".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Tag(tag) = result.unwrap() else {
+      panic!("Expected Tag");
+    };
+
+    assert_eq!(tag, response);
+    assert_eq!(
+      app.lock().await.data.readarr_data.tags_map,
+      BiMap::from_iter([
+        (1i64, "huntarr-missing".to_owned()),
+        (2i64, "managarr-verify".to_owned())
+      ])
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_readarr_tag_event_failure() {
+    let seeded_map = BiMap::from_iter([(1i64, "huntarr-missing".to_owned())]);
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "managarr-verify" }))
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::AddTag("managarr-verify".to_owned()))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map = seeded_map.clone();
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddTag("managarr-verify".to_owned()))
+      .await;
 
     mock.assert_async().await;
     assert_err!(result);
