@@ -19,6 +19,7 @@ mod tests {
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]
+  #[case(ReadarrEvent::GetRootFolders, "/rootfolder")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]
   #[case(ReadarrEvent::GetTags, "/tag")]

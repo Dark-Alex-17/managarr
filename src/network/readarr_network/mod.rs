@@ -6,6 +6,7 @@ use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
+mod root_folders;
 mod system;
 
 #[cfg(test)]
@@ -20,6 +21,7 @@ pub enum ReadarrEvent {
   GetMetadataProfiles,
   GetQualityProfiles,
   GetQueuedEvents,
+  GetRootFolders,
   GetSecurityConfig,
   GetStatus,
   GetTags,
@@ -39,6 +41,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
+      ReadarrEvent::GetRootFolders => "/rootfolder",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
       ReadarrEvent::GetTags => "/tag",
@@ -81,6 +84,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetQueuedEvents => self
         .get_queued_readarr_events()
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetRootFolders => self
+        .get_readarr_root_folders()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetSecurityConfig => self
