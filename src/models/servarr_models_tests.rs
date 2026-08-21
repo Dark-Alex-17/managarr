@@ -4,6 +4,7 @@ mod tests {
 
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, Indexer, QualityProfile,
+    Update, UpdateChanges,
   };
 
   #[test]
@@ -66,5 +67,27 @@ mod tests {
     let quality_profile = QualityProfile::from(quality_profile_tuple);
 
     assert_eq!(expected_quality_profile, quality_profile);
+  }
+
+  #[test]
+  fn test_update_deserializes_when_changes_is_absent() {
+    let update_json = r#"{
+      "version": "0.4.18.2805",
+      "releaseDate": "2025-06-15T06:22:22Z",
+      "installed": false,
+      "latest": true,
+      "installedOn": "2025-06-22T05:09:11Z"
+    }"#;
+
+    let update = serde_json::from_str::<Update>(update_json);
+
+    assert_ok!(&update);
+    assert_eq!(
+      update.unwrap().changes,
+      UpdateChanges {
+        new: None,
+        fixed: None,
+      }
+    );
   }
 }

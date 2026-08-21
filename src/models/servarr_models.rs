@@ -354,6 +354,7 @@ pub struct Update {
   pub installed: bool,
   pub latest: bool,
   pub installed_on: Option<DateTime<Utc>>,
+  #[serde(default)]
   pub changes: UpdateChanges,
 }
 
