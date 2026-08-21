@@ -17,6 +17,7 @@ pub enum ReadarrEvent {
   GetHostConfig,
   GetSecurityConfig,
   GetStatus,
+  GetUpdates,
   HealthCheck,
 }
 
@@ -27,6 +28,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
       ReadarrEvent::GetStatus => "/system/status",
+      ReadarrEvent::GetUpdates => "/update",
     }
   }
 }
@@ -56,6 +58,7 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetStatus => self.get_readarr_status().await.map(ReadarrSerdeable::from),
+      ReadarrEvent::GetUpdates => self.get_readarr_updates().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
         .get_readarr_healthcheck()
         .await

@@ -4,11 +4,12 @@ mod tests {
   use crate::models::readarr_models::ReadarrSerdeable;
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
-    SecurityConfig, SystemStatus,
+    SecurityConfig, SystemStatus, Update,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use chrono::DateTime;
+  use indoc::formatdoc;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
 
@@ -248,5 +249,106 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
     assert_is_empty!(app.lock().await.data.readarr_data.version);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_updates_event() {
+    let updates_json = json!([{
+      "version": "4.3.2.1",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": true,
+      "installedOn": "2023-04-15T02:02:53Z",
+      "latest": true,
+      "changes": { "new": ["Cool new thing"], "fixed": ["Some bugs killed"] },
+    },
+    {
+      "version": "3.2.1.0",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": false,
+      "installedOn": "2023-04-15T02:02:53Z",
+      "latest": false,
+      "changes": { "new": ["Cool new thing (old)", "Other cool new thing (old)"] },
+    },
+    {
+      "version": "2.1.0",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": false,
+      "latest": false,
+      "changes": { "fixed": ["Killed bug 1", "Fixed bug 2"] },
+    },
+    {
+      "version": "1.0.0",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": false,
+      "latest": false,
+    }]);
+    let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
+    let line_break = "-".repeat(200);
+    let expected_text = formatdoc!(
+      "The latest version of Readarr is already installed
+
+      4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+      {line_break}
+      New:
+        * Cool new thing
+      Fixed:
+        * Some bugs killed
+
+
+      3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+      {line_break}
+      New:
+        * Cool new thing (old)
+        * Other cool new thing (old)
+
+
+      2.1.0 - 2023-04-15 02:02:53 UTC
+      {line_break}
+      Fixed:
+        * Killed bug 1
+        * Fixed bug 2
+
+
+      1.0.0 - 2023-04-15 02:02:53 UTC
+      {line_break}"
+    );
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(updates_json)
+      .build_for(ReadarrEvent::GetUpdates)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetUpdates).await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Updates(updates) = result.unwrap() else {
+      panic!("Expected Updates")
+    };
+
+    assert_eq!(updates, response);
+
+    assert_str_eq!(
+      app.lock().await.data.readarr_data.updates.get_text(),
+      expected_text
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_updates_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetUpdates)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetUpdates).await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.updates.get_text());
   }
 }

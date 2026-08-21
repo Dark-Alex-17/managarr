@@ -19,6 +19,8 @@ mod list_command_handler_tests;
 pub enum ReadarrListCommand {
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
   DiskSpace,
+  #[command(about = "List all Readarr updates")]
+  Updates,
 }
 
 impl From<ReadarrListCommand> for Command {
@@ -52,6 +54,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetDiskSpace.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Updates => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetUpdates.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

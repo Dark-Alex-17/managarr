@@ -23,7 +23,9 @@ mod tests {
     use super::*;
 
     #[rstest]
-    fn test_list_commands_have_no_arg_requirements(#[values("disk-space")] subcommand: &str) {
+    fn test_list_commands_have_no_arg_requirements(
+      #[values("disk-space", "updates")] subcommand: &str,
+    ) {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "list", subcommand]);
 
       assert_ok!(&result);
@@ -64,6 +66,29 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_disk_space_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_updates_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetUpdates.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_updates_command = ReadarrListCommand::Updates;
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_updates_command, &mut mock_network)
           .handle()
           .await;
 

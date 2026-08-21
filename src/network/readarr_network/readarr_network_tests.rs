@@ -11,6 +11,7 @@ mod tests {
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::HealthCheck, "/health")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
+  #[case(ReadarrEvent::GetUpdates, "/update")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }
