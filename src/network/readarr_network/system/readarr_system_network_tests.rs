@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::models::HorizontallyScrollableText;
-  use crate::models::readarr_models::ReadarrSerdeable;
+  use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTask, ReadarrTaskName};
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, DiskSpace, HostConfig,
     LogResponse, SecurityConfig, SystemStatus, Update,
@@ -335,6 +335,83 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
     assert_is_empty!(app.lock().await.data.readarr_data.version);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_tasks_event() {
+    let tasks_json = json!([{
+      "name": "Application Update Check",
+      "taskName": "ApplicationUpdateCheck",
+      "interval": 360,
+      "lastExecution": "2023-05-20T21:29:16Z",
+      "lastDuration": "00:00:00.2293467",
+      "nextExecution": "2023-05-20T21:29:16Z",
+    },
+    {
+      "name": "Refresh Author",
+      "taskName": "RefreshAuthor",
+      "interval": 10080,
+      "lastExecution": "2023-05-20T21:29:16Z",
+      "lastDuration": "00:00:03.7211204",
+      "nextExecution": "2023-05-20T21:29:16Z",
+    }]);
+    let response: Vec<ReadarrTask> = serde_json::from_value(tasks_json.clone()).unwrap();
+    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
+    let expected_tasks = vec![
+      ReadarrTask {
+        name: "Application Update Check".to_owned(),
+        task_name: ReadarrTaskName::ApplicationUpdateCheck,
+        interval: 360,
+        last_execution: timestamp,
+        last_duration: "00:00:00.2293467".to_owned(),
+        next_execution: timestamp,
+      },
+      ReadarrTask {
+        name: "Refresh Author".to_owned(),
+        task_name: ReadarrTaskName::RefreshAuthor,
+        interval: 10080,
+        last_execution: timestamp,
+        last_duration: "00:00:03.7211204".to_owned(),
+        next_execution: timestamp,
+      },
+    ];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(tasks_json)
+      .build_for(ReadarrEvent::GetTasks)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetTasks).await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Tasks(tasks) = result.unwrap() else {
+      panic!("Expected Tasks")
+    };
+
+    assert_eq!(tasks, response);
+    assert_eq!(
+      app.lock().await.data.readarr_data.tasks.items,
+      expected_tasks
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_readarr_tasks_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::GetTasks)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network.handle_readarr_event(ReadarrEvent::GetTasks).await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.tasks);
   }
 
   #[tokio::test]

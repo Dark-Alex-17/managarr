@@ -1,3 +1,4 @@
+use crate::models::readarr_models::ReadarrTask;
 use crate::models::servarr_models::{
   DiskSpace, HostConfig, LogResponse, SecurityConfig, SystemStatus, Update,
 };
@@ -130,6 +131,23 @@ impl Network<'_, '_> {
       .handle_request::<(), SystemStatus>(request_props, |system_status, mut app| {
         app.data.readarr_data.version = system_status.version;
         app.data.readarr_data.start_time = system_status.start_time;
+      })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_tasks(
+    &mut self,
+  ) -> Result<Vec<ReadarrTask>> {
+    info!("Fetching Readarr tasks");
+    let event = ReadarrEvent::GetTasks;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<ReadarrTask>>(request_props, |tasks_vec, mut app| {
+        app.data.readarr_data.tasks.set_items(tasks_vec);
       })
       .await
   }

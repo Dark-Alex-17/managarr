@@ -29,6 +29,8 @@ pub enum ReadarrListCommand {
     )]
     output_in_log_format: bool,
   },
+  #[command(about = "List all Readarr tasks")]
+  Tasks,
   #[command(about = "List all Readarr updates")]
   Updates,
 }
@@ -83,6 +85,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         } else {
           serde_json::to_string_pretty(&logs)?
         }
+      }
+      ReadarrListCommand::Tasks => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetTasks.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       ReadarrListCommand::Updates => {
         let resp = self

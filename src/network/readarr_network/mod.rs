@@ -18,6 +18,7 @@ pub enum ReadarrEvent {
   GetLogs(u64),
   GetSecurityConfig,
   GetStatus,
+  GetTasks,
   GetUpdates,
   HealthCheck,
 }
@@ -30,6 +31,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::HealthCheck => "/health",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetStatus => "/system/status",
+      ReadarrEvent::GetTasks => "/system/task",
       ReadarrEvent::GetUpdates => "/update",
     }
   }
@@ -64,6 +66,7 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetStatus => self.get_readarr_status().await.map(ReadarrSerdeable::from),
+      ReadarrEvent::GetTasks => self.get_readarr_tasks().await.map(ReadarrSerdeable::from),
       ReadarrEvent::GetUpdates => self.get_readarr_updates().await.map(ReadarrSerdeable::from),
       ReadarrEvent::HealthCheck => self
         .get_readarr_healthcheck()
