@@ -17,6 +17,8 @@ mod list_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrListCommand {
+  #[command(about = "List all authors in your Readarr library")]
+  Authors,
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
   DiskSpace,
   #[command(about = "Fetch Readarr logs")]
@@ -72,6 +74,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrListCommand::Authors => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::ListAuthors.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrListCommand::DiskSpace => {
         let resp = self
           .network

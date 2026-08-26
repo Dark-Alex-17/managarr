@@ -1,0 +1,157 @@
+#[cfg(test)]
+mod tests {
+  use crate::models::readarr_models::{Author, ReadarrSerdeable};
+  use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::readarr_network::ReadarrEvent;
+  use pretty_assertions::assert_eq;
+  use serde_json::json;
+
+  #[tokio::test]
+  async fn test_handle_list_authors_event() {
+    let authors_json = json!([
+      {
+        "id": 2,
+        "authorName": "Zeta Author",
+        "foreignAuthorId": "foreign-author-2",
+        "status": "continuing",
+        "overview": "An overview of Zeta Author",
+        "path": "/nfs/books/Zeta Author",
+        "rootFolderPath": "/nfs/books/",
+        "qualityProfileId": 1,
+        "metadataProfileId": 1,
+        "monitored": true,
+        "monitorNewItems": "all",
+        "genres": ["Fantasy"],
+        "tags": [1]
+      },
+      {
+        "id": 1,
+        "authorName": "Alpha Author",
+        "foreignAuthorId": "foreign-author-1",
+        "status": "continuing",
+        "overview": "An overview of Alpha Author",
+        "path": "/nfs/books/Alpha Author",
+        "rootFolderPath": "/nfs/books/",
+        "qualityProfileId": 1,
+        "metadataProfileId": 1,
+        "monitored": true,
+        "monitorNewItems": "all",
+        "genres": ["Fantasy"],
+        "tags": [1]
+      }
+    ]);
+    let response: Vec<Author> = serde_json::from_value(authors_json.clone()).unwrap();
+    let mut sorted_authors = response.clone();
+    sorted_authors.sort_by_key(|author| author.id);
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(authors_json)
+      .build_for(ReadarrEvent::ListAuthors)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ListAuthors)
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Authors(authors) = result.unwrap() else {
+      panic!("Expected Authors")
+    };
+
+    assert_eq!(authors, response);
+    assert_eq!(
+      app.lock().await.data.readarr_data.authors.items,
+      sorted_authors
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_list_authors_event_no_op_when_user_is_selecting_sort_options() {
+    let authors_json = json!([{
+      "id": 1,
+      "authorName": "Alpha Author",
+      "foreignAuthorId": "foreign-author-1",
+      "status": "continuing",
+      "path": "/nfs/books/Alpha Author",
+      "rootFolderPath": "/nfs/books/",
+      "qualityProfileId": 1,
+      "metadataProfileId": 1,
+      "monitored": true,
+      "monitorNewItems": "all",
+      "genres": [],
+      "tags": []
+    }]);
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(authors_json)
+      .build_for(ReadarrEvent::ListAuthors)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorsSortPrompt.into());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ListAuthors)
+      .await;
+
+    mock.assert_async().await;
+
+    assert_ok!(result);
+    assert_is_empty!(app.lock().await.data.readarr_data.authors);
+  }
+
+  #[tokio::test]
+  async fn test_handle_list_authors_event_failure() {
+    let stale_authors: Vec<Author> = serde_json::from_value(json!([{
+      "id": 99,
+      "authorName": "Stale Author",
+      "foreignAuthorId": "foreign-author-99",
+      "status": "continuing",
+      "path": "/nfs/books/Stale Author",
+      "rootFolderPath": "/nfs/books/",
+      "qualityProfileId": 1,
+      "metadataProfileId": 1,
+      "monitored": true,
+      "monitorNewItems": "all",
+      "genres": [],
+      "tags": []
+    }]))
+    .unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .status(500)
+      .build_for(ReadarrEvent::ListAuthors)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .authors
+        .set_items(stale_authors.clone());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ListAuthors)
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+    assert_eq!(
+      app.lock().await.data.readarr_data.authors.items,
+      stale_authors
+    );
+  }
+}

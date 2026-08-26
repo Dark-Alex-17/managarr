@@ -7,6 +7,7 @@ use crate::models::readarr_models::{AddReadarrRootFolderBody, ReadarrSerdeable, 
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
+mod library;
 mod root_folders;
 mod system;
 
@@ -33,12 +34,14 @@ pub enum ReadarrEvent {
   GetTasks,
   GetUpdates,
   HealthCheck,
+  ListAuthors,
   StartTask(ReadarrTaskName),
 }
 
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      ReadarrEvent::ListAuthors => "/author",
       ReadarrEvent::GetQueuedEvents | ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
@@ -122,6 +125,7 @@ impl Network<'_, '_> {
         .get_readarr_healthcheck()
         .await
         .map(ReadarrSerdeable::from),
+      ReadarrEvent::ListAuthors => self.list_authors().await.map(ReadarrSerdeable::from),
       ReadarrEvent::StartTask(task_name) => self
         .start_readarr_task(task_name)
         .await
