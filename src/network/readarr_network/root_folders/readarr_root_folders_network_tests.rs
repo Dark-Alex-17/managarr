@@ -132,6 +132,41 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_delete_readarr_root_folder_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(ReadarrEvent::DeleteRootFolder(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteRootFolder(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_root_folder_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteRootFolder(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteRootFolder(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_get_readarr_root_folders_event() {
     let root_folders_json = json!([
       {

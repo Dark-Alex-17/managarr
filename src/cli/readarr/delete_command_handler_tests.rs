@@ -25,6 +25,55 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn test_delete_root_folder_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "root-folder"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_root_folder_root_folder_id_requires_a_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "root-folder",
+        "--root-folder-id",
+        "not_a_number",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ValueValidation);
+    }
+
+    #[test]
+    fn test_delete_root_folder_success() {
+      let expected_args = ReadarrDeleteCommand::RootFolder { root_folder_id: 1 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "root-folder",
+        "--root-folder-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
     fn test_delete_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "tag"]);
 
@@ -84,6 +133,29 @@ mod tests {
       app::App,
       network::{MockNetworkTrait, NetworkEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_delete_root_folder_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::DeleteRootFolder(1).into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_root_folder_command = ReadarrDeleteCommand::RootFolder { root_folder_id: 1 };
+
+      let result =
+        ReadarrDeleteCommandHandler::with(&app_arc, delete_root_folder_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_delete_tag_command() {

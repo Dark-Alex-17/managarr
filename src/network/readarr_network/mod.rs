@@ -18,6 +18,7 @@ mod readarr_network_tests;
 pub enum ReadarrEvent {
   AddRootFolder(AddReadarrRootFolderBody),
   AddTag(String),
+  DeleteRootFolder(i64),
   DeleteTag(i64),
   GetDiskSpace,
   GetHostConfig,
@@ -45,7 +46,9 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
-      ReadarrEvent::AddRootFolder(_) | ReadarrEvent::GetRootFolders => "/rootfolder",
+      ReadarrEvent::AddRootFolder(_)
+      | ReadarrEvent::DeleteRootFolder(_)
+      | ReadarrEvent::GetRootFolders => "/rootfolder",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
       ReadarrEvent::AddTag(_) | ReadarrEvent::DeleteTag(_) | ReadarrEvent::GetTags => "/tag",
@@ -71,6 +74,10 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::AddTag(tag) => self.add_readarr_tag(tag).await.map(ReadarrSerdeable::from),
+      ReadarrEvent::DeleteRootFolder(root_folder_id) => self
+        .delete_readarr_root_folder(root_folder_id)
+        .await
+        .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteTag(tag_id) => self
         .delete_readarr_tag(tag_id)
         .await

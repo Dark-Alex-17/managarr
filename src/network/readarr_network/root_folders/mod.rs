@@ -41,6 +41,28 @@ impl Network<'_, '_> {
       .await
   }
 
+  pub(in crate::network::readarr_network) async fn delete_readarr_root_folder(
+    &mut self,
+    root_folder_id: i64,
+  ) -> Result<()> {
+    info!("Deleting Readarr root folder with ID: {root_folder_id}");
+    let event = ReadarrEvent::DeleteRootFolder(root_folder_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{root_folder_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_readarr_root_folders(
     &mut self,
   ) -> Result<Vec<RootFolder>> {

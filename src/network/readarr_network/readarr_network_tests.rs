@@ -26,6 +26,7 @@ mod tests {
     ReadarrEvent::AddRootFolder(AddReadarrRootFolderBody::default()),
     "/rootfolder"
   )]
+  #[case(ReadarrEvent::DeleteRootFolder(1), "/rootfolder")]
   #[case(ReadarrEvent::GetRootFolders, "/rootfolder")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]

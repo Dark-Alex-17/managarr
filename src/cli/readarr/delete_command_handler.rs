@@ -17,6 +17,11 @@ mod delete_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrDeleteCommand {
+  #[command(about = "Delete the root folder with the given ID")]
+  RootFolder {
+    #[arg(long, help = "The ID of the root folder to delete", required = true)]
+    root_folder_id: i64,
+  },
   #[command(about = "Delete the tag with the specified ID")]
   Tag {
     #[arg(long, help = "The ID of the tag to delete", required = true)]
@@ -53,6 +58,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrDeleteCommand>
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrDeleteCommand::RootFolder { root_folder_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DeleteRootFolder(root_folder_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrDeleteCommand::Tag { tag_id } => {
         let resp = self
           .network
