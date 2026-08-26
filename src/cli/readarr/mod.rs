@@ -3,6 +3,7 @@ use std::sync::Arc;
 use add_command_handler::{ReadarrAddCommand, ReadarrAddCommandHandler};
 use anyhow::Result;
 use clap::Subcommand;
+use delete_command_handler::{ReadarrDeleteCommand, ReadarrDeleteCommandHandler};
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
 use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
 use tokio::sync::Mutex;
@@ -13,6 +14,7 @@ use crate::network::readarr_network::ReadarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
 mod add_command_handler;
+mod delete_command_handler;
 mod get_command_handler;
 mod list_command_handler;
 
@@ -27,6 +29,11 @@ pub enum ReadarrCommand {
     about = "Commands to add or create new resources within your Readarr instance"
   )]
   Add(ReadarrAddCommand),
+  #[command(
+    subcommand,
+    about = "Commands to delete resources from your Readarr instance"
+  )]
+  Delete(ReadarrDeleteCommand),
   #[command(
     subcommand,
     about = "Commands to fetch details of the resources in your Readarr instance"
@@ -78,6 +85,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
     let result = match self.command {
       ReadarrCommand::Add(add_command) => {
         ReadarrAddCommandHandler::with(self.app, add_command, self.network)
+          .handle()
+          .await?
+      }
+      ReadarrCommand::Delete(delete_command) => {
+        ReadarrDeleteCommandHandler::with(self.app, delete_command, self.network)
           .handle()
           .await?
       }

@@ -17,6 +17,7 @@ mod readarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
   AddTag(String),
+  DeleteTag(i64),
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
@@ -46,7 +47,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetRootFolders => "/rootfolder",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
-      ReadarrEvent::AddTag(_) | ReadarrEvent::GetTags => "/tag",
+      ReadarrEvent::AddTag(_) | ReadarrEvent::DeleteTag(_) | ReadarrEvent::GetTags => "/tag",
       ReadarrEvent::GetUpdates => "/update",
     }
   }
@@ -65,6 +66,10 @@ impl Network<'_, '_> {
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
       ReadarrEvent::AddTag(tag) => self.add_readarr_tag(tag).await.map(ReadarrSerdeable::from),
+      ReadarrEvent::DeleteTag(tag_id) => self
+        .delete_readarr_tag(tag_id)
+        .await
+        .map(ReadarrSerdeable::from),
       ReadarrEvent::GetDiskSpace => self
         .get_readarr_diskspace()
         .await
@@ -199,6 +204,25 @@ impl Network<'_, '_> {
       .handle_request::<Value, Tag>(request_props, |tag, mut app| {
         app.data.readarr_data.tags_map.insert(tag.id, tag.label);
       })
+      .await
+  }
+
+  async fn delete_readarr_tag(&mut self, id: i64) -> Result<()> {
+    info!("Deleting Readarr tag with ID: {id}");
+    let event = ReadarrEvent::DeleteTag(id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
   }
 }

@@ -23,6 +23,7 @@ mod tests {
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]
   #[case(ReadarrEvent::AddTag(String::new()), "/tag")]
+  #[case(ReadarrEvent::DeleteTag(1), "/tag")]
   #[case(ReadarrEvent::GetTags, "/tag")]
   #[case(ReadarrEvent::GetUpdates, "/update")]
   fn test_resource(#[case] event: ReadarrEvent, #[case] expected_uri: &str) {
@@ -409,5 +410,40 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
     assert_eq!(app.lock().await.data.readarr_data.tags_map, seeded_map);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_tag_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(ReadarrEvent::DeleteTag(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteTag(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_tag_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteTag(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteTag(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
   }
 }
