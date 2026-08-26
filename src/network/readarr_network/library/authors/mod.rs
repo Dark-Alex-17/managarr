@@ -1,8 +1,9 @@
 use anyhow::Result;
 use log::info;
+use serde_json::Value;
 
 use crate::models::Route;
-use crate::models::readarr_models::{AddAuthorSearchResult, Author};
+use crate::models::readarr_models::{AddAuthorBody, AddAuthorSearchResult, Author};
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
 use crate::network::readarr_network::ReadarrEvent;
@@ -14,6 +15,34 @@ use urlencoding::encode;
 mod readarr_authors_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn add_author(
+    &mut self,
+    mut add_author_body: AddAuthorBody,
+  ) -> Result<Value> {
+    info!("Adding Readarr author: {}", add_author_body.author_name);
+    if let Some(tag_input_str) = add_author_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_readarr_tag_ids_vec(tag_input_str)
+        .await;
+      add_author_body.tags = tag_ids_vec;
+    }
+    let event = ReadarrEvent::AddAuthor(AddAuthorBody::default());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_author_body),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<AddAuthorBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_author_details(
     &mut self,
     author_id: i64,

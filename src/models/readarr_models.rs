@@ -222,6 +222,29 @@ pub struct AddAuthorSearchResult {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct AddAuthorBody {
+  pub foreign_author_id: String,
+  pub author_name: String,
+  pub monitored: bool,
+  pub root_folder_path: String,
+  pub quality_profile_id: i64,
+  pub metadata_profile_id: i64,
+  pub tags: Vec<i64>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
+  pub add_options: AddAuthorOptions,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddAuthorOptions {
+  pub monitor: MonitorType,
+  pub monitor_new_items: NewItemMonitorType,
+  pub search_for_missing_books: bool,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct AddReadarrRootFolderBody {
   pub name: String,
   pub path: String,

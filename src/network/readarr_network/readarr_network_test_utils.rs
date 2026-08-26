@@ -2,7 +2,8 @@
 #[allow(dead_code)]
 pub mod test_utils {
   use crate::models::readarr_models::{
-    AddAuthorSearchResult, Author, AuthorStatus, NewItemMonitorType,
+    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, MonitorType,
+    NewItemMonitorType,
   };
   use crate::models::servarr_models::RootFolder;
 
@@ -79,6 +80,24 @@ pub mod test_utils {
       accessible: false,
       free_space: 1,
       unmapped_folders: None,
+    }
+  }
+
+  pub fn add_author_body() -> AddAuthorBody {
+    AddAuthorBody {
+      foreign_author_id: "test-foreign-id".to_owned(),
+      author_name: "Test Author".to_owned(),
+      monitored: true,
+      root_folder_path: "/nfs/books".to_owned(),
+      quality_profile_id: 1,
+      metadata_profile_id: 1,
+      tags: Vec::default(),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      add_options: AddAuthorOptions {
+        monitor: MonitorType::All,
+        monitor_new_items: NewItemMonitorType::All,
+        search_for_missing_books: true,
+      },
     }
   }
 }

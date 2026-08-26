@@ -3,7 +3,9 @@ use log::info;
 use serde_json::{Value, json};
 
 use super::{NetworkEvent, NetworkResource};
-use crate::models::readarr_models::{AddReadarrRootFolderBody, ReadarrSerdeable, ReadarrTaskName};
+use crate::models::readarr_models::{
+  AddAuthorBody, AddReadarrRootFolderBody, ReadarrSerdeable, ReadarrTaskName,
+};
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
@@ -21,6 +23,7 @@ pub mod readarr_network_test_utils;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
+  AddAuthor(AddAuthorBody),
   AddRootFolder(AddReadarrRootFolderBody),
   AddTag(String),
   DeleteRootFolder(i64),
@@ -47,7 +50,9 @@ pub enum ReadarrEvent {
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      ReadarrEvent::GetAuthorDetails(_) | ReadarrEvent::ListAuthors => "/author",
+      ReadarrEvent::AddAuthor(_)
+      | ReadarrEvent::GetAuthorDetails(_)
+      | ReadarrEvent::ListAuthors => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
       ReadarrEvent::GetQueuedEvents | ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
@@ -79,6 +84,7 @@ impl Network<'_, '_> {
     readarr_event: ReadarrEvent,
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
+      ReadarrEvent::AddAuthor(body) => self.add_author(body).await.map(ReadarrSerdeable::from),
       ReadarrEvent::AddRootFolder(add_root_folder_body) => self
         .add_readarr_root_folder(add_root_folder_body)
         .await

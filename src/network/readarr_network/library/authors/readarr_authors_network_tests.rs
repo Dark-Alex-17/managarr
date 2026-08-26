@@ -1,13 +1,17 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::readarr_models::{AddAuthorSearchResult, Author, ReadarrSerdeable};
+  use crate::models::readarr_models::{
+    AddAuthorBody, AddAuthorSearchResult, Author, ReadarrSerdeable,
+  };
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::stateful_table::StatefulTable;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, stale_add_author_search_result, stale_author,
+    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, add_author_body, stale_add_author_search_result,
+    stale_author,
   };
+  use bimap::BiMap;
   use pretty_assertions::assert_eq;
   use serde_json::{Value, json};
 
@@ -287,5 +291,100 @@ mod tests {
     let app = app.lock().await;
     assert_some!(&app.data.readarr_data.add_searched_authors);
     assert_is_empty!(app.data.readarr_data.add_searched_authors.as_ref().unwrap());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_author_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "foreignAuthorId": "test-foreign-id",
+        "authorName": "Test Author",
+        "monitored": true,
+        "rootFolderPath": "/nfs/books",
+        "qualityProfileId": 1,
+        "metadataProfileId": 1,
+        "tags": [1, 2],
+        "addOptions": {
+          "monitor": "all",
+          "monitorNewItems": "all",
+          "searchForMissingBooks": true
+        }
+      }))
+      .returns(json!({"id": 1}))
+      .build_for(ReadarrEvent::AddAuthor(AddAuthorBody::default()))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddAuthor(add_author_body()))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_author_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none()
+  {
+    let add_author_body = AddAuthorBody {
+      tags: vec![1, 2],
+      tag_input_string: None,
+      ..add_author_body()
+    };
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "foreignAuthorId": "test-foreign-id",
+        "authorName": "Test Author",
+        "monitored": true,
+        "rootFolderPath": "/nfs/books",
+        "qualityProfileId": 1,
+        "metadataProfileId": 1,
+        "tags": [1, 2],
+        "addOptions": {
+          "monitor": "all",
+          "monitorNewItems": "all",
+          "searchForMissingBooks": true
+        }
+      }))
+      .returns(json!({"id": 1}))
+      .build_for(ReadarrEvent::AddAuthor(add_author_body.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddAuthor(add_author_body))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_author_event_failure() {
+    let add_author_body = AddAuthorBody {
+      tag_input_string: None,
+      ..add_author_body()
+    };
+    let (mock, app, _server) = MockServarrApi::post()
+      .returns(json!({"id": 1}))
+      .status(400)
+      .build_for(ReadarrEvent::AddAuthor(add_author_body.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddAuthor(add_author_body))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
   }
 }
