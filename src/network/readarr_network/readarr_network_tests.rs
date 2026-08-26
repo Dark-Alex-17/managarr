@@ -15,6 +15,7 @@ mod tests {
   #[rstest]
   #[case(ReadarrEvent::GetAuthorDetails(1), "/author")]
   #[case(ReadarrEvent::ListAuthors, "/author")]
+  #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]

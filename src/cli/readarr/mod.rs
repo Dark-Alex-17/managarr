@@ -44,6 +44,15 @@ pub enum ReadarrCommand {
     about = "Commands to list attributes from your Readarr instance"
   )]
   List(ReadarrListCommand),
+  #[command(about = "Search for a new author to add to Readarr")]
+  SearchNewAuthor {
+    #[arg(
+      long,
+      help = "The name of the author you want to search for",
+      required = true
+    )]
+    query: String,
+  },
   #[command(about = "Start the specified Readarr task")]
   StartTask {
     #[arg(
@@ -102,6 +111,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         ReadarrListCommandHandler::with(self.app, list_command, self.network)
           .handle()
           .await?
+      }
+      ReadarrCommand::SearchNewAuthor { query } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::SearchNewAuthor(query).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       ReadarrCommand::StartTask { task_name } => {
         let resp = self

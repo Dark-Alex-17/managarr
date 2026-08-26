@@ -1,11 +1,12 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::readarr_models::{Author, ReadarrSerdeable};
+  use crate::models::readarr_models::{AddAuthorSearchResult, Author, ReadarrSerdeable};
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
+  use crate::models::stateful_table::StatefulTable;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    AUTHOR_JSON, stale_author,
+    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, stale_add_author_search_result, stale_author,
   };
   use pretty_assertions::assert_eq;
   use serde_json::{Value, json};
@@ -186,5 +187,105 @@ mod tests {
       app.lock().await.data.readarr_data.authors.items,
       stale_authors
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_author_event() {
+    let search_results_json =
+      json!([serde_json::from_str::<Value>(ADD_AUTHOR_SEARCH_RESULT_JSON).unwrap()]);
+    let expected_results: Vec<AddAuthorSearchResult> =
+      serde_json::from_value(search_results_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(search_results_json)
+      .query("term=test%20%26%20author")
+      .build_for(ReadarrEvent::SearchNewAuthor("test & author".to_owned()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::SearchNewAuthor("test & author".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::AddAuthorSearchResults(search_results) = result.unwrap() else {
+      panic!("Expected AddAuthorSearchResults")
+    };
+
+    assert_eq!(search_results, expected_results);
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .add_searched_authors
+        .as_ref()
+        .unwrap()
+        .items,
+      expected_results
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_author_event_navigates_to_empty_results_when_empty() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .query("term=nonexistent")
+      .build_for(ReadarrEvent::SearchNewAuthor("nonexistent".to_owned()))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.push_navigation_stack(ActiveReadarrBlock::AddAuthorSearchResults.into());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::SearchNewAuthor("nonexistent".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_ok!(result);
+    let app = app.lock().await;
+    assert_none!(&app.data.readarr_data.add_searched_authors);
+    assert_eq!(
+      app.get_current_route(),
+      ActiveReadarrBlock::AddAuthorEmptySearchResults.into()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_author_event_sets_empty_table_on_api_error() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([serde_json::from_str::<Value>(
+        ADD_AUTHOR_SEARCH_RESULT_JSON
+      )
+      .unwrap()]))
+      .status(500)
+      .query("term=nonexistent")
+      .build_for(ReadarrEvent::SearchNewAuthor("nonexistent".to_owned()))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      let mut stale_table = StatefulTable::default();
+      stale_table.set_items(vec![stale_add_author_search_result()]);
+      app.data.readarr_data.add_searched_authors = Some(stale_table);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::SearchNewAuthor("nonexistent".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(&app.data.readarr_data.add_searched_authors);
+    assert_is_empty!(app.data.readarr_data.add_searched_authors.as_ref().unwrap());
   }
 }

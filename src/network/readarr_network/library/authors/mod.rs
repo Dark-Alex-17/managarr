@@ -2,10 +2,12 @@ use anyhow::Result;
 use log::info;
 
 use crate::models::Route;
-use crate::models::readarr_models::Author;
+use crate::models::readarr_models::{AddAuthorSearchResult, Author};
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
+use crate::models::stateful_table::StatefulTable;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
+use urlencoding::encode;
 
 #[cfg(test)]
 #[path = "readarr_authors_network_tests.rs"]
@@ -54,5 +56,45 @@ impl Network<'_, '_> {
         }
       })
       .await
+  }
+
+  pub(in crate::network::readarr_network) async fn search_author(
+    &mut self,
+    query: String,
+  ) -> Result<Vec<AddAuthorSearchResult>> {
+    info!("Searching for author: {query}");
+    let event = ReadarrEvent::SearchNewAuthor(String::new());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("term={}", encode(&query))),
+      )
+      .await;
+
+    let result = self
+      .handle_request::<(), Vec<AddAuthorSearchResult>>(request_props, |author_vec, mut app| {
+        if author_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveReadarrBlock::AddAuthorEmptySearchResults.into());
+        } else if let Some(add_searched_authors) =
+          app.data.readarr_data.add_searched_authors.as_mut()
+        {
+          add_searched_authors.set_items(author_vec);
+        } else {
+          let mut add_searched_authors = StatefulTable::default();
+          add_searched_authors.set_items(author_vec);
+          app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
+        }
+      })
+      .await;
+
+    if result.is_err() {
+      self.app.lock().await.data.readarr_data.add_searched_authors = Some(StatefulTable::default());
+    }
+
+    result
   }
 }

@@ -40,6 +40,7 @@ pub enum ReadarrEvent {
   GetUpdates,
   HealthCheck,
   ListAuthors,
+  SearchNewAuthor(String),
   StartTask(ReadarrTaskName),
 }
 
@@ -47,6 +48,7 @@ impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       ReadarrEvent::GetAuthorDetails(_) | ReadarrEvent::ListAuthors => "/author",
+      ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
       ReadarrEvent::GetQueuedEvents | ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
@@ -135,6 +137,9 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::ListAuthors => self.list_authors().await.map(ReadarrSerdeable::from),
+      ReadarrEvent::SearchNewAuthor(query) => {
+        self.search_author(query).await.map(ReadarrSerdeable::from)
+      }
       ReadarrEvent::StartTask(task_name) => self
         .start_readarr_task(task_name)
         .await

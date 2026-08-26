@@ -1,7 +1,9 @@
 #[cfg(test)]
 #[allow(dead_code)]
 pub mod test_utils {
-  use crate::models::readarr_models::{Author, AuthorStatus, NewItemMonitorType};
+  use crate::models::readarr_models::{
+    AddAuthorSearchResult, Author, AuthorStatus, NewItemMonitorType,
+  };
   use crate::models::servarr_models::RootFolder;
 
   pub const AUTHOR_JSON: &str = r#"{
@@ -31,6 +33,18 @@ pub mod test_utils {
     }
   }"#;
 
+  pub const ADD_AUTHOR_SEARCH_RESULT_JSON: &str = r#"{
+    "foreignAuthorId": "test-foreign-id",
+    "authorName": "Test Author",
+    "status": "continuing",
+    "ended": false,
+    "overview": "some interesting description of the author",
+    "authorType": "Person",
+    "disambiguation": "American novelist",
+    "genres": ["science fiction"],
+    "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 }
+  }"#;
+
   pub fn stale_author() -> Author {
     Author {
       id: 99,
@@ -46,6 +60,15 @@ pub mod test_utils {
       genres: vec![],
       tags: vec![],
       ..Author::default()
+    }
+  }
+
+  pub fn stale_add_author_search_result() -> AddAuthorSearchResult {
+    AddAuthorSearchResult {
+      foreign_author_id: "foreign-author-99".to_owned(),
+      author_name: "Stale Author".into(),
+      status: AuthorStatus::Continuing,
+      ..AddAuthorSearchResult::default()
     }
   }
 

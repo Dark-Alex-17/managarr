@@ -15,6 +15,31 @@ mod tests {
     }
 
     #[test]
+    fn test_search_new_author_requires_query() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "search-new-author"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_search_new_author_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "search-new-author",
+        "--query",
+        "test query",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "start-task"]);
 
@@ -70,6 +95,33 @@ mod tests {
       models::Serdeable,
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_search_new_author_command() {
+      let expected_query = "test author".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::SearchNewAuthor(expected_query.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let search_new_author_command = ReadarrCommand::SearchNewAuthor {
+        query: expected_query,
+      };
+
+      let result = ReadarrCliHandler::with(&app_arc, search_new_author_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_start_task_command() {
