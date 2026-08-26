@@ -4,8 +4,11 @@ mod tests {
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
+  use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
+    AUTHOR_JSON, stale_author,
+  };
   use pretty_assertions::assert_eq;
-  use serde_json::json;
+  use serde_json::{Value, json};
 
   #[tokio::test]
   async fn test_handle_list_authors_event() {
@@ -74,20 +77,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_list_authors_event_no_op_when_user_is_selecting_sort_options() {
-    let authors_json = json!([{
-      "id": 1,
-      "authorName": "Alpha Author",
-      "foreignAuthorId": "foreign-author-1",
-      "status": "continuing",
-      "path": "/nfs/books/Alpha Author",
-      "rootFolderPath": "/nfs/books/",
-      "qualityProfileId": 1,
-      "metadataProfileId": 1,
-      "monitored": true,
-      "monitorNewItems": "all",
-      "genres": [],
-      "tags": []
-    }]);
+    let authors_json = json!([serde_json::from_str::<Value>(AUTHOR_JSON).unwrap()]);
     let (mock, app, _server) = MockServarrApi::get()
       .returns(authors_json)
       .build_for(ReadarrEvent::ListAuthors)
@@ -111,21 +101,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_list_authors_event_failure() {
-    let stale_authors: Vec<Author> = serde_json::from_value(json!([{
-      "id": 99,
-      "authorName": "Stale Author",
-      "foreignAuthorId": "foreign-author-99",
-      "status": "continuing",
-      "path": "/nfs/books/Stale Author",
-      "rootFolderPath": "/nfs/books/",
-      "qualityProfileId": 1,
-      "metadataProfileId": 1,
-      "monitored": true,
-      "monitorNewItems": "all",
-      "genres": [],
-      "tags": []
-    }]))
-    .unwrap();
+    let stale_authors = vec![stale_author()];
     let (mock, app, _server) = MockServarrApi::get()
       .returns(json!({}))
       .status(500)

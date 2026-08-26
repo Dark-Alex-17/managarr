@@ -15,6 +15,10 @@ mod system;
 #[path = "readarr_network_tests.rs"]
 mod readarr_network_tests;
 
+#[cfg(test)]
+#[path = "readarr_network_test_utils.rs"]
+pub mod readarr_network_test_utils;
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
   AddRootFolder(AddReadarrRootFolderBody),

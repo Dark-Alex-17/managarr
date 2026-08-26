@@ -6,19 +6,10 @@ mod tests {
   use crate::models::servarr_models::RootFolder;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
+  use crate::network::readarr_network::readarr_network_test_utils::test_utils::stale_root_folder;
   use bimap::BiMap;
   use pretty_assertions::assert_eq;
   use serde_json::json;
-
-  fn stale_root_folder() -> RootFolder {
-    RootFolder {
-      id: 99,
-      path: "/stale".to_owned(),
-      accessible: false,
-      free_space: 1,
-      unmapped_folders: None,
-    }
-  }
 
   #[tokio::test]
   async fn test_handle_add_readarr_root_folder_event() {
