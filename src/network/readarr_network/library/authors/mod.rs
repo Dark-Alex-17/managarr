@@ -12,6 +12,28 @@ use crate::network::{Network, RequestMethod};
 mod readarr_authors_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn get_author_details(
+    &mut self,
+    author_id: i64,
+  ) -> Result<Author> {
+    info!("Fetching details for Readarr author with ID: {author_id}");
+    let event = ReadarrEvent::GetAuthorDetails(author_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{author_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Author>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn list_authors(&mut self) -> Result<Vec<Author>> {
     info!("Fetching Readarr authors");
     let event = ReadarrEvent::ListAuthors;

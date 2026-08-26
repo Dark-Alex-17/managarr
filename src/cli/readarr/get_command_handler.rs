@@ -18,6 +18,15 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrGetCommand {
+  #[command(about = "Get detailed information for the author with the given ID")]
+  AuthorDetails {
+    #[arg(
+      long,
+      help = "The Readarr ID of the author whose details you wish to fetch",
+      required = true
+    )]
+    author_id: i64,
+  },
   #[command(about = "Fetch the host config for your Readarr instance")]
   HostConfig,
   #[command(about = "Fetch the security config for your Readarr instance")]
@@ -53,6 +62,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrGetCommand> for ReadarrGetCommandH
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrGetCommand::AuthorDetails { author_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetAuthorDetails(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrGetCommand::HostConfig => {
         let resp = self
           .network

@@ -11,6 +11,63 @@ mod tests {
   use serde_json::{Value, json};
 
   #[tokio::test]
+  async fn test_handle_get_author_details_event() {
+    let expected_author: Author = serde_json::from_str(AUTHOR_JSON).unwrap();
+    let stale_authors = vec![stale_author()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .authors
+        .set_items(stale_authors.clone());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Author(author) = result.unwrap() else {
+      panic!("Expected Author")
+    };
+
+    assert_eq!(author, expected_author);
+    assert_eq!(
+      app.lock().await.data.readarr_data.authors.items,
+      stale_authors
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_author_details_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .status(500)
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_list_authors_event() {
     let authors_json = json!([
       {

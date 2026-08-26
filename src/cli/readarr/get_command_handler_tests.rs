@@ -18,8 +18,37 @@ mod tests {
   }
 
   mod cli {
-    use super::*;
+    use clap::error::ErrorKind;
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
+
+    use super::*;
+
+    #[test]
+    fn test_author_details_requires_author_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "get", "author-details"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_author_details_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "get",
+        "author-details",
+        "--author-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
 
     #[rstest]
     fn test_get_commands_have_no_arg_requirements(
@@ -47,6 +76,32 @@ mod tests {
       models::{Serdeable, readarr_models::ReadarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_get_author_details_command() {
+      let expected_author_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAuthorDetails(expected_author_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_author_details_command = ReadarrGetCommand::AuthorDetails { author_id: 1 };
+
+      let result =
+        ReadarrGetCommandHandler::with(&app_arc, get_author_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_get_host_config_command() {

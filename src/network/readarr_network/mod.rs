@@ -25,6 +25,7 @@ pub enum ReadarrEvent {
   AddTag(String),
   DeleteRootFolder(i64),
   DeleteTag(i64),
+  GetAuthorDetails(i64),
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
@@ -45,7 +46,7 @@ pub enum ReadarrEvent {
 impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      ReadarrEvent::ListAuthors => "/author",
+      ReadarrEvent::GetAuthorDetails(_) | ReadarrEvent::ListAuthors => "/author",
       ReadarrEvent::GetQueuedEvents | ReadarrEvent::StartTask(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
@@ -87,6 +88,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteTag(tag_id) => self
         .delete_readarr_tag(tag_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetAuthorDetails(author_id) => self
+        .get_author_details(author_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetDiskSpace => self

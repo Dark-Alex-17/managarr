@@ -13,6 +13,7 @@ mod tests {
   use tokio::sync::Mutex;
 
   #[rstest]
+  #[case(ReadarrEvent::GetAuthorDetails(1), "/author")]
   #[case(ReadarrEvent::ListAuthors, "/author")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
