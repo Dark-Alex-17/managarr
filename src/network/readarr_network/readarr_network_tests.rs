@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::readarr_models::ReadarrSerdeable;
+  use crate::app::App;
+  use crate::models::readarr_models::{AddReadarrRootFolderBody, ReadarrSerdeable};
   use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
@@ -8,6 +9,8 @@ mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::json;
+  use std::sync::Arc;
+  use tokio::sync::Mutex;
 
   #[rstest]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
@@ -19,6 +22,10 @@ mod tests {
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]
+  #[case(
+    ReadarrEvent::AddRootFolder(AddReadarrRootFolderBody::default()),
+    "/rootfolder"
+  )]
   #[case(ReadarrEvent::GetRootFolders, "/rootfolder")]
   #[case(ReadarrEvent::GetStatus, "/system/status")]
   #[case(ReadarrEvent::GetTasks, "/system/task")]
@@ -445,5 +452,56 @@ mod tests {
 
     mock.assert_async().await;
     assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_readarr_tag_ids_vec() {
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let tags = "    test,HI ,, usenet ";
+    {
+      let mut app = app_arc.lock().await;
+      app.data.readarr_data.tags_map = BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "hi".to_owned()),
+      ]);
+    }
+    app_arc.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app_arc);
+
+    assert_eq!(
+      network.extract_and_add_readarr_tag_ids_vec(tags).await,
+      vec![2, 3, 1]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_readarr_tag_ids_vec_add_missing_tags_first() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "TESTING" }))
+      .returns(json!({ "id": 3, "label": "testing" }))
+      .build_for(ReadarrEvent::GetTags)
+      .await;
+    let tags = "usenet, test, TESTING";
+    {
+      let mut app_guard = app.lock().await;
+      app_guard.data.readarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    }
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let tag_ids_vec = network.extract_and_add_readarr_tag_ids_vec(tags).await;
+
+    mock.assert_async().await;
+    assert_eq!(tag_ids_vec, vec![1, 2, 3]);
+    assert_eq!(
+      app.lock().await.data.readarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
+    );
   }
 }

@@ -1,9 +1,12 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::readarr_models::ReadarrSerdeable;
+  use crate::models::readarr_models::{
+    AddReadarrRootFolderBody, MonitorType, NewItemMonitorType, ReadarrSerdeable,
+  };
   use crate::models::servarr_models::RootFolder;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
+  use bimap::BiMap;
   use pretty_assertions::assert_eq;
   use serde_json::json;
 
@@ -15,6 +18,117 @@ mod tests {
       free_space: 1,
       unmapped_folders: None,
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_readarr_root_folder_event() {
+    let expected_add_root_folder_body = AddReadarrRootFolderBody {
+      name: "Books".to_owned(),
+      path: "/nfs/test".to_owned(),
+      default_quality_profile_id: 1,
+      default_metadata_profile_id: 1,
+      default_monitor_option: MonitorType::All,
+      default_new_item_monitor_option: NewItemMonitorType::All,
+      default_tags: vec![],
+      tag_input_string: Some("usenet, testing".to_owned()),
+    };
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "Books",
+        "path": "/nfs/test",
+        "defaultQualityProfileId": 1,
+        "defaultMetadataProfileId": 1,
+        "defaultMonitorOption": "all",
+        "defaultNewItemMonitorOption": "all",
+        "defaultTags": [1, 2]
+      }))
+      .returns(json!({}))
+      .build_for(ReadarrEvent::AddRootFolder(
+        expected_add_root_folder_body.clone(),
+      ))
+      .await;
+    app.lock().await.data.readarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    assert_ok!(
+      network
+        .handle_readarr_event(ReadarrEvent::AddRootFolder(expected_add_root_folder_body))
+        .await
+    );
+
+    mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_readarr_root_folder_event_does_not_overwrite_default_tags_vec_when_tag_input_string_is_none()
+   {
+    let expected_add_root_folder_body = AddReadarrRootFolderBody {
+      name: "Books".to_owned(),
+      path: "/nfs/test".to_owned(),
+      default_quality_profile_id: 1,
+      default_metadata_profile_id: 1,
+      default_monitor_option: MonitorType::All,
+      default_new_item_monitor_option: NewItemMonitorType::All,
+      default_tags: vec![1, 2],
+      tag_input_string: None,
+    };
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "Books",
+        "path": "/nfs/test",
+        "defaultQualityProfileId": 1,
+        "defaultMetadataProfileId": 1,
+        "defaultMonitorOption": "all",
+        "defaultNewItemMonitorOption": "all",
+        "defaultTags": [1, 2]
+      }))
+      .returns(json!({}))
+      .build_for(ReadarrEvent::AddRootFolder(
+        expected_add_root_folder_body.clone(),
+      ))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    assert_ok!(
+      network
+        .handle_readarr_event(ReadarrEvent::AddRootFolder(expected_add_root_folder_body))
+        .await
+    );
+
+    mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_readarr_root_folder_event_failure() {
+    let expected_add_root_folder_body = AddReadarrRootFolderBody {
+      name: "Books".to_owned(),
+      path: "/nfs/test".to_owned(),
+      default_quality_profile_id: 1,
+      default_metadata_profile_id: 1,
+      default_monitor_option: MonitorType::All,
+      default_new_item_monitor_option: NewItemMonitorType::All,
+      default_tags: vec![],
+      tag_input_string: None,
+    };
+    let (mock, app, _server) = MockServarrApi::post()
+      .returns(json!({}))
+      .status(400)
+      .build_for(ReadarrEvent::AddRootFolder(
+        expected_add_root_folder_body.clone(),
+      ))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::AddRootFolder(expected_add_root_folder_body))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
   }
 
   #[tokio::test]

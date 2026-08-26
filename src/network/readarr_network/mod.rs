@@ -3,7 +3,7 @@ use log::info;
 use serde_json::{Value, json};
 
 use super::{NetworkEvent, NetworkResource};
-use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
+use crate::models::readarr_models::{AddReadarrRootFolderBody, ReadarrSerdeable, ReadarrTaskName};
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
@@ -16,6 +16,7 @@ mod readarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ReadarrEvent {
+  AddRootFolder(AddReadarrRootFolderBody),
   AddTag(String),
   DeleteTag(i64),
   GetDiskSpace,
@@ -44,7 +45,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
-      ReadarrEvent::GetRootFolders => "/rootfolder",
+      ReadarrEvent::AddRootFolder(_) | ReadarrEvent::GetRootFolders => "/rootfolder",
       ReadarrEvent::GetStatus => "/system/status",
       ReadarrEvent::GetTasks => "/system/task",
       ReadarrEvent::AddTag(_) | ReadarrEvent::DeleteTag(_) | ReadarrEvent::GetTags => "/tag",
@@ -65,6 +66,10 @@ impl Network<'_, '_> {
     readarr_event: ReadarrEvent,
   ) -> Result<ReadarrSerdeable> {
     match readarr_event {
+      ReadarrEvent::AddRootFolder(add_root_folder_body) => self
+        .add_readarr_root_folder(add_root_folder_body)
+        .await
+        .map(ReadarrSerdeable::from),
       ReadarrEvent::AddTag(tag) => self.add_readarr_tag(tag).await.map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteTag(tag_id) => self
         .delete_readarr_tag(tag_id)
@@ -224,5 +229,41 @@ impl Network<'_, '_> {
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
       .await
+  }
+
+  pub(in crate::network::readarr_network) async fn extract_and_add_readarr_tag_ids_vec(
+    &mut self,
+    edit_tags: &str,
+  ) -> Vec<i64> {
+    let missing_tags_vec = {
+      let tags_map = &self.app.lock().await.data.readarr_data.tags_map;
+      edit_tags
+        .split(',')
+        .filter(|&tag| {
+          !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none()
+        })
+        .collect::<Vec<&str>>()
+    };
+
+    for tag in missing_tags_vec {
+      self
+        .add_readarr_tag(tag.trim().to_owned())
+        .await
+        .expect("Unable to add tag");
+    }
+
+    let app = self.app.lock().await;
+    edit_tags
+      .split(',')
+      .filter(|tag| !tag.is_empty())
+      .map(|tag| {
+        *app
+          .data
+          .readarr_data
+          .tags_map
+          .get_by_right(tag.to_lowercase().trim())
+          .unwrap()
+      })
+      .collect()
   }
 }
