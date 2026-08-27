@@ -1,9 +1,11 @@
 use anyhow::Result;
-use log::info;
-use serde_json::Value;
+use log::{debug, info};
+use serde_json::{Value, json};
 
 use crate::models::Route;
-use crate::models::readarr_models::{AddAuthorBody, AddAuthorSearchResult, Author};
+use crate::models::readarr_models::{
+  AddAuthorBody, AddAuthorSearchResult, Author, EditAuthorParams,
+};
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
 use crate::network::readarr_network::ReadarrEvent;
@@ -40,6 +42,123 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<AddAuthorBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn edit_author(
+    &mut self,
+    mut edit_author_params: EditAuthorParams,
+  ) -> Result<()> {
+    info!("Editing Readarr author");
+    if let Some(tag_input_str) = edit_author_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_readarr_tag_ids_vec(tag_input_str)
+        .await;
+      edit_author_params.tags = Some(tag_ids_vec);
+    }
+    let author_id = edit_author_params.author_id;
+    let detail_event = ReadarrEvent::GetAuthorDetails(author_id);
+    let event = ReadarrEvent::EditAuthor(EditAuthorParams::default());
+    info!("Fetching author details for author with ID: {author_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{author_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_author_body, _| {
+        response = detailed_author_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing edit author body");
+
+    let mut detailed_author_body: Value = serde_json::from_str(&response)?;
+    let (
+      monitored,
+      monitor_new_items,
+      quality_profile_id,
+      metadata_profile_id,
+      root_folder_path,
+      tags,
+    ) = {
+      let monitored = edit_author_params.monitored.unwrap_or(
+        detailed_author_body["monitored"]
+          .as_bool()
+          .expect("Unable to deserialize 'monitored'"),
+      );
+      let monitor_new_items = edit_author_params.monitor_new_items.unwrap_or_else(|| {
+        serde_json::from_value(detailed_author_body["monitorNewItems"].clone())
+          .expect("Unable to deserialize 'monitorNewItems'")
+      });
+      let quality_profile_id = edit_author_params.quality_profile_id.unwrap_or_else(|| {
+        detailed_author_body["qualityProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'qualityProfileId'")
+      });
+      let metadata_profile_id = edit_author_params.metadata_profile_id.unwrap_or_else(|| {
+        detailed_author_body["metadataProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'metadataProfileId'")
+      });
+      let root_folder_path = edit_author_params.root_folder_path.unwrap_or_else(|| {
+        detailed_author_body["path"]
+          .as_str()
+          .expect("Unable to deserialize 'path'")
+          .to_owned()
+      });
+      let tags = if edit_author_params.clear_tags {
+        vec![]
+      } else {
+        edit_author_params.tags.unwrap_or(
+          detailed_author_body["tags"]
+            .as_array()
+            .expect("Unable to deserialize 'tags'")
+            .iter()
+            .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
+            .collect(),
+        )
+      };
+
+      (
+        monitored,
+        monitor_new_items,
+        quality_profile_id,
+        metadata_profile_id,
+        root_folder_path,
+        tags,
+      )
+    };
+
+    *detailed_author_body.get_mut("monitored").unwrap() = json!(monitored);
+    *detailed_author_body.get_mut("monitorNewItems").unwrap() = json!(monitor_new_items);
+    *detailed_author_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
+    *detailed_author_body.get_mut("metadataProfileId").unwrap() = json!(metadata_profile_id);
+    *detailed_author_body.get_mut("path").unwrap() = json!(root_folder_path);
+    *detailed_author_body.get_mut("tags").unwrap() = json!(tags);
+
+    debug!("Edit author body: {detailed_author_body:?}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Put,
+        Some(detailed_author_body),
+        Some(format!("/{author_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
       .await
   }
 

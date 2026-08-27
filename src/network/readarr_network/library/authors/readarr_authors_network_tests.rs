@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
   use crate::models::readarr_models::{
-    AddAuthorBody, AddAuthorSearchResult, Author, ReadarrSerdeable,
+    AddAuthorBody, AddAuthorSearchResult, Author, EditAuthorParams, NewItemMonitorType,
+    ReadarrSerdeable,
   };
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::stateful_table::StatefulTable;
+  use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
@@ -12,6 +14,7 @@ mod tests {
     stale_author,
   };
   use bimap::BiMap;
+  use mockito::Matcher;
   use pretty_assertions::assert_eq;
   use serde_json::{Value, json};
 
@@ -385,6 +388,241 @@ mod tests {
       .await;
 
     mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_author_event() {
+    let mut expected_body: Value = serde_json::from_str(AUTHOR_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("monitorNewItems").unwrap() = json!("none");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("metadataProfileId").unwrap() = json!(2222);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+    let edit_author_params = EditAuthorParams {
+      author_id: 1,
+      monitored: Some(false),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(1111),
+      metadata_profile_id: Some(2222),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      ..EditAuthorParams::default()
+    };
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::EditAuthor(edit_author_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      app
+        .data
+        .readarr_data
+        .authors
+        .set_items(vec![stale_author()]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAuthor(edit_author_params))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+    assert_ok!(result);
+    let app = app.lock().await;
+    assert_eq!(app.data.readarr_data.authors.items, vec![stale_author()]);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_author_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none()
+  {
+    let mut expected_body: Value = serde_json::from_str(AUTHOR_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("monitorNewItems").unwrap() = json!("none");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("metadataProfileId").unwrap() = json!(2222);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+    let edit_author_params = EditAuthorParams {
+      author_id: 1,
+      monitored: Some(false),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(1111),
+      metadata_profile_id: Some(2222),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tags: Some(vec![1, 2]),
+      ..EditAuthorParams::default()
+    };
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::EditAuthor(edit_author_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAuthor(edit_author_params))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_author_event_defaults_to_previous_values() {
+    let edit_author_params = EditAuthorParams {
+      author_id: 1,
+      ..EditAuthorParams::default()
+    };
+    let expected_body: Value = serde_json::from_str(AUTHOR_JSON).unwrap();
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::EditAuthor(edit_author_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAuthor(edit_author_params))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_author_event_returns_empty_tags_vec_when_clear_tags_is_true() {
+    let mut expected_body: Value = serde_json::from_str(AUTHOR_JSON).unwrap();
+    *expected_body.get_mut("tags").unwrap() = json!([]);
+    let edit_author_params = EditAuthorParams {
+      author_id: 1,
+      clear_tags: true,
+      ..EditAuthorParams::default()
+    };
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::EditAuthor(edit_author_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAuthor(edit_author_params))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_author_event_failure() {
+    let edit_author_params = EditAuthorParams {
+      author_id: 1,
+      monitored: Some(false),
+      ..EditAuthorParams::default()
+    };
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .status(404)
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::EditAuthor(edit_author_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .expect(0)
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAuthor(edit_author_params))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
     assert_err!(result);
   }
 }

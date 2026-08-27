@@ -245,6 +245,21 @@ pub struct AddAuthorOptions {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct EditAuthorParams {
+  pub author_id: i64,
+  pub monitored: Option<bool>,
+  pub monitor_new_items: Option<NewItemMonitorType>,
+  pub quality_profile_id: Option<i64>,
+  pub metadata_profile_id: Option<i64>,
+  pub root_folder_path: Option<String>,
+  pub tags: Option<Vec<i64>>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
+  pub clear_tags: bool,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct AddReadarrRootFolderBody {
   pub name: String,
   pub path: String,

@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::readarr_models::{
-  AddAuthorBody, AddReadarrRootFolderBody, ReadarrSerdeable, ReadarrTaskName,
+  AddAuthorBody, AddReadarrRootFolderBody, EditAuthorParams, ReadarrSerdeable, ReadarrTaskName,
 };
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
@@ -28,6 +28,7 @@ pub enum ReadarrEvent {
   AddTag(String),
   DeleteRootFolder(i64),
   DeleteTag(i64),
+  EditAuthor(EditAuthorParams),
   GetAuthorDetails(i64),
   GetDiskSpace,
   GetHostConfig,
@@ -51,6 +52,7 @@ impl NetworkResource for ReadarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
       ReadarrEvent::AddAuthor(_)
+      | ReadarrEvent::EditAuthor(_)
       | ReadarrEvent::GetAuthorDetails(_)
       | ReadarrEvent::ListAuthors => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
@@ -96,6 +98,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteTag(tag_id) => self
         .delete_readarr_tag(tag_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::EditAuthor(edit_author_params) => self
+        .edit_author(edit_author_params)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorDetails(author_id) => self

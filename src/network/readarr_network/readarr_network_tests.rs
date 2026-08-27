@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::app::App;
-  use crate::models::readarr_models::{AddAuthorBody, AddReadarrRootFolderBody, ReadarrSerdeable};
+  use crate::models::readarr_models::{
+    AddAuthorBody, AddReadarrRootFolderBody, EditAuthorParams, ReadarrSerdeable,
+  };
   use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
@@ -14,6 +16,7 @@ mod tests {
 
   #[rstest]
   #[case(ReadarrEvent::AddAuthor(AddAuthorBody::default()), "/author")]
+  #[case(ReadarrEvent::EditAuthor(EditAuthorParams::default()), "/author")]
   #[case(ReadarrEvent::GetAuthorDetails(1), "/author")]
   #[case(ReadarrEvent::ListAuthors, "/author")]
   #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
