@@ -165,6 +165,45 @@ mod tests {
     }
 
     #[test]
+    fn test_list_book_history_requires_author_id_and_book_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "list", "book-history"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_book_history_success() {
+      let expected_args = ReadarrListCommand::BookHistory {
+        author_id: 1,
+        book_id: 2,
+      };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "list",
+        "book-history",
+        "--author-id",
+        "1",
+        "--book-id",
+        "2",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(book_history_command))) =
+        result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(book_history_command, expected_args);
+    }
+
+    #[test]
     fn test_list_books_success() {
       let expected_args = ReadarrListCommand::Books { author_id: 1 };
       let result =
@@ -335,6 +374,36 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_book_files_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_book_history_command() {
+      let expected_author_id = 1;
+      let expected_book_id = 2;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetBookHistory(expected_author_id, expected_book_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_book_history_command = ReadarrListCommand::BookHistory {
+        author_id: 1,
+        book_id: 2,
+      };
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_book_history_command, &mut mock_network)
           .handle()
           .await;
 

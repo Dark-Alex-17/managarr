@@ -36,6 +36,7 @@ pub enum ReadarrEvent {
   GetBookDetails(i64),
   GetBookEditions(i64),
   GetBookFiles(i64),
+  GetBookHistory(i64, i64),
   GetBooks(i64),
   GetDiskSpace,
   GetHostConfig,
@@ -80,7 +81,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::GetBookEditions(_) => "/edition",
       ReadarrEvent::HealthCheck => "/health",
-      ReadarrEvent::GetAuthorHistory(_) => "/history/author",
+      ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -147,6 +148,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetBookFiles(book_id) => self
         .get_book_files(book_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetBookHistory(author_id, book_id) => self
+        .get_readarr_book_history(author_id, book_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetBooks(author_id) => {

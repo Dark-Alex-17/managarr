@@ -1,7 +1,9 @@
 use anyhow::Result;
 use log::info;
 
-use crate::models::readarr_models::{Book, BookFile, Edition};
+use crate::models::Route;
+use crate::models::readarr_models::{Book, BookFile, Edition, ReadarrHistoryItem};
+use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 
@@ -114,6 +116,46 @@ impl Network<'_, '_> {
       .handle_request::<(), Vec<Book>>(request_props, |mut books_vec, mut app| {
         books_vec.sort_by_key(|a| a.id);
         app.data.readarr_data.books.set_items(books_vec);
+      })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_book_history(
+    &mut self,
+    author_id: i64,
+    book_id: i64,
+  ) -> Result<Vec<ReadarrHistoryItem>> {
+    info!("Fetching Readarr book history for book with ID: {book_id}");
+    let event = ReadarrEvent::GetBookHistory(author_id, book_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("authorId={author_id}&bookId={book_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<ReadarrHistoryItem>>(request_props, |mut history_vec, mut app| {
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Readarr(ActiveReadarrBlock::BookHistorySortPrompt, _)
+        );
+
+        let book_details_modal = app
+          .data
+          .readarr_data
+          .book_details_modal
+          .get_or_insert_default();
+
+        if !is_sorting {
+          history_vec.sort_by_key(|item| item.id);
+          book_details_modal.book_history.set_items(history_vec);
+          book_details_modal.book_history.apply_sorting_toggle(false);
+        }
       })
       .await
   }
