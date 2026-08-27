@@ -769,4 +769,47 @@ mod tests {
       stale_history_items
     );
   }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_book_search_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "BookSearch",
+        "bookIds": [1]
+      }))
+      .returns(json!({}))
+      .build_for(ReadarrEvent::TriggerAutomaticBookSearch(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TriggerAutomaticBookSearch(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_book_search_event_failure() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "BookSearch",
+        "bookIds": [1]
+      }))
+      .returns(json!({"name": "BookSearch", "status": "queued"}))
+      .status(500)
+      .build_for(ReadarrEvent::TriggerAutomaticBookSearch(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TriggerAutomaticBookSearch(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

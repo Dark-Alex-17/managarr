@@ -1,8 +1,11 @@
 use anyhow::Result;
 use log::info;
+use serde_json::Value;
 
 use crate::models::Route;
-use crate::models::readarr_models::{Book, BookFile, Edition, ReadarrHistoryItem};
+use crate::models::readarr_models::{
+  Book, BookFile, Edition, ReadarrCommandBody, ReadarrHistoryItem,
+};
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
@@ -157,6 +160,27 @@ impl Network<'_, '_> {
           book_details_modal.book_history.apply_sorting_toggle(false);
         }
       })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn trigger_automatic_book_search(
+    &mut self,
+    book_id: i64,
+  ) -> Result<Value> {
+    let event = ReadarrEvent::TriggerAutomaticBookSearch(book_id);
+    info!("Searching indexers for book with ID: {book_id}");
+    let body = ReadarrCommandBody {
+      name: "BookSearch".to_owned(),
+      book_ids: Some(vec![book_id]),
+      ..ReadarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<ReadarrCommandBody, Value>(request_props, |_, _| ())
       .await
   }
 }

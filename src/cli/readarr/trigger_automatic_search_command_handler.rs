@@ -27,6 +27,15 @@ pub enum ReadarrTriggerAutomaticSearchCommand {
     )]
     author_id: i64,
   },
+  #[command(about = "Trigger an automatic search for the book with the specified ID")]
+  Book {
+    #[arg(
+      long,
+      help = "The ID of the book you want to trigger an automatic search for",
+      required = true
+    )]
+    book_id: i64,
+  },
 }
 
 impl From<ReadarrTriggerAutomaticSearchCommand> for Command {
@@ -62,6 +71,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrTriggerAutomaticSearchCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::TriggerAutomaticAuthorSearch(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrTriggerAutomaticSearchCommand::Book { book_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::TriggerAutomaticBookSearch(book_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
