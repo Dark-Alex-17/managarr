@@ -28,6 +28,15 @@ pub enum ReadarrListCommand {
   },
   #[command(about = "List all authors in your Readarr library")]
   Authors,
+  #[command(about = "List all books for the author with the given ID")]
+  Books {
+    #[arg(
+      long,
+      help = "The Readarr ID of the author whose books you want to list",
+      required = true
+    )]
+    author_id: i64,
+  },
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
   DiskSpace,
   #[command(about = "Fetch Readarr logs")]
@@ -94,6 +103,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::ListAuthors.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Books { author_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetBooks(author_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

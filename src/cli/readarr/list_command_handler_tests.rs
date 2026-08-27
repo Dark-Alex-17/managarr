@@ -86,6 +86,32 @@ mod tests {
     }
 
     #[test]
+    fn test_list_books_requires_author_id() {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "list", "books"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_books_success() {
+      let expected_args = ReadarrListCommand::Books { author_id: 1 };
+      let result =
+        Cli::try_parse_from(["managarr", "readarr", "list", "books", "--author-id", "1"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(books_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(books_command, expected_args);
+    }
+
+    #[test]
     fn test_list_logs_default_values() {
       let expected_args = ReadarrListCommand::Logs {
         events: 500,
@@ -166,6 +192,31 @@ mod tests {
         ReadarrListCommandHandler::with(&app_arc, list_author_history_command, &mut mock_network)
           .handle()
           .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_books_command() {
+      let expected_author_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetBooks(expected_author_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_books_command = ReadarrListCommand::Books { author_id: 1 };
+
+      let result = ReadarrListCommandHandler::with(&app_arc, list_books_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

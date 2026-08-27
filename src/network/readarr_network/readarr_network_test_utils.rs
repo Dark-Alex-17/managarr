@@ -2,8 +2,9 @@
 #[allow(dead_code)]
 pub mod test_utils {
   use crate::models::readarr_models::{
-    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, MonitorType,
-    NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
+    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book,
+    MonitorType, NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType,
+    ReadarrHistoryItem,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
@@ -47,6 +48,25 @@ pub mod test_utils {
     "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 }
   }"#;
 
+  pub const BOOK_JSON: &str = r#"{
+    "id": 1,
+    "title": "Test Book",
+    "authorId": 1,
+    "foreignBookId": "test-foreign-book-id",
+    "monitored": true,
+    "anyEditionOk": true,
+    "pageCount": 662,
+    "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 },
+    "releaseDate": "2023-01-01T00:00:00Z",
+    "statistics": {
+      "bookFileCount": 2,
+      "totalBookCount": 3,
+      "sizeOnDisk": 12345,
+      "percentOfBooks": 66.6
+    },
+    "grabbed": false
+  }"#;
+
   pub fn stale_author() -> Author {
     Author {
       id: 99,
@@ -62,6 +82,17 @@ pub mod test_utils {
       genres: vec![],
       tags: vec![],
       ..Author::default()
+    }
+  }
+
+  pub fn stale_book() -> Book {
+    Book {
+      id: 99,
+      title: "Stale Book".into(),
+      author_id: 99,
+      foreign_book_id: "foreign-book-99".to_owned(),
+      monitored: true,
+      ..Book::default()
     }
   }
 

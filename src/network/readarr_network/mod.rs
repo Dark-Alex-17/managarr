@@ -33,6 +33,7 @@ pub enum ReadarrEvent {
   EditAuthor(EditAuthorParams),
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
+  GetBooks(i64),
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
@@ -65,6 +66,7 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::ListAuthors
       | ReadarrEvent::ToggleAuthorMonitoring(_) => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
+      ReadarrEvent::GetBooks(_) => "/book",
       ReadarrEvent::GetQueuedEvents
       | ReadarrEvent::StartTask(_)
       | ReadarrEvent::TriggerAutomaticAuthorSearch(_)
@@ -130,6 +132,9 @@ impl Network<'_, '_> {
         .get_readarr_author_history(author_id)
         .await
         .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetBooks(author_id) => {
+        self.get_books(author_id).await.map(ReadarrSerdeable::from)
+      }
       ReadarrEvent::GetDiskSpace => self
         .get_readarr_diskspace()
         .await
