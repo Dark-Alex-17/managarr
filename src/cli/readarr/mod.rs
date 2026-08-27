@@ -7,6 +7,7 @@ use delete_command_handler::{ReadarrDeleteCommand, ReadarrDeleteCommandHandler};
 use edit_command_handler::{ReadarrEditCommand, ReadarrEditCommandHandler};
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
 use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
+use refresh_command_handler::{ReadarrRefreshCommand, ReadarrRefreshCommandHandler};
 use tokio::sync::Mutex;
 use trigger_automatic_search_command_handler::{
   ReadarrTriggerAutomaticSearchCommand, ReadarrTriggerAutomaticSearchCommandHandler,
@@ -22,6 +23,7 @@ mod delete_command_handler;
 mod edit_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod refresh_command_handler;
 mod trigger_automatic_search_command_handler;
 
 #[cfg(test)]
@@ -55,6 +57,11 @@ pub enum ReadarrCommand {
     about = "Commands to list attributes from your Readarr instance"
   )]
   List(ReadarrListCommand),
+  #[command(
+    subcommand,
+    about = "Commands to refresh the data in your Readarr instance"
+  )]
+  Refresh(ReadarrRefreshCommand),
   #[command(
     subcommand,
     about = "Commands to trigger automatic searches for releases of different resources in your Readarr instance"
@@ -141,6 +148,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
       }
       ReadarrCommand::List(list_command) => {
         ReadarrListCommandHandler::with(self.app, list_command, self.network)
+          .handle()
+          .await?
+      }
+      ReadarrCommand::Refresh(refresh_command) => {
+        ReadarrRefreshCommandHandler::with(self.app, refresh_command, self.network)
           .handle()
           .await?
       }
