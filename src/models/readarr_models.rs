@@ -220,6 +220,14 @@ pub struct AddAuthorSearchResult {
   pub ratings: Option<Ratings>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub struct DeleteParams {
+  pub id: i64,
+  pub delete_files: bool,
+  pub add_import_list_exclusion: bool,
+}
+
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddAuthorBody {

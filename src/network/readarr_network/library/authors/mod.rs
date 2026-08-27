@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{
-  AddAuthorBody, AddAuthorSearchResult, Author, EditAuthorParams,
+  AddAuthorBody, AddAuthorSearchResult, Author, DeleteParams, EditAuthorParams,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -42,6 +42,38 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<AddAuthorBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn delete_author(
+    &mut self,
+    delete_author_params: DeleteParams,
+  ) -> Result<()> {
+    let event = ReadarrEvent::DeleteAuthor(DeleteParams::default());
+    let DeleteParams {
+      id,
+      delete_files,
+      add_import_list_exclusion,
+    } = delete_author_params;
+
+    info!(
+      "Deleting Readarr author with ID: {id} with deleteFiles={delete_files} and addImportListExclusion={add_import_list_exclusion}"
+    );
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        Some(format!(
+          "deleteFiles={delete_files}&addImportListExclusion={add_import_list_exclusion}"
+        )),
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
   }
 

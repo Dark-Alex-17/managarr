@@ -2,7 +2,7 @@
 mod tests {
   use crate::app::App;
   use crate::models::readarr_models::{
-    AddAuthorBody, AddReadarrRootFolderBody, EditAuthorParams, ReadarrSerdeable,
+    AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   };
   use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
@@ -16,6 +16,7 @@ mod tests {
 
   #[rstest]
   #[case(ReadarrEvent::AddAuthor(AddAuthorBody::default()), "/author")]
+  #[case(ReadarrEvent::DeleteAuthor(DeleteParams::default()), "/author")]
   #[case(ReadarrEvent::EditAuthor(EditAuthorParams::default()), "/author")]
   #[case(ReadarrEvent::GetAuthorDetails(1), "/author")]
   #[case(ReadarrEvent::ListAuthors, "/author")]
