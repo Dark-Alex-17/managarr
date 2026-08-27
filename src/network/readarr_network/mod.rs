@@ -32,6 +32,7 @@ pub enum ReadarrEvent {
   DeleteTag(i64),
   EditAuthor(EditAuthorParams),
   GetAuthorDetails(i64),
+  GetAuthorHistory(i64),
   GetDiskSpace,
   GetHostConfig,
   GetLogs(u64),
@@ -72,6 +73,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::HealthCheck => "/health",
+      ReadarrEvent::GetAuthorHistory(_) => "/history/author",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -122,6 +124,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorDetails(author_id) => self
         .get_author_details(author_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetAuthorHistory(author_id) => self
+        .get_readarr_author_history(author_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetDiskSpace => self

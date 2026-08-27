@@ -17,6 +17,15 @@ mod list_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrListCommand {
+  #[command(about = "Fetch all history events for the author with the given ID")]
+  AuthorHistory {
+    #[arg(
+      long,
+      help = "The Readarr ID of the author whose history you wish to fetch",
+      required = true
+    )]
+    author_id: i64,
+  },
   #[command(about = "List all authors in your Readarr library")]
   Authors,
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
@@ -74,6 +83,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrListCommand::AuthorHistory { author_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetAuthorHistory(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrListCommand::Authors => {
         let resp = self
           .network

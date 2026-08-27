@@ -31,6 +31,7 @@ mod tests {
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::HealthCheck, "/health")]
+  #[case(ReadarrEvent::GetAuthorHistory(1), "/history/author")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]

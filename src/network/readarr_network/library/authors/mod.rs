@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::readarr_models::{
   AddAuthorBody, AddAuthorSearchResult, Author, DeleteParams, EditAuthorParams, ReadarrCommandBody,
+  ReadarrHistoryItem,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -213,6 +214,41 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Author>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_readarr_author_history(
+    &mut self,
+    author_id: i64,
+  ) -> Result<Vec<ReadarrHistoryItem>> {
+    info!("Fetching Readarr author history for author with ID: {author_id}");
+    let event = ReadarrEvent::GetAuthorHistory(author_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("authorId={author_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<ReadarrHistoryItem>>(request_props, |mut history_vec, mut app| {
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Readarr(ActiveReadarrBlock::AuthorHistorySortPrompt, _)
+        );
+
+        let author_history = &mut app.data.readarr_data.author_history;
+
+        if !is_sorting {
+          history_vec.sort_by_key(|a| a.id);
+          author_history.set_items(history_vec);
+          author_history.apply_sorting_toggle(false);
+        }
+      })
       .await
   }
 

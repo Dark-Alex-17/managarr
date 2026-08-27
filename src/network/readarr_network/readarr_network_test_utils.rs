@@ -3,9 +3,10 @@
 pub mod test_utils {
   use crate::models::readarr_models::{
     AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, MonitorType,
-    NewItemMonitorType,
+    NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
   };
-  use crate::models::servarr_models::RootFolder;
+  use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
+  use chrono::DateTime;
 
   pub const AUTHOR_JSON: &str = r#"{
     "id": 1,
@@ -80,6 +81,45 @@ pub mod test_utils {
       accessible: false,
       free_space: 1,
       unmapped_folders: None,
+    }
+  }
+
+  pub fn stale_readarr_history_item() -> ReadarrHistoryItem {
+    ReadarrHistoryItem {
+      id: 99,
+      source_title: "Stale source title".into(),
+      ..ReadarrHistoryItem::default()
+    }
+  }
+
+  pub fn quality_wrapper() -> QualityWrapper {
+    QualityWrapper { quality: quality() }
+  }
+
+  pub fn quality() -> Quality {
+    Quality {
+      name: "AZW3".to_string(),
+    }
+  }
+
+  pub fn readarr_history_item() -> ReadarrHistoryItem {
+    ReadarrHistoryItem {
+      id: 1,
+      author_id: 1,
+      book_id: 1,
+      source_title: "Test source title".into(),
+      quality: quality_wrapper(),
+      date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
+      event_type: ReadarrHistoryEventType::Grabbed,
+      data: readarr_history_data(),
+    }
+  }
+
+  pub fn readarr_history_data() -> ReadarrHistoryData {
+    ReadarrHistoryData {
+      dropped_path: Some("/nfs/nzbget/completed/books/Something/cool.azw3".to_owned()),
+      imported_path: Some("/nfs/books/Test Author/Book 1/Cool.azw3".to_owned()),
+      ..ReadarrHistoryData::default()
     }
   }
 
