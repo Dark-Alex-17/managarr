@@ -2,7 +2,7 @@
 #[allow(dead_code)]
 pub mod test_utils {
   use crate::models::readarr_models::{
-    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book,
+    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, Edition,
     MonitorType, NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType,
     ReadarrHistoryItem,
   };
@@ -67,6 +67,24 @@ pub mod test_utils {
     "grabbed": false
   }"#;
 
+  pub const EDITION_JSON: &str = r#"{
+    "id": 1,
+    "bookId": 1,
+    "foreignEditionId": "test-foreign-edition-id",
+    "monitored": true,
+    "isEbook": true,
+    "title": "Test Edition",
+    "language": "eng",
+    "overview": "some interesting description of the edition",
+    "format": "Paperback",
+    "publisher": "Test Publisher",
+    "pageCount": 662,
+    "releaseDate": "2023-01-01T00:00:00Z",
+    "isbn13": "9780000000001",
+    "asin": "B000000001",
+    "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 }
+  }"#;
+
   pub fn stale_author() -> Author {
     Author {
       id: 99,
@@ -93,6 +111,18 @@ pub mod test_utils {
       foreign_book_id: "foreign-book-99".to_owned(),
       monitored: true,
       ..Book::default()
+    }
+  }
+
+  pub fn stale_edition() -> Edition {
+    Edition {
+      id: 99,
+      book_id: 99,
+      foreign_edition_id: "foreign-edition-99".to_owned(),
+      monitored: true,
+      is_ebook: true,
+      title: "Stale Edition".to_owned(),
+      ..Edition::default()
     }
   }
 

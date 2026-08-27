@@ -1,7 +1,7 @@
 use anyhow::Result;
 use log::info;
 
-use crate::models::readarr_models::Book;
+use crate::models::readarr_models::{Book, Edition};
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 
@@ -29,6 +29,37 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Book>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_book_editions(
+    &mut self,
+    book_id: i64,
+  ) -> Result<Vec<Edition>> {
+    info!("Fetching editions for Readarr book with ID: {book_id}");
+    let event = ReadarrEvent::GetBookEditions(book_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("bookId={book_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Edition>>(request_props, |mut editions_vec, mut app| {
+        editions_vec.sort_by_key(|edition| edition.id);
+        let book_details_modal = app
+          .data
+          .readarr_data
+          .book_details_modal
+          .get_or_insert_default();
+
+        book_details_modal.editions.set_items(editions_vec);
+      })
       .await
   }
 
