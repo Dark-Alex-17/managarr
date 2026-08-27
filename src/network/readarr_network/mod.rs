@@ -50,6 +50,7 @@ pub enum ReadarrEvent {
   StartTask(ReadarrTaskName),
   ToggleAuthorMonitoring(i64),
   TriggerAutomaticAuthorSearch(i64),
+  UpdateAllAuthors,
   UpdateAndScanAuthor(i64),
 }
 
@@ -66,6 +67,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetQueuedEvents
       | ReadarrEvent::StartTask(_)
       | ReadarrEvent::TriggerAutomaticAuthorSearch(_)
+      | ReadarrEvent::UpdateAllAuthors
       | ReadarrEvent::UpdateAndScanAuthor(_) => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
@@ -178,6 +180,7 @@ impl Network<'_, '_> {
         .trigger_automatic_author_search(author_id)
         .await
         .map(ReadarrSerdeable::from),
+      ReadarrEvent::UpdateAllAuthors => self.update_all_authors().await.map(ReadarrSerdeable::from),
       ReadarrEvent::UpdateAndScanAuthor(author_id) => self
         .update_and_scan_author(author_id)
         .await

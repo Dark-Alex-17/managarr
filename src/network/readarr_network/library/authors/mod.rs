@@ -362,6 +362,23 @@ impl Network<'_, '_> {
       .await
   }
 
+  pub(in crate::network::readarr_network) async fn update_all_authors(&mut self) -> Result<Value> {
+    info!("Updating all authors");
+    let event = ReadarrEvent::UpdateAllAuthors;
+    let body = ReadarrCommandBody {
+      name: "RefreshAuthor".to_owned(),
+      ..ReadarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<ReadarrCommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn update_and_scan_author(
     &mut self,
     author_id: i64,

@@ -25,6 +25,7 @@ mod tests {
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
   #[case(ReadarrEvent::TriggerAutomaticAuthorSearch(1), "/command")]
+  #[case(ReadarrEvent::UpdateAllAuthors, "/command")]
   #[case(ReadarrEvent::UpdateAndScanAuthor(1), "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]

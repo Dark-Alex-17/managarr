@@ -843,4 +843,45 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
   }
+
+  #[tokio::test]
+  async fn test_handle_update_all_authors_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "RefreshAuthor"
+      }))
+      .returns(json!({}))
+      .build_for(ReadarrEvent::UpdateAllAuthors)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::UpdateAllAuthors)
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_update_all_authors_event_failure() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "RefreshAuthor"
+      }))
+      .returns(json!({"name": "RefreshAuthor", "status": "queued"}))
+      .status(500)
+      .build_for(ReadarrEvent::UpdateAllAuthors)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::UpdateAllAuthors)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

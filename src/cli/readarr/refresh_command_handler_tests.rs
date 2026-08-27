@@ -25,6 +25,14 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn test_refresh_all_authors_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "refresh", "all-authors"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_refresh_author_requires_author_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "refresh", "author"]);
@@ -74,6 +82,28 @@ mod tests {
       models::{Serdeable, readarr_models::ReadarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_refresh_all_authors_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::UpdateAllAuthors.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let refresh_command = ReadarrRefreshCommand::AllAuthors;
+
+      let result = ReadarrRefreshCommandHandler::with(&app_arc, refresh_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_refresh_author_command() {

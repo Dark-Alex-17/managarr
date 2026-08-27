@@ -18,6 +18,8 @@ mod refresh_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrRefreshCommand {
+  #[command(about = "Refresh all author data for all authors in your Readarr library")]
+  AllAuthors,
   #[command(about = "Refresh author data and scan disk for the author with the given ID")]
   Author {
     #[arg(
@@ -58,6 +60,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrRefreshCommand>
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrRefreshCommand::AllAuthors => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::UpdateAllAuthors.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrRefreshCommand::Author { author_id } => {
         let resp = self
           .network
