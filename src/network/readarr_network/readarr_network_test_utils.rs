@@ -51,6 +51,8 @@ pub mod test_utils {
   pub const BOOK_JSON: &str = r#"{
     "id": 1,
     "title": "Test Book",
+    "authorTitle": "Test Author Test Book",
+    "seriesTitle": "Test Series",
     "authorId": 1,
     "foreignBookId": "test-foreign-book-id",
     "monitored": true,
@@ -64,6 +66,7 @@ pub mod test_utils {
       "sizeOnDisk": 12345,
       "percentOfBooks": 66.6
     },
+    "lastSearchTime": "2023-01-01T00:00:00Z",
     "grabbed": false
   }"#;
 

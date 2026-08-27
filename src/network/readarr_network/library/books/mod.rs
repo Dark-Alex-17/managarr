@@ -1,6 +1,6 @@
 use anyhow::Result;
-use log::info;
-use serde_json::Value;
+use log::{debug, info, warn};
+use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{
@@ -161,6 +161,69 @@ impl Network<'_, '_> {
         }
       })
       .await
+  }
+
+  pub(in crate::network::readarr_network) async fn toggle_book_monitoring(
+    &mut self,
+    book_id: i64,
+  ) -> Result<()> {
+    let event = ReadarrEvent::ToggleBookMonitoring(book_id);
+
+    let detail_event = ReadarrEvent::GetBookDetails(book_id);
+    info!("Toggling book monitoring for book with ID: {book_id}");
+    info!("Fetching book details for book with ID: {book_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{book_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_book_body, _| {
+        response = detailed_book_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing toggle book monitoring body");
+
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_book_body) => {
+        let monitored = detailed_book_body
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
+
+        *detailed_book_body.get_mut("monitored").unwrap() = json!(!monitored);
+
+        debug!("Toggle book monitoring body: {detailed_book_body:?}");
+
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_book_body),
+            Some(format!("/{book_id}")),
+            None,
+          )
+          .await;
+
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed book body was interrupted");
+        Ok(())
+      }
+    }
   }
 
   pub(in crate::network::readarr_network) async fn trigger_automatic_book_search(

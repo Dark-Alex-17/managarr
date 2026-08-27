@@ -101,6 +101,31 @@ mod tests {
 
       assert_ok!(&result);
     }
+
+    #[test]
+    fn test_toggle_book_monitoring_requires_book_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "toggle-book-monitoring"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_book_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "toggle-book-monitoring",
+        "--book-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
   }
 
   mod handler {
@@ -200,6 +225,31 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_toggle_book_monitoring_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::ToggleBookMonitoring(1).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let toggle_book_monitoring_command = ReadarrCommand::ToggleBookMonitoring { book_id: 1 };
+
+      let result =
+        ReadarrCliHandler::with(&app_arc, toggle_book_monitoring_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

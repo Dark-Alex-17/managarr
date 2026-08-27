@@ -6,12 +6,14 @@ mod tests {
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::stateful_table::SortOption;
+  use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
     BOOK_FILE_JSON, BOOK_JSON, EDITION_JSON, readarr_history_item, stale_book, stale_book_file,
     stale_edition, stale_readarr_history_item,
   };
+  use mockito::Matcher;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use serde_json::{Value, json};
@@ -768,6 +770,83 @@ mod tests {
         .items,
       stale_history_items
     );
+  }
+
+  #[rstest]
+  #[case(true, false)]
+  #[case(false, true)]
+  #[tokio::test]
+  async fn test_handle_toggle_book_monitoring_event(
+    #[case] initial_monitored: bool,
+    #[case] expected_monitored: bool,
+  ) {
+    let mut book_json: Value = serde_json::from_str(BOOK_JSON).unwrap();
+    *book_json.get_mut("monitored").unwrap() = json!(initial_monitored);
+    let mut expected_body = book_json.clone();
+    *expected_body.get_mut("monitored").unwrap() = json!(expected_monitored);
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(book_json)
+      .path("/1")
+      .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::ToggleBookMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ToggleBookMonitoring(1))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_book_monitoring_event_failure() {
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(BOOK_JSON).unwrap())
+      .status(404)
+      .path("/1")
+      .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::ToggleBookMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .expect(0)
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ToggleBookMonitoring(1))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+    assert_err!(result);
   }
 
   #[tokio::test]

@@ -55,6 +55,7 @@ pub enum ReadarrEvent {
   SearchNewAuthor(String),
   StartTask(ReadarrTaskName),
   ToggleAuthorMonitoring(i64),
+  ToggleBookMonitoring(i64),
   TriggerAutomaticAuthorSearch(i64),
   TriggerAutomaticBookSearch(i64),
   UpdateAllAuthors,
@@ -71,7 +72,9 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::ListAuthors
       | ReadarrEvent::ToggleAuthorMonitoring(_) => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
-      ReadarrEvent::GetBookDetails(_) | ReadarrEvent::GetBooks(_) => "/book",
+      ReadarrEvent::GetBookDetails(_)
+      | ReadarrEvent::GetBooks(_)
+      | ReadarrEvent::ToggleBookMonitoring(_) => "/book",
       ReadarrEvent::GetBookFiles(_) => "/bookfile",
       ReadarrEvent::GetQueuedEvents
       | ReadarrEvent::StartTask(_)
@@ -209,6 +212,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::ToggleAuthorMonitoring(author_id) => self
         .toggle_author_monitoring(author_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::ToggleBookMonitoring(book_id) => self
+        .toggle_book_monitoring(book_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::TriggerAutomaticAuthorSearch(author_id) => self

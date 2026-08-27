@@ -97,6 +97,15 @@ pub enum ReadarrCommand {
     )]
     author_id: i64,
   },
+  #[command(about = "Toggle monitoring for the specified book corresponding to the given book ID")]
+  ToggleBookMonitoring {
+    #[arg(
+      long,
+      help = "The Readarr ID of the book to toggle monitoring on",
+      required = true
+    )]
+    book_id: i64,
+  },
 }
 
 impl From<ReadarrCommand> for Command {
@@ -183,6 +192,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::ToggleAuthorMonitoring(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrCommand::ToggleBookMonitoring { book_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::ToggleBookMonitoring(book_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
