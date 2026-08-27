@@ -2,8 +2,8 @@
 #[allow(dead_code)]
 pub mod test_utils {
   use crate::models::readarr_models::{
-    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, Edition,
-    MonitorType, NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType,
+    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, BookFile,
+    Edition, MonitorType, NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType,
     ReadarrHistoryItem,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
@@ -67,6 +67,24 @@ pub mod test_utils {
     "grabbed": false
   }"#;
 
+  pub const BOOK_FILE_JSON: &str = r#"{
+    "id": 1,
+    "authorId": 1,
+    "bookId": 1,
+    "path": "/nfs/books/Test Author/Test Book/Test Author - Test Book.azw3",
+    "size": 1074732,
+    "dateAdded": "2023-01-01T00:00:00Z",
+    "quality": { "quality": { "name": "AZW3" } },
+    "mediaInfo": {
+      "audioBitRate": "128 kbps",
+      "audioChannels": 2,
+      "audioCodec": "MP3",
+      "audioBits": "16",
+      "audioSampleRate": "44.1 kHz"
+    },
+    "qualityCutoffNotMet": false
+  }"#;
+
   pub const EDITION_JSON: &str = r#"{
     "id": 1,
     "bookId": 1,
@@ -111,6 +129,16 @@ pub mod test_utils {
       foreign_book_id: "foreign-book-99".to_owned(),
       monitored: true,
       ..Book::default()
+    }
+  }
+
+  pub fn stale_book_file() -> BookFile {
+    BookFile {
+      id: 99,
+      author_id: 99,
+      book_id: 99,
+      path: "/nfs/books/Stale Author/Stale Book.azw3".to_owned(),
+      ..BookFile::default()
     }
   }
 

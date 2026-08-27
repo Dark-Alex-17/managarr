@@ -24,6 +24,7 @@ mod tests {
   #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
   #[case(ReadarrEvent::GetBookDetails(1), "/book")]
   #[case(ReadarrEvent::GetBooks(1), "/book")]
+  #[case(ReadarrEvent::GetBookFiles(1), "/bookfile")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
   #[case(ReadarrEvent::TriggerAutomaticAuthorSearch(1), "/command")]

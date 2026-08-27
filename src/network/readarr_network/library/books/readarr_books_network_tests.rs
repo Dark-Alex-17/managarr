@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::readarr_models::{Book, Edition, ReadarrSerdeable};
+  use crate::models::readarr_models::{Book, BookFile, Edition, ReadarrSerdeable};
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    BOOK_JSON, EDITION_JSON, stale_book, stale_edition,
+    BOOK_FILE_JSON, BOOK_JSON, EDITION_JSON, stale_book, stale_book_file, stale_edition,
   };
   use pretty_assertions::assert_eq;
   use serde_json::{Value, json};
@@ -238,6 +238,134 @@ mod tests {
         .editions
         .items,
       stale_editions
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_book_files_event() {
+    let expected_book_files: Vec<BookFile> = vec![serde_json::from_str(BOOK_FILE_JSON).unwrap()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
+        serde_json::from_str::<Value>(BOOK_FILE_JSON).unwrap()
+      ]))
+      .query("bookId=1")
+      .build_for(ReadarrEvent::GetBookFiles(1))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.book_details_modal = Some(BookDetailsModal::default());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookFiles(1))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::BookFiles(book_files) = result.unwrap() else {
+      panic!("Expected BookFiles")
+    };
+
+    assert_eq!(book_files, expected_book_files);
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .book_details_modal
+        .as_ref()
+        .unwrap()
+        .book_files
+        .items,
+      expected_book_files
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_book_files_event_empty_book_details_modal() {
+    let expected_book_files: Vec<BookFile> = vec![serde_json::from_str(BOOK_FILE_JSON).unwrap()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
+        serde_json::from_str::<Value>(BOOK_FILE_JSON).unwrap()
+      ]))
+      .query("bookId=1")
+      .build_for(ReadarrEvent::GetBookFiles(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookFiles(1))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::BookFiles(book_files) = result.unwrap() else {
+      panic!("Expected BookFiles")
+    };
+
+    assert_eq!(book_files, expected_book_files);
+
+    let app = app.lock().await;
+
+    assert_some!(&app.data.readarr_data.book_details_modal);
+    assert_eq!(
+      app
+        .data
+        .readarr_data
+        .book_details_modal
+        .as_ref()
+        .unwrap()
+        .book_files
+        .items,
+      expected_book_files
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_book_files_event_failure() {
+    let stale_book_files = vec![stale_book_file()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
+        serde_json::from_str::<Value>(BOOK_FILE_JSON).unwrap()
+      ]))
+      .status(500)
+      .query("bookId=1")
+      .build_for(ReadarrEvent::GetBookFiles(1))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      let mut book_details_modal = BookDetailsModal::default();
+      book_details_modal
+        .book_files
+        .set_items(stale_book_files.clone());
+      app.data.readarr_data.book_details_modal = Some(book_details_modal);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookFiles(1))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .book_details_modal
+        .as_ref()
+        .unwrap()
+        .book_files
+        .items,
+      stale_book_files
     );
   }
 
