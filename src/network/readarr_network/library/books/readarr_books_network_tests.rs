@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::models::readarr_models::{
-    Book, BookFile, Edition, ReadarrHistoryItem, ReadarrSerdeable,
+    Book, BookFile, DeleteParams, Edition, ReadarrHistoryItem, ReadarrSerdeable,
   };
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
   use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
@@ -17,6 +17,60 @@ mod tests {
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use serde_json::{Value, json};
+
+  #[rstest]
+  #[case(true, false, "deleteFiles=true&addImportListExclusion=false")]
+  #[case(false, true, "deleteFiles=false&addImportListExclusion=true")]
+  #[tokio::test]
+  async fn test_handle_delete_book_event(
+    #[case] delete_files: bool,
+    #[case] add_import_list_exclusion: bool,
+    #[case] expected_query: &str,
+  ) {
+    let delete_book_params = DeleteParams {
+      id: 1,
+      delete_files,
+      add_import_list_exclusion,
+    };
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .query(expected_query)
+      .build_for(ReadarrEvent::DeleteBook(delete_book_params.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBook(delete_book_params))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_book_event_failure() {
+    let delete_book_params = DeleteParams {
+      id: 1,
+      delete_files: true,
+      add_import_list_exclusion: false,
+    };
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .query("deleteFiles=true&addImportListExclusion=false")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteBook(delete_book_params.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBook(delete_book_params))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 
   #[tokio::test]
   async fn test_handle_get_book_details_event() {

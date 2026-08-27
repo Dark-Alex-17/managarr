@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{
-  Book, BookFile, Edition, ReadarrCommandBody, ReadarrHistoryItem,
+  Book, BookFile, DeleteParams, Edition, ReadarrCommandBody, ReadarrHistoryItem,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::network::readarr_network::ReadarrEvent;
@@ -15,6 +15,38 @@ use crate::network::{Network, RequestMethod};
 mod readarr_books_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn delete_book(
+    &mut self,
+    delete_book_params: DeleteParams,
+  ) -> Result<()> {
+    let event = ReadarrEvent::DeleteBook(DeleteParams::default());
+    let DeleteParams {
+      id,
+      delete_files,
+      add_import_list_exclusion,
+    } = delete_book_params;
+
+    info!(
+      "Deleting Readarr book with ID: {id} with deleteFiles={delete_files} and addImportListExclusion={add_import_list_exclusion}"
+    );
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        Some(format!(
+          "deleteFiles={delete_files}&addImportListExclusion={add_import_list_exclusion}"
+        )),
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_book_details(
     &mut self,
     book_id: i64,

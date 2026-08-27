@@ -105,6 +105,79 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_book_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "book"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_book_book_id_requires_a_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "book",
+        "--book-id",
+        "not_a_number",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ValueValidation);
+    }
+
+    #[test]
+    fn test_delete_book_defaults() {
+      let expected_args = ReadarrDeleteCommand::Book {
+        book_id: 1,
+        delete_files_from_disk: false,
+        add_list_exclusion: false,
+      };
+
+      let result = Cli::try_parse_from(["managarr", "readarr", "delete", "book", "--book-id", "1"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
+    fn test_delete_book_all_args_defined() {
+      let expected_args = ReadarrDeleteCommand::Book {
+        book_id: 1,
+        delete_files_from_disk: true,
+        add_list_exclusion: true,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "book",
+        "--book-id",
+        "1",
+        "--delete-files-from-disk",
+        "--add-list-exclusion",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
     fn test_delete_root_folder_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "root-folder"]);
@@ -242,6 +315,40 @@ mod tests {
 
       let result =
         ReadarrDeleteCommandHandler::with(&app_arc, delete_author_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_book_command() {
+      let expected_delete_book_params = DeleteParams {
+        id: 1,
+        delete_files: true,
+        add_import_list_exclusion: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::DeleteBook(expected_delete_book_params).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_book_command = ReadarrDeleteCommand::Book {
+        book_id: 1,
+        delete_files_from_disk: true,
+        add_list_exclusion: false,
+      };
+
+      let result =
+        ReadarrDeleteCommandHandler::with(&app_arc, delete_book_command, &mut mock_network)
           .handle()
           .await;
 

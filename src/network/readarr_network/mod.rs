@@ -28,6 +28,7 @@ pub enum ReadarrEvent {
   AddRootFolder(AddReadarrRootFolderBody),
   AddTag(String),
   DeleteAuthor(DeleteParams),
+  DeleteBook(DeleteParams),
   DeleteRootFolder(i64),
   DeleteTag(i64),
   EditAuthor(EditAuthorParams),
@@ -72,7 +73,8 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::ListAuthors
       | ReadarrEvent::ToggleAuthorMonitoring(_) => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
-      ReadarrEvent::GetBookDetails(_)
+      ReadarrEvent::DeleteBook(_)
+      | ReadarrEvent::GetBookDetails(_)
       | ReadarrEvent::GetBooks(_)
       | ReadarrEvent::ToggleBookMonitoring(_) => "/book",
       ReadarrEvent::GetBookFiles(_) => "/bookfile",
@@ -121,6 +123,10 @@ impl Network<'_, '_> {
       ReadarrEvent::AddTag(tag) => self.add_readarr_tag(tag).await.map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteAuthor(delete_author_params) => self
         .delete_author(delete_author_params)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::DeleteBook(delete_book_params) => self
+        .delete_book(delete_book_params)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteRootFolder(root_folder_id) => self
