@@ -27,6 +27,15 @@ pub enum ReadarrGetCommand {
     )]
     author_id: i64,
   },
+  #[command(about = "Get detailed information for the book with the given ID")]
+  BookDetails {
+    #[arg(
+      long,
+      help = "The Readarr ID of the book whose details you wish to fetch",
+      required = true
+    )]
+    book_id: i64,
+  },
   #[command(about = "Fetch the host config for your Readarr instance")]
   HostConfig,
   #[command(about = "Fetch the security config for your Readarr instance")]
@@ -66,6 +75,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrGetCommand> for ReadarrGetCommandH
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetAuthorDetails(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrGetCommand::BookDetails { book_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetBookDetails(book_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

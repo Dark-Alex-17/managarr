@@ -10,6 +10,56 @@ mod tests {
   use serde_json::{Value, json};
 
   #[tokio::test]
+  async fn test_handle_get_book_details_event() {
+    let expected_book: Book = serde_json::from_str(BOOK_JSON).unwrap();
+    let stale_books = vec![stale_book()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(BOOK_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.books.set_items(stale_books.clone());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookDetails(1))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Book(book) = result.unwrap() else {
+      panic!("Expected Book")
+    };
+
+    assert_eq!(book, expected_book);
+    assert_eq!(app.lock().await.data.readarr_data.books.items, stale_books);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_book_details_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(BOOK_JSON).unwrap())
+      .status(500)
+      .path("/1")
+      .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookDetails(1))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_get_books_event() {
     let books_json = json!([
       {

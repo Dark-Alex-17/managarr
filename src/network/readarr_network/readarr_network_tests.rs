@@ -22,6 +22,7 @@ mod tests {
   #[case(ReadarrEvent::ListAuthors, "/author")]
   #[case(ReadarrEvent::ToggleAuthorMonitoring(1), "/author")]
   #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
+  #[case(ReadarrEvent::GetBookDetails(1), "/book")]
   #[case(ReadarrEvent::GetBooks(1), "/book")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]

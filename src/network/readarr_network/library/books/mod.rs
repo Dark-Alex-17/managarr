@@ -10,6 +10,28 @@ use crate::network::{Network, RequestMethod};
 mod readarr_books_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn get_book_details(
+    &mut self,
+    book_id: i64,
+  ) -> Result<Book> {
+    info!("Fetching details for Readarr book with ID: {book_id}");
+    let event = ReadarrEvent::GetBookDetails(book_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{book_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Book>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_books(
     &mut self,
     author_id: i64,

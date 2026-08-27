@@ -50,6 +50,32 @@ mod tests {
       assert_ok!(&result);
     }
 
+    #[test]
+    fn test_book_details_requires_book_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "get", "book-details"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_book_details_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "get",
+        "book-details",
+        "--book-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
     #[rstest]
     fn test_get_commands_have_no_arg_requirements(
       #[values("host-config", "security-config", "system-status")] subcommand: &str,
@@ -97,6 +123,32 @@ mod tests {
 
       let result =
         ReadarrGetCommandHandler::with(&app_arc, get_author_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_book_details_command() {
+      let expected_book_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetBookDetails(expected_book_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_book_details_command = ReadarrGetCommand::BookDetails { book_id: 1 };
+
+      let result =
+        ReadarrGetCommandHandler::with(&app_arc, get_book_details_command, &mut mock_network)
           .handle()
           .await;
 
