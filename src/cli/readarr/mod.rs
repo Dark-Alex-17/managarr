@@ -8,6 +8,9 @@ use edit_command_handler::{ReadarrEditCommand, ReadarrEditCommandHandler};
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
 use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
 use tokio::sync::Mutex;
+use trigger_automatic_search_command_handler::{
+  ReadarrTriggerAutomaticSearchCommand, ReadarrTriggerAutomaticSearchCommandHandler,
+};
 
 use super::{CliCommandHandler, Command};
 use crate::models::readarr_models::ReadarrTaskName;
@@ -19,6 +22,7 @@ mod delete_command_handler;
 mod edit_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod trigger_automatic_search_command_handler;
 
 #[cfg(test)]
 #[path = "readarr_command_tests.rs"]
@@ -51,6 +55,11 @@ pub enum ReadarrCommand {
     about = "Commands to list attributes from your Readarr instance"
   )]
   List(ReadarrListCommand),
+  #[command(
+    subcommand,
+    about = "Commands to trigger automatic searches for releases of different resources in your Readarr instance"
+  )]
+  TriggerAutomaticSearch(ReadarrTriggerAutomaticSearchCommand),
   #[command(about = "Search for a new author to add to Readarr")]
   SearchNewAuthor {
     #[arg(
@@ -134,6 +143,15 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         ReadarrListCommandHandler::with(self.app, list_command, self.network)
           .handle()
           .await?
+      }
+      ReadarrCommand::TriggerAutomaticSearch(trigger_automatic_search_command) => {
+        ReadarrTriggerAutomaticSearchCommandHandler::with(
+          self.app,
+          trigger_automatic_search_command,
+          self.network,
+        )
+        .handle()
+        .await?
       }
       ReadarrCommand::SearchNewAuthor { query } => {
         let resp = self

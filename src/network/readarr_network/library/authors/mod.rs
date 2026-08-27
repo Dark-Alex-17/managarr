@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{
-  AddAuthorBody, AddAuthorSearchResult, Author, DeleteParams, EditAuthorParams,
+  AddAuthorBody, AddAuthorSearchResult, Author, DeleteParams, EditAuthorParams, ReadarrCommandBody,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -339,5 +339,26 @@ impl Network<'_, '_> {
         Ok(())
       }
     }
+  }
+
+  pub(in crate::network::readarr_network) async fn trigger_automatic_author_search(
+    &mut self,
+    author_id: i64,
+  ) -> Result<Value> {
+    let event = ReadarrEvent::TriggerAutomaticAuthorSearch(author_id);
+    info!("Searching indexers for author with ID: {author_id}");
+    let body = ReadarrCommandBody {
+      name: "AuthorSearch".to_owned(),
+      author_id: Some(author_id),
+      ..ReadarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<ReadarrCommandBody, Value>(request_props, |_, _| ())
+      .await
   }
 }

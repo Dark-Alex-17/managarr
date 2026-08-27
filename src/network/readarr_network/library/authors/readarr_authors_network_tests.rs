@@ -757,4 +757,47 @@ mod tests {
     async_toggle_server.assert_async().await;
     assert_err!(result);
   }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_author_search_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "AuthorSearch",
+        "authorId": 1
+      }))
+      .returns(json!({}))
+      .build_for(ReadarrEvent::TriggerAutomaticAuthorSearch(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TriggerAutomaticAuthorSearch(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_author_search_event_failure() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "AuthorSearch",
+        "authorId": 1
+      }))
+      .returns(json!({"name": "AuthorSearch", "status": "queued"}))
+      .status(500)
+      .build_for(ReadarrEvent::TriggerAutomaticAuthorSearch(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TriggerAutomaticAuthorSearch(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

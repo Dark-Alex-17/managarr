@@ -24,6 +24,7 @@ mod tests {
   #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
+  #[case(ReadarrEvent::TriggerAutomaticAuthorSearch(1), "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]

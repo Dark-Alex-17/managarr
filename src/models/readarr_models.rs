@@ -220,6 +220,16 @@ pub struct AddAuthorSearchResult {
   pub ratings: Option<Ratings>,
 }
 
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadarrCommandBody {
+  pub name: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub author_id: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub book_ids: Option<Vec<i64>>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteParams {
