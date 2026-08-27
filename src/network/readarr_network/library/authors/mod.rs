@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::{debug, info};
+use log::{debug, info, warn};
 use serde_json::{Value, json};
 
 use crate::models::Route;
@@ -276,5 +276,68 @@ impl Network<'_, '_> {
     }
 
     result
+  }
+
+  pub(in crate::network::readarr_network) async fn toggle_author_monitoring(
+    &mut self,
+    author_id: i64,
+  ) -> Result<()> {
+    let event = ReadarrEvent::ToggleAuthorMonitoring(author_id);
+
+    let detail_event = ReadarrEvent::GetAuthorDetails(author_id);
+    info!("Toggling author monitoring for author with ID: {author_id}");
+    info!("Fetching author details for author with ID: {author_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{author_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_author_body, _| {
+        response = detailed_author_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing toggle author monitoring body");
+
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_author_body) => {
+        let monitored = detailed_author_body
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
+
+        *detailed_author_body.get_mut("monitored").unwrap() = json!(!monitored);
+
+        debug!("Toggle author monitoring body: {detailed_author_body:?}");
+
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_author_body),
+            Some(format!("/{author_id}")),
+            None,
+          )
+          .await;
+
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed author body was interrupted");
+        Ok(())
+      }
+    }
   }
 }

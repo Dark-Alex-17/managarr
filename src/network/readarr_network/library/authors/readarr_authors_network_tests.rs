@@ -680,4 +680,81 @@ mod tests {
     mock.assert_async().await;
     assert_err!(result);
   }
+
+  #[rstest]
+  #[case(true, false)]
+  #[case(false, true)]
+  #[tokio::test]
+  async fn test_handle_toggle_author_monitoring_event(
+    #[case] initial_monitored: bool,
+    #[case] expected_monitored: bool,
+  ) {
+    let mut author_json: Value = serde_json::from_str(AUTHOR_JSON).unwrap();
+    *author_json.get_mut("monitored").unwrap() = json!(initial_monitored);
+    let mut expected_body = author_json.clone();
+    *expected_body.get_mut("monitored").unwrap() = json!(expected_monitored);
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(author_json)
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::ToggleAuthorMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ToggleAuthorMonitoring(1))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_author_monitoring_event_failure() {
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(AUTHOR_JSON).unwrap())
+      .status(404)
+      .path("/1")
+      .build_for(ReadarrEvent::GetAuthorDetails(1))
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::ToggleAuthorMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .expect(0)
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ToggleAuthorMonitoring(1))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+    assert_err!(result);
+  }
 }
