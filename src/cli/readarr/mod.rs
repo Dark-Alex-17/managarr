@@ -8,6 +8,7 @@ use edit_command_handler::{ReadarrEditCommand, ReadarrEditCommandHandler};
 use get_command_handler::{ReadarrGetCommand, ReadarrGetCommandHandler};
 use list_command_handler::{ReadarrListCommand, ReadarrListCommandHandler};
 use refresh_command_handler::{ReadarrRefreshCommand, ReadarrRefreshCommandHandler};
+use serde_json::json;
 use tokio::sync::Mutex;
 use trigger_automatic_search_command_handler::{
   ReadarrTriggerAutomaticSearchCommand, ReadarrTriggerAutomaticSearchCommandHandler,
@@ -67,6 +68,15 @@ pub enum ReadarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Readarr instance"
   )]
   TriggerAutomaticSearch(ReadarrTriggerAutomaticSearchCommand),
+  #[command(about = "Mark the Readarr history item with the given ID as 'failed'")]
+  MarkHistoryItemAsFailed {
+    #[arg(
+      long,
+      help = "The Readarr ID of the history item you wish to mark as 'failed'",
+      required = true
+    )]
+    history_item_id: i64,
+  },
   #[command(about = "Search for a new author to add to Readarr")]
   SearchNewAuthor {
     #[arg(
@@ -173,6 +183,15 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         )
         .handle()
         .await?
+      }
+      ReadarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
+        let _ = self
+          .network
+          .handle_network_event(ReadarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
+          .await?;
+        serde_json::to_string_pretty(
+          &json!({"message": "Readarr history item marked as 'failed'"}),
+        )?
       }
       ReadarrCommand::SearchNewAuthor { query } => {
         let resp = self

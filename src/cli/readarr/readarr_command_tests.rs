@@ -15,6 +15,31 @@ mod tests {
     }
 
     #[test]
+    fn test_mark_history_item_as_failed_requires_history_item_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "mark-history-item-as-failed"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_mark_history_item_as_failed_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "mark-history-item-as-failed",
+        "--history-item-id",
+        "1234",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_search_new_author_requires_query() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "search-new-author"]);
@@ -145,6 +170,37 @@ mod tests {
       models::Serdeable,
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_mark_history_item_as_failed_command() {
+      let expected_history_item_id = 1234i64;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::MarkHistoryItemAsFailed(expected_history_item_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let mark_history_item_as_failed_command = ReadarrCommand::MarkHistoryItemAsFailed {
+        history_item_id: expected_history_item_id,
+      };
+
+      let result = ReadarrCliHandler::with(
+        &app_arc,
+        mark_history_item_as_failed_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_search_new_author_command() {

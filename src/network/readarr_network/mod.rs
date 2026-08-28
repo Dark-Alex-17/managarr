@@ -59,6 +59,7 @@ pub enum ReadarrEvent {
   GetUpdates,
   HealthCheck,
   ListAuthors,
+  MarkHistoryItemAsFailed(i64),
   SearchNewAuthor(String),
   StartTask(ReadarrTaskName),
   ToggleAuthorMonitoring(i64),
@@ -98,6 +99,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::HealthCheck => "/health",
       ReadarrEvent::GetHistory(_) => "/history",
       ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
+      ReadarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -235,6 +237,10 @@ impl Network<'_, '_> {
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::ListAuthors => self.list_authors().await.map(ReadarrSerdeable::from),
+      ReadarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
+        .mark_readarr_history_item_as_failed(history_item_id)
+        .await
+        .map(ReadarrSerdeable::from),
       ReadarrEvent::SearchNewAuthor(query) => {
         self.search_author(query).await.map(ReadarrSerdeable::from)
       }

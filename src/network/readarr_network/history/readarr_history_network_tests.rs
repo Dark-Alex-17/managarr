@@ -263,4 +263,45 @@ mod tests {
       stale_history_items
     );
   }
+
+  #[tokio::test]
+  async fn test_handle_mark_readarr_history_item_as_failed_event() {
+    let history_item_id = 1234i64;
+    let (mock, app, _server) = MockServarrApi::post()
+      .returns(json!({}))
+      .path("/1234")
+      .build_for(ReadarrEvent::MarkHistoryItemAsFailed(history_item_id))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::MarkHistoryItemAsFailed(history_item_id))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_mark_readarr_history_item_as_failed_event_failure() {
+    let history_item_id = 1234i64;
+    let (mock, app, _server) = MockServarrApi::post()
+      .returns(json!({}))
+      .status(500)
+      .path("/1234")
+      .build_for(ReadarrEvent::MarkHistoryItemAsFailed(history_item_id))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::MarkHistoryItemAsFailed(history_item_id))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+  }
 }

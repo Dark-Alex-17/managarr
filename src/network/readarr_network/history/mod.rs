@@ -1,5 +1,6 @@
 use anyhow::Result;
 use log::info;
+use serde_json::Value;
 
 use crate::models::Route;
 use crate::models::readarr_models::ReadarrHistoryWrapper;
@@ -36,6 +37,28 @@ impl Network<'_, '_> {
           app.data.readarr_data.history.apply_sorting_toggle(false);
         }
       })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn mark_readarr_history_item_as_failed(
+    &mut self,
+    history_item_id: i64,
+  ) -> Result<Value> {
+    info!("Marking the Readarr history item with ID: {history_item_id} as 'failed'");
+    let event = ReadarrEvent::MarkHistoryItemAsFailed(history_item_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        None,
+        Some(format!("/{history_item_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |_, _| ())
       .await
   }
 }
