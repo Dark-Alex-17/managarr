@@ -116,4 +116,49 @@ mod tests {
       stale_downloads
     );
   }
+
+  #[tokio::test]
+  async fn test_handle_update_readarr_downloads_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "name": "RefreshMonitoredDownloads" }))
+      .returns(json!({
+        "name": "RefreshMonitoredDownloads",
+        "commandName": "Refresh Monitored Downloads",
+        "status": "queued"
+      }))
+      .build_for(ReadarrEvent::UpdateDownloads)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::UpdateDownloads)
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_update_readarr_downloads_event_failure() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "name": "RefreshMonitoredDownloads" }))
+      .returns(json!({
+        "name": "RefreshMonitoredDownloads",
+        "commandName": "Refresh Monitored Downloads",
+        "status": "queued"
+      }))
+      .status(500)
+      .build_for(ReadarrEvent::UpdateDownloads)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::UpdateDownloads)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

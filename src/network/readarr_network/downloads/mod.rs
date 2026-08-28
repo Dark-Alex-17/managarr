@@ -1,7 +1,9 @@
 use anyhow::Result;
 use log::info;
+use serde_json::Value;
 
 use crate::models::readarr_models::DownloadsResponse;
+use crate::models::servarr_models::CommandBody;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 
@@ -57,6 +59,24 @@ impl Network<'_, '_> {
           .downloads
           .set_items(queue_response.records);
       })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn update_readarr_downloads(
+    &mut self,
+  ) -> Result<Value> {
+    info!("Updating Readarr downloads");
+    let event = ReadarrEvent::UpdateDownloads;
+    let body = CommandBody {
+      name: "RefreshMonitoredDownloads".to_owned(),
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
   }
 }

@@ -34,6 +34,7 @@ mod tests {
   #[case(ReadarrEvent::TriggerAutomaticBookSearch(1), "/command")]
   #[case(ReadarrEvent::UpdateAllAuthors, "/command")]
   #[case(ReadarrEvent::UpdateAndScanAuthor(1), "/command")]
+  #[case(ReadarrEvent::UpdateDownloads, "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]

@@ -29,6 +29,8 @@ pub enum ReadarrRefreshCommand {
     )]
     author_id: i64,
   },
+  #[command(about = "Refresh all downloads in Readarr")]
+  Downloads,
 }
 
 impl From<ReadarrRefreshCommand> for Command {
@@ -71,6 +73,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrRefreshCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::UpdateAndScanAuthor(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrRefreshCommand::Downloads => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::UpdateDownloads.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

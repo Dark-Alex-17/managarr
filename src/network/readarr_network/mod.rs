@@ -65,6 +65,7 @@ pub enum ReadarrEvent {
   TriggerAutomaticBookSearch(i64),
   UpdateAllAuthors,
   UpdateAndScanAuthor(i64),
+  UpdateDownloads,
 }
 
 impl NetworkResource for ReadarrEvent {
@@ -87,7 +88,8 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::TriggerAutomaticAuthorSearch(_)
       | ReadarrEvent::TriggerAutomaticBookSearch(_)
       | ReadarrEvent::UpdateAllAuthors
-      | ReadarrEvent::UpdateAndScanAuthor(_) => "/command",
+      | ReadarrEvent::UpdateAndScanAuthor(_)
+      | ReadarrEvent::UpdateDownloads => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::GetBookEditions(_) => "/edition",
@@ -252,6 +254,10 @@ impl Network<'_, '_> {
       ReadarrEvent::UpdateAllAuthors => self.update_all_authors().await.map(ReadarrSerdeable::from),
       ReadarrEvent::UpdateAndScanAuthor(author_id) => self
         .update_and_scan_author(author_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::UpdateDownloads => self
+        .update_readarr_downloads()
         .await
         .map(ReadarrSerdeable::from),
     }
