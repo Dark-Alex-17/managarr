@@ -11,6 +11,7 @@ use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
+mod history;
 mod library;
 mod root_folders;
 mod system;
@@ -44,6 +45,7 @@ pub enum ReadarrEvent {
   GetBooks(i64),
   GetDiskSpace,
   GetDownloads(u64),
+  GetHistory(u64),
   GetHostConfig,
   GetLogs(u64),
   GetMetadataProfiles,
@@ -94,6 +96,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::GetBookEditions(_) => "/edition",
       ReadarrEvent::HealthCheck => "/health",
+      ReadarrEvent::GetHistory(_) => "/history",
       ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
@@ -189,6 +192,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetDownloads(count) => self
         .get_readarr_downloads(count)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetHistory(events) => self
+        .get_readarr_history(events)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetHostConfig => self

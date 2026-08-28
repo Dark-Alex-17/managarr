@@ -67,6 +67,15 @@ mod tests {
     }
 
     #[test]
+    fn test_list_history_events_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "list", "history", "--events"]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
     fn test_list_author_history_requires_author_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "list", "author-history"]);
@@ -282,6 +291,35 @@ mod tests {
         panic!("Unexpected command type");
       };
       assert_eq!(downloads_command, expected_args);
+    }
+
+    #[test]
+    fn test_list_history_default_values() {
+      let expected_args = ReadarrListCommand::History { events: 500 };
+      let result = Cli::try_parse_from(["managarr", "readarr", "list", "history"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(history_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(history_command, expected_args);
+    }
+
+    #[test]
+    fn test_list_history_success() {
+      let expected_args = ReadarrListCommand::History { events: 1000 };
+      let result =
+        Cli::try_parse_from(["managarr", "readarr", "list", "history", "--events", "1000"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(history_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(history_command, expected_args);
     }
   }
 
@@ -502,6 +540,32 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_downloads_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_history_command() {
+      let expected_events = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetHistory(expected_events).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_history_command = ReadarrListCommand::History { events: 1000 };
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_history_command, &mut mock_network)
           .handle()
           .await;
 

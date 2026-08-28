@@ -40,6 +40,7 @@ mod tests {
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::GetBookEditions(1), "/edition")]
   #[case(ReadarrEvent::HealthCheck, "/health")]
+  #[case(ReadarrEvent::GetHistory(500), "/history")]
   #[case(ReadarrEvent::GetAuthorHistory(1), "/history/author")]
   #[case(ReadarrEvent::GetBookHistory(1, 2), "/history/author")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]
