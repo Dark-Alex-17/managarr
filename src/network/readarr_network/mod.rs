@@ -10,6 +10,7 @@ use crate::models::readarr_models::{
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
+mod downloads;
 mod library;
 mod root_folders;
 mod system;
@@ -41,6 +42,7 @@ pub enum ReadarrEvent {
   GetBookHistory(i64, i64),
   GetBooks(i64),
   GetDiskSpace,
+  GetDownloads(u64),
   GetHostConfig,
   GetLogs(u64),
   GetMetadataProfiles,
@@ -93,6 +95,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
+      ReadarrEvent::GetDownloads(_) => "/queue",
       ReadarrEvent::AddRootFolder(_)
       | ReadarrEvent::DeleteRootFolder(_)
       | ReadarrEvent::GetRootFolders => "/rootfolder",
@@ -175,6 +178,10 @@ impl Network<'_, '_> {
       }
       ReadarrEvent::GetDiskSpace => self
         .get_readarr_diskspace()
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetDownloads(count) => self
+        .get_readarr_downloads(count)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetHostConfig => self

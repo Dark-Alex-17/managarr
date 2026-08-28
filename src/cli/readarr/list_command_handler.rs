@@ -72,6 +72,11 @@ pub enum ReadarrListCommand {
   },
   #[command(about = "List disk space details for all provisioned root folders in Readarr")]
   DiskSpace,
+  #[command(about = "List all active downloads in Readarr")]
+  Downloads {
+    #[arg(long, help = "How many downloads to fetch", default_value_t = 500)]
+    count: u64,
+  },
   #[command(about = "Fetch Readarr logs")]
   Logs {
     #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
@@ -171,6 +176,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetDiskSpace.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Downloads { count } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetDownloads(count).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

@@ -3,11 +3,12 @@
 pub mod test_utils {
   use crate::models::readarr_models::{
     AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, BookFile,
-    Edition, MonitorType, NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType,
-    ReadarrHistoryItem,
+    DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType, NewItemMonitorType,
+    ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
+  use serde_json::Number;
 
   pub const AUTHOR_JSON: &str = r#"{
     "id": 1,
@@ -106,6 +107,19 @@ pub mod test_utils {
     "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 }
   }"#;
 
+  pub const DOWNLOAD_RECORD_JSON: &str = r#"{
+    "title": "Test Book Download",
+    "status": "downloading",
+    "id": 1,
+    "bookId": 1,
+    "authorId": 1,
+    "size": 1000.0,
+    "sizeleft": 250.0,
+    "outputPath": "/nfs/nzbget/completed/books/Test Author - Test Book",
+    "indexer": "test-indexer",
+    "downloadClient": "NZBGet"
+  }"#;
+
   pub fn stale_author() -> Author {
     Author {
       id: 99,
@@ -184,6 +198,15 @@ pub mod test_utils {
     }
   }
 
+  pub fn stale_download_record() -> DownloadRecord {
+    DownloadRecord {
+      id: 99,
+      title: "Stale Download".to_owned(),
+      status: DownloadStatus::Queued,
+      ..DownloadRecord::default()
+    }
+  }
+
   pub fn quality_wrapper() -> QualityWrapper {
     QualityWrapper { quality: quality() }
   }
@@ -230,6 +253,27 @@ pub mod test_utils {
         monitor_new_items: NewItemMonitorType::All,
         search_for_missing_books: true,
       },
+    }
+  }
+
+  pub fn download_record() -> DownloadRecord {
+    DownloadRecord {
+      title: "Test Book Download".to_owned(),
+      status: DownloadStatus::Downloading,
+      id: 1,
+      book_id: Some(Number::from(1)),
+      author_id: Some(Number::from(1)),
+      size: 1000.0,
+      sizeleft: 250.0,
+      output_path: Some("/nfs/nzbget/completed/books/Test Author - Test Book".into()),
+      indexer: "test-indexer".to_owned(),
+      download_client: Some("NZBGet".to_owned()),
+    }
+  }
+
+  pub fn downloads_response() -> DownloadsResponse {
+    DownloadsResponse {
+      records: vec![download_record()],
     }
   }
 }
