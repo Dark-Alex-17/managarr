@@ -36,6 +36,11 @@ pub enum ReadarrDeleteCommand {
     #[arg(long, help = "Add a list exclusion for this book")]
     add_list_exclusion: bool,
   },
+  #[command(about = "Delete the specified book file from disk")]
+  BookFile {
+    #[arg(long, help = "The ID of the book file to delete", required = true)]
+    book_file_id: i64,
+  },
   #[command(about = "Delete the root folder with the given ID")]
   RootFolder {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
@@ -106,6 +111,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrDeleteCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::DeleteBook(delete_book_params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrDeleteCommand::BookFile { book_file_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DeleteBookFile(book_file_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

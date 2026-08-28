@@ -73,6 +73,41 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_delete_readarr_book_file_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(ReadarrEvent::DeleteBookFile(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBookFile(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_book_file_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteBookFile(1))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBookFile(1))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_get_book_details_event() {
     let expected_book: Book = serde_json::from_str(BOOK_JSON).unwrap();
     let stale_books = vec![stale_book()];

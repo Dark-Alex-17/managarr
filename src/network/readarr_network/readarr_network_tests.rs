@@ -26,6 +26,7 @@ mod tests {
   #[case(ReadarrEvent::GetBookDetails(1), "/book")]
   #[case(ReadarrEvent::GetBooks(1), "/book")]
   #[case(ReadarrEvent::ToggleBookMonitoring(1), "/book")]
+  #[case(ReadarrEvent::DeleteBookFile(1), "/bookfile")]
   #[case(ReadarrEvent::GetBookFiles(1), "/bookfile")]
   #[case(ReadarrEvent::GetQueuedEvents, "/command")]
   #[case(ReadarrEvent::StartTask(Default::default()), "/command")]
