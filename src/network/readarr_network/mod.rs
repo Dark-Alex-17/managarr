@@ -7,7 +7,7 @@ use crate::models::readarr_models::{
   AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   ReadarrTaskName,
 };
-use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
+use crate::models::servarr_models::{MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
@@ -35,6 +35,7 @@ pub enum ReadarrEvent {
   DeleteDownload(i64),
   DeleteRootFolder(i64),
   DeleteTag(i64),
+  DownloadRelease(ReleaseDownloadBody),
   EditAuthor(EditAuthorParams),
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
@@ -106,7 +107,9 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
       ReadarrEvent::DeleteDownload(_) | ReadarrEvent::GetDownloads(_) => "/queue",
-      ReadarrEvent::GetAuthorReleases(_) | ReadarrEvent::GetBookReleases(_) => "/release",
+      ReadarrEvent::DownloadRelease(_)
+      | ReadarrEvent::GetAuthorReleases(_)
+      | ReadarrEvent::GetBookReleases(_) => "/release",
       ReadarrEvent::AddRootFolder(_)
       | ReadarrEvent::DeleteRootFolder(_)
       | ReadarrEvent::GetRootFolders => "/rootfolder",
@@ -158,6 +161,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteTag(tag_id) => self
         .delete_readarr_tag(tag_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::DownloadRelease(release_download_body) => self
+        .download_readarr_release(release_download_body)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::EditAuthor(edit_author_params) => self

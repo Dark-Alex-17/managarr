@@ -16,6 +16,7 @@ use trigger_automatic_search_command_handler::{
 
 use super::{CliCommandHandler, Command};
 use crate::models::readarr_models::ReadarrTaskName;
+use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
@@ -68,6 +69,17 @@ pub enum ReadarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Readarr instance"
   )]
   TriggerAutomaticSearch(ReadarrTriggerAutomaticSearchCommand),
+  #[command(about = "Manually download the given release")]
+  DownloadRelease {
+    #[arg(long, help = "The GUID of the release to download", required = true)]
+    guid: String,
+    #[arg(
+      long,
+      help = "The indexer ID to download the release from",
+      required = true
+    )]
+    indexer_id: i64,
+  },
   #[command(about = "Mark the Readarr history item with the given ID as 'failed'")]
   MarkHistoryItemAsFailed {
     #[arg(
@@ -183,6 +195,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         )
         .handle()
         .await?
+      }
+      ReadarrCommand::DownloadRelease { guid, indexer_id } => {
+        let params = ReleaseDownloadBody { guid, indexer_id };
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DownloadRelease(params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       ReadarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
         let _ = self

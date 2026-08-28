@@ -27,6 +27,55 @@ mod tests {
     }
 
     #[test]
+    fn test_download_release_requires_guid() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "download-release",
+        "--indexer-id",
+        "6",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_release_requires_indexer_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "download-release",
+        "--guid",
+        "test-release-guid",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_release_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "download-release",
+        "--guid",
+        "test-release-guid",
+        "--indexer-id",
+        "6",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_mark_history_item_as_failed_requirements_satisfied() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -161,6 +210,7 @@ mod tests {
     use tokio::sync::Mutex;
 
     use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
+    use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::{
       app::App,
       cli::{
@@ -198,6 +248,37 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_download_release_command() {
+      let expected_release_download_body = ReleaseDownloadBody {
+        guid: "test-release-guid".to_owned(),
+        indexer_id: 6,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::DownloadRelease(expected_release_download_body).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let download_release_command = ReadarrCommand::DownloadRelease {
+        guid: "test-release-guid".to_owned(),
+        indexer_id: 6,
+      };
+
+      let result = ReadarrCliHandler::with(&app_arc, download_release_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

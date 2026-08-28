@@ -4,7 +4,7 @@ mod tests {
   use crate::models::readarr_models::{
     AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   };
-  use crate::models::servarr_models::{MetadataProfile, QualityProfile, Tag};
+  use crate::models::servarr_models::{MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
   use bimap::BiMap;
@@ -49,6 +49,10 @@ mod tests {
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(ReadarrEvent::DeleteDownload(1), "/queue")]
   #[case(ReadarrEvent::GetDownloads(500), "/queue")]
+  #[case(
+    ReadarrEvent::DownloadRelease(ReleaseDownloadBody::default()),
+    "/release"
+  )]
   #[case(ReadarrEvent::GetAuthorReleases(1), "/release")]
   #[case(ReadarrEvent::GetBookReleases(1), "/release")]
   #[case(
