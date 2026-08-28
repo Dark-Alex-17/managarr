@@ -227,6 +227,55 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_download_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "download"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_download_download_id_requires_a_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "download",
+        "--download-id",
+        "not_a_number",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ValueValidation);
+    }
+
+    #[test]
+    fn test_delete_download_success() {
+      let expected_args = ReadarrDeleteCommand::Download { download_id: 1 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "download",
+        "--download-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
     fn test_delete_root_folder_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "root-folder"]);
@@ -421,6 +470,29 @@ mod tests {
 
       let result =
         ReadarrDeleteCommandHandler::with(&app_arc, delete_book_file_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_download_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::DeleteDownload(1).into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_download_command = ReadarrDeleteCommand::Download { download_id: 1 };
+
+      let result =
+        ReadarrDeleteCommandHandler::with(&app_arc, delete_download_command, &mut mock_network)
           .handle()
           .await;
 

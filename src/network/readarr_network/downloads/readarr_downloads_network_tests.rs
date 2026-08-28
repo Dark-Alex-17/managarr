@@ -10,6 +10,41 @@ mod tests {
   use serde_json::{Value, json};
 
   #[tokio::test]
+  async fn test_handle_delete_readarr_download_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/7")
+      .build_for(ReadarrEvent::DeleteDownload(7))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteDownload(7))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_download_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/7")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteDownload(7))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteDownload(7))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_get_downloads_event() {
     let downloads_json = json!({
       "records": [serde_json::from_str::<Value>(DOWNLOAD_RECORD_JSON).unwrap()]

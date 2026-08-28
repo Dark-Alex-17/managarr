@@ -41,6 +41,11 @@ pub enum ReadarrDeleteCommand {
     #[arg(long, help = "The ID of the book file to delete", required = true)]
     book_file_id: i64,
   },
+  #[command(about = "Delete the specified download")]
+  Download {
+    #[arg(long, help = "The ID of the download to delete", required = true)]
+    download_id: i64,
+  },
   #[command(about = "Delete the root folder with the given ID")]
   RootFolder {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
@@ -118,6 +123,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrDeleteCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::DeleteBookFile(book_file_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrDeleteCommand::Download { download_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DeleteDownload(download_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
