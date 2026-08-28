@@ -38,6 +38,7 @@ pub enum ReadarrEvent {
   EditAuthor(EditAuthorParams),
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
+  GetAuthorReleases(i64),
   GetBookDetails(i64),
   GetBookEditions(i64),
   GetBookFiles(i64),
@@ -105,7 +106,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
       ReadarrEvent::DeleteDownload(_) | ReadarrEvent::GetDownloads(_) => "/queue",
-      ReadarrEvent::GetBookReleases(_) => "/release",
+      ReadarrEvent::GetAuthorReleases(_) | ReadarrEvent::GetBookReleases(_) => "/release",
       ReadarrEvent::AddRootFolder(_)
       | ReadarrEvent::DeleteRootFolder(_)
       | ReadarrEvent::GetRootFolders => "/rootfolder",
@@ -169,6 +170,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorHistory(author_id) => self
         .get_readarr_author_history(author_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetAuthorReleases(author_id) => self
+        .get_author_releases(author_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetBookDetails(book_id) => self

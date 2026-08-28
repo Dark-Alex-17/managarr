@@ -26,6 +26,15 @@ pub enum ReadarrListCommand {
     )]
     author_id: i64,
   },
+  #[command(about = "Trigger a manual search for releases of the author with the given ID")]
+  AuthorReleases {
+    #[arg(
+      long,
+      help = "The Readarr ID of the author whose releases you wish to search for",
+      required = true
+    )]
+    author_id: i64,
+  },
   #[command(about = "List all authors in your Readarr library")]
   Authors,
   #[command(about = "List all editions for the book with the given ID")]
@@ -148,6 +157,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetAuthorHistory(author_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::AuthorReleases { author_id } => {
+        println!("Searching for author releases. This may take a minute...");
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetAuthorReleases(author_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

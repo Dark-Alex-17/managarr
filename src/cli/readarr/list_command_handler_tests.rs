@@ -253,6 +253,40 @@ mod tests {
     }
 
     #[test]
+    fn test_list_author_releases_requires_author_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "list", "author-releases"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_author_releases_success() {
+      let expected_args = ReadarrListCommand::AuthorReleases { author_id: 3 };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "list",
+        "author-releases",
+        "--author-id",
+        "3",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::List(author_releases_command))) =
+        result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(author_releases_command, expected_args);
+    }
+
+    #[test]
     fn test_list_releases_success() {
       let expected_args = ReadarrListCommand::Releases { book_id: 7 };
       let result =
@@ -751,6 +785,32 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_releases_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_author_releases_command() {
+      let expected_author_id = 3;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAuthorReleases(expected_author_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_author_releases_command = ReadarrListCommand::AuthorReleases { author_id: 3 };
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_author_releases_command, &mut mock_network)
           .handle()
           .await;
 

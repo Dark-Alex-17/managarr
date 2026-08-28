@@ -10,8 +10,9 @@ mod tests {
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, add_author_body, readarr_history_item,
-    stale_add_author_search_result, stale_author, stale_readarr_history_item,
+    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, RELEASE_JSON, add_author_body,
+    readarr_history_item, stale_add_author_search_result, stale_author, stale_readarr_history_item,
+    stale_release, torrent_release, usenet_release,
   };
   use bimap::BiMap;
   use mockito::Matcher;
@@ -74,6 +75,97 @@ mod tests {
     mock.assert_async().await;
 
     assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_author_releases_event() {
+    let expected_releases = vec![torrent_release(), usenet_release()];
+    let releases_json = json!([
+      serde_json::from_str::<Value>(RELEASE_JSON).unwrap(),
+      {
+        "guid": "test-usenet-release-guid",
+        "protocol": "usenet",
+        "age": 4492,
+        "title": "Test Author - Test Book [AZW3]",
+        "authorName": "Test Author",
+        "bookTitle": "Test Book",
+        "indexer": "DrunkenSlug",
+        "indexerId": 4,
+        "size": 313924185,
+        "rejected": true,
+        "rejections": ["Unknown quality profile", "Release is already mapped"],
+        "quality": {
+          "quality": { "id": 12, "name": "AZW3" },
+          "revision": { "version": 1, "real": 0, "isRepack": false }
+        }
+      }
+    ]);
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(releases_json)
+      .query("authorId=3")
+      .build_for(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .author_releases
+        .set_items(vec![stale_release()]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Releases(releases) = result.unwrap() else {
+      panic!("Expected Releases")
+    };
+
+    assert_eq!(releases, expected_releases);
+    assert_eq!(
+      app.lock().await.data.readarr_data.author_releases.items,
+      expected_releases
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_author_releases_event_failure() {
+    let stale_releases = vec![stale_release()];
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!(
+        [serde_json::from_str::<Value>(RELEASE_JSON).unwrap()]
+      ))
+      .status(500)
+      .query("authorId=3")
+      .build_for(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .author_releases
+        .set_items(stale_releases.clone());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+    assert_eq!(
+      app.lock().await.data.readarr_data.author_releases.items,
+      stale_releases
+    );
   }
 
   #[rstest]
