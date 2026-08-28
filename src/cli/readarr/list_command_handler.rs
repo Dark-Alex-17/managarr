@@ -98,6 +98,15 @@ pub enum ReadarrListCommand {
   QualityProfiles,
   #[command(about = "List all queued events")]
   QueuedEvents,
+  #[command(about = "Trigger a manual search for releases of the book with the given ID")]
+  Releases {
+    #[arg(
+      long,
+      help = "The Readarr ID of the book whose releases you wish to search for",
+      required = true
+    )]
+    book_id: i64,
+  },
   #[command(about = "List all root folders in Readarr")]
   RootFolders,
   #[command(about = "List all Readarr tags")]
@@ -233,6 +242,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetQueuedEvents.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Releases { book_id } => {
+        println!("Searching for book releases. This may take a minute...");
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetBookReleases(book_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

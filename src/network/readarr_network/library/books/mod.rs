@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{
-  Book, BookFile, DeleteParams, Edition, ReadarrCommandBody, ReadarrHistoryItem,
+  Book, BookFile, DeleteParams, Edition, ReadarrCommandBody, ReadarrHistoryItem, ReadarrRelease,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::network::readarr_network::ReadarrEvent;
@@ -148,6 +148,36 @@ impl Network<'_, '_> {
           .get_or_insert_default();
 
         book_details_modal.book_files.set_items(book_files_vec);
+      })
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_book_releases(
+    &mut self,
+    book_id: i64,
+  ) -> Result<Vec<ReadarrRelease>> {
+    info!("Fetching releases for Readarr book with ID: {book_id}");
+    let event = ReadarrEvent::GetBookReleases(book_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("bookId={book_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<ReadarrRelease>>(request_props, |release_vec, mut app| {
+        let book_details_modal = app
+          .data
+          .readarr_data
+          .book_details_modal
+          .get_or_insert_default();
+
+        book_details_modal.book_releases.set_items(release_vec);
       })
       .await
   }

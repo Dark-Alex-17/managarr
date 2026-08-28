@@ -49,6 +49,7 @@ mod tests {
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(ReadarrEvent::DeleteDownload(1), "/queue")]
   #[case(ReadarrEvent::GetDownloads(500), "/queue")]
+  #[case(ReadarrEvent::GetBookReleases(1), "/release")]
   #[case(
     ReadarrEvent::AddRootFolder(AddReadarrRootFolderBody::default()),
     "/rootfolder"

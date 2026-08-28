@@ -4,7 +4,7 @@ pub mod test_utils {
   use crate::models::readarr_models::{
     AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, BookFile,
     DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType, NewItemMonitorType,
-    ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
+    ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem, ReadarrRelease,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
@@ -120,6 +120,29 @@ pub mod test_utils {
     "downloadClient": "NZBGet"
   }"#;
 
+  pub const RELEASE_JSON: &str = r#"{
+    "guid": "test-release-guid",
+    "protocol": "torrent",
+    "age": 4492,
+    "title": "Test Author - Test Book [AZW3]",
+    "authorName": "Test Author",
+    "bookTitle": "Test Book",
+    "indexer": "kickass torrents",
+    "indexerId": 2,
+    "size": 313924185,
+    "rejected": true,
+    "rejections": ["Unknown quality profile", "Release is already mapped"],
+    "seeders": 2,
+    "leechers": 1,
+    "quality": {
+      "quality": { "id": 12, "name": "AZW3" },
+      "revision": { "version": 1, "real": 0, "isRepack": false }
+    },
+    "customFormatScore": 0,
+    "downloadAllowed": true,
+    "publishDate": "2014-05-11T14:38:20Z"
+  }"#;
+
   pub fn stale_author() -> Author {
     Author {
       id: 99,
@@ -209,6 +232,55 @@ pub mod test_utils {
 
   pub fn quality_wrapper() -> QualityWrapper {
     QualityWrapper { quality: quality() }
+  }
+
+  pub fn stale_release() -> ReadarrRelease {
+    ReadarrRelease {
+      guid: "stale-release-guid".to_owned(),
+      protocol: "usenet".to_owned(),
+      title: "Stale Release".into(),
+      indexer: "Stale Indexer".to_owned(),
+      indexer_id: 99,
+      ..ReadarrRelease::default()
+    }
+  }
+
+  pub fn rejections() -> Vec<String> {
+    vec![
+      "Unknown quality profile".to_owned(),
+      "Release is already mapped".to_owned(),
+    ]
+  }
+
+  pub fn torrent_release() -> ReadarrRelease {
+    ReadarrRelease {
+      guid: "test-release-guid".to_owned(),
+      protocol: "torrent".to_owned(),
+      age: 4492,
+      title: "Test Author - Test Book [AZW3]".into(),
+      author_name: Some("Test Author".to_owned()),
+      book_title: Some("Test Book".to_owned()),
+      indexer: "kickass torrents".to_owned(),
+      indexer_id: 2,
+      size: 313924185,
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: Some(Number::from(2)),
+      leechers: Some(Number::from(1)),
+      quality: quality_wrapper(),
+    }
+  }
+
+  pub fn usenet_release() -> ReadarrRelease {
+    ReadarrRelease {
+      guid: "test-usenet-release-guid".to_owned(),
+      protocol: "usenet".to_owned(),
+      indexer: "DrunkenSlug".to_owned(),
+      indexer_id: 4,
+      seeders: None,
+      leechers: None,
+      ..torrent_release()
+    }
   }
 
   pub fn quality() -> Quality {
