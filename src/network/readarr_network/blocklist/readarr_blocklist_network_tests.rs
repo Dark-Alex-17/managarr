@@ -13,6 +13,77 @@ mod tests {
   use serde_json::{Number, Value, json};
 
   #[tokio::test]
+  async fn test_handle_clear_readarr_blocklist_event() {
+    let blocklist_items = vec![
+      BlocklistItem {
+        id: 7,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 42,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 99,
+        ..blocklist_item()
+      },
+    ];
+    let (mock, app, _server) = MockServarrApi::delete()
+      .with_request_body(json!({ "ids": [7, 42, 99] }))
+      .build_for(ReadarrEvent::ClearBlocklist)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.blocklist.set_items(blocklist_items);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ClearBlocklist)
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_clear_readarr_blocklist_event_failure() {
+    let blocklist_items = vec![
+      BlocklistItem {
+        id: 7,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 42,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 99,
+        ..blocklist_item()
+      },
+    ];
+    let (mock, app, _server) = MockServarrApi::delete()
+      .with_request_body(json!({ "ids": [7, 42, 99] }))
+      .status(500)
+      .build_for(ReadarrEvent::ClearBlocklist)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.blocklist.set_items(blocklist_items);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ClearBlocklist)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_delete_readarr_blocklist_item_event() {
     let (mock, app, _server) = MockServarrApi::delete()
       .path("/7")

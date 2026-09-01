@@ -69,6 +69,8 @@ pub enum ReadarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Readarr instance"
   )]
   TriggerAutomaticSearch(ReadarrTriggerAutomaticSearchCommand),
+  #[command(about = "Clear the Readarr blocklist")]
+  ClearBlocklist,
   #[command(about = "Manually download the given release")]
   DownloadRelease {
     #[arg(long, help = "The GUID of the release to download", required = true)]
@@ -195,6 +197,17 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         )
         .handle()
         .await?
+      }
+      ReadarrCommand::ClearBlocklist => {
+        self
+          .network
+          .handle_network_event(ReadarrEvent::GetBlocklist.into())
+          .await?;
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::ClearBlocklist.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       ReadarrCommand::DownloadRelease { guid, indexer_id } => {
         let params = ReleaseDownloadBody { guid, indexer_id };

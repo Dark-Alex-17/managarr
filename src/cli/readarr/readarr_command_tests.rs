@@ -189,6 +189,13 @@ mod tests {
     }
 
     #[test]
+    fn test_clear_blocklist_has_no_arg_requirements() {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "clear-blocklist"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_toggle_book_monitoring_requirements_satisfied() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -209,7 +216,9 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
-    use crate::models::readarr_models::{ReadarrSerdeable, ReadarrTaskName};
+    use crate::models::readarr_models::{
+      BlocklistItem, BlocklistResponse, ReadarrSerdeable, ReadarrTaskName,
+    };
     use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::{
       app::App,
@@ -387,6 +396,39 @@ mod tests {
         ReadarrCliHandler::with(&app_arc, toggle_book_monitoring_command, &mut mock_network)
           .handle()
           .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_clear_blocklist_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetBlocklist.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::BlocklistResponse(
+            BlocklistResponse {
+              records: vec![BlocklistItem::default()],
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::ClearBlocklist.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let clear_blocklist_command = ReadarrCommand::ClearBlocklist;
+
+      let result = ReadarrCliHandler::with(&app_arc, clear_blocklist_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

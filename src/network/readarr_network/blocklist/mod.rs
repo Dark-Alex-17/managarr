@@ -1,5 +1,6 @@
 use anyhow::Result;
 use log::info;
+use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::readarr_models::{BlocklistItem, BlocklistResponse};
@@ -12,6 +13,39 @@ use crate::network::{Network, RequestMethod};
 mod readarr_blocklist_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn clear_readarr_blocklist(
+    &mut self,
+  ) -> Result<()> {
+    info!("Clearing Readarr blocklist");
+    let event = ReadarrEvent::ClearBlocklist;
+
+    let ids = self
+      .app
+      .lock()
+      .await
+      .data
+      .readarr_data
+      .blocklist
+      .items
+      .iter()
+      .map(|item| item.id)
+      .collect::<Vec<i64>>();
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        Some(json!({ "ids": ids })),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn delete_readarr_blocklist_item(
     &mut self,
     blocklist_item_id: i64,
