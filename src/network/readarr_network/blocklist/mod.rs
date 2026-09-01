@@ -12,6 +12,28 @@ use crate::network::{Network, RequestMethod};
 mod readarr_blocklist_network_tests;
 
 impl Network<'_, '_> {
+  pub(in crate::network::readarr_network) async fn delete_readarr_blocklist_item(
+    &mut self,
+    blocklist_item_id: i64,
+  ) -> Result<()> {
+    info!("Deleting Readarr blocklist item for item with id: {blocklist_item_id}");
+    let event = ReadarrEvent::DeleteBlocklistItem(blocklist_item_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{blocklist_item_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_readarr_blocklist(
     &mut self,
   ) -> Result<BlocklistResponse> {

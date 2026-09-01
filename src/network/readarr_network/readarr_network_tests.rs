@@ -22,6 +22,7 @@ mod tests {
   #[case(ReadarrEvent::ListAuthors, "/author")]
   #[case(ReadarrEvent::ToggleAuthorMonitoring(1), "/author")]
   #[case(ReadarrEvent::SearchNewAuthor(String::new()), "/author/lookup")]
+  #[case(ReadarrEvent::DeleteBlocklistItem(1), "/blocklist")]
   #[case(ReadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(ReadarrEvent::DeleteBook(DeleteParams::default()), "/book")]
   #[case(ReadarrEvent::GetBookDetails(1), "/book")]

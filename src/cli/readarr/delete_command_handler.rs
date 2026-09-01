@@ -27,6 +27,15 @@ pub enum ReadarrDeleteCommand {
     #[arg(long, help = "Add a list exclusion for this author")]
     add_list_exclusion: bool,
   },
+  #[command(about = "Delete the specified item from the Readarr blocklist")]
+  BlocklistItem {
+    #[arg(
+      long,
+      help = "The ID of the blocklist item to remove from the blocklist",
+      required = true
+    )]
+    blocklist_item_id: i64,
+  },
   #[command(about = "Delete a book from your Readarr library")]
   Book {
     #[arg(long, help = "The ID of the book to delete", required = true)]
@@ -100,6 +109,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrDeleteCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::DeleteAuthor(delete_author_params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DeleteBlocklistItem(blocklist_item_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

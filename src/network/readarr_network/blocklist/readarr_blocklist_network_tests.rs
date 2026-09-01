@@ -12,6 +12,41 @@ mod tests {
   use rstest::rstest;
   use serde_json::{Number, Value, json};
 
+  #[tokio::test]
+  async fn test_handle_delete_readarr_blocklist_item_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/7")
+      .build_for(ReadarrEvent::DeleteBlocklistItem(7))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBlocklistItem(7))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_blocklist_item_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/7")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteBlocklistItem(7))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteBlocklistItem(7))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
   #[rstest]
   #[tokio::test]
   async fn test_handle_get_readarr_blocklist_event(
