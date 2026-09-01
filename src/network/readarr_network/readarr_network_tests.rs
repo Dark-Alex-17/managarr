@@ -49,6 +49,7 @@ mod tests {
   #[case(ReadarrEvent::GetAuthorHistory(1), "/history/author")]
   #[case(ReadarrEvent::GetBookHistory(1, 2), "/history/author")]
   #[case(ReadarrEvent::MarkHistoryItemAsFailed(1), "/history/failed")]
+  #[case(ReadarrEvent::DeleteIndexer(1), "/indexer")]
   #[case(ReadarrEvent::EditIndexer(EditIndexerParams::default()), "/indexer")]
   #[case(ReadarrEvent::GetIndexers, "/indexer")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]

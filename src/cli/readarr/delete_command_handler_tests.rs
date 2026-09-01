@@ -327,6 +327,55 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_indexer_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "indexer"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_indexer_indexer_id_requires_a_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "indexer",
+        "--indexer-id",
+        "not_a_number",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ValueValidation);
+    }
+
+    #[test]
+    fn test_delete_indexer_success() {
+      let expected_args = ReadarrDeleteCommand::Indexer { indexer_id: 8 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "delete",
+        "indexer",
+        "--indexer-id",
+        "8",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
+
+    #[test]
     fn test_delete_root_folder_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "delete", "root-folder"]);
@@ -574,6 +623,29 @@ mod tests {
 
       let result =
         ReadarrDeleteCommandHandler::with(&app_arc, delete_download_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_indexer_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::DeleteIndexer(8).into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_indexer_command = ReadarrDeleteCommand::Indexer { indexer_id: 8 };
+
+      let result =
+        ReadarrDeleteCommandHandler::with(&app_arc, delete_indexer_command, &mut mock_network)
           .handle()
           .await;
 

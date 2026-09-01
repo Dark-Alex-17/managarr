@@ -14,6 +14,41 @@ mod tests {
   use serde_json::{Value, json};
 
   #[tokio::test]
+  async fn test_handle_delete_readarr_indexer_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/8")
+      .build_for(ReadarrEvent::DeleteIndexer(8))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteIndexer(8))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_readarr_indexer_event_failure() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/8")
+      .status(500)
+      .build_for(ReadarrEvent::DeleteIndexer(8))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::DeleteIndexer(8))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
   async fn test_handle_get_readarr_indexers_event() {
     let indexers_response_json = json!([serde_json::from_str::<Value>(INDEXER_JSON).unwrap()]);
     let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();

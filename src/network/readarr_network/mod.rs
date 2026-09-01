@@ -39,6 +39,7 @@ pub enum ReadarrEvent {
   DeleteBook(DeleteParams),
   DeleteBookFile(i64),
   DeleteDownload(i64),
+  DeleteIndexer(i64),
   DeleteRootFolder(i64),
   DeleteTag(i64),
   DownloadRelease(ReleaseDownloadBody),
@@ -115,7 +116,9 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetHistory(_) => "/history",
       ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
       ReadarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
-      ReadarrEvent::EditIndexer(_) | ReadarrEvent::GetIndexers => "/indexer",
+      ReadarrEvent::DeleteIndexer(_) | ReadarrEvent::EditIndexer(_) | ReadarrEvent::GetIndexers => {
+        "/indexer"
+      }
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -174,6 +177,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteDownload(download_id) => self
         .delete_readarr_download(download_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::DeleteIndexer(indexer_id) => self
+        .delete_readarr_indexer(indexer_id)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DeleteRootFolder(root_folder_id) => self

@@ -55,6 +55,11 @@ pub enum ReadarrDeleteCommand {
     #[arg(long, help = "The ID of the download to delete", required = true)]
     download_id: i64,
   },
+  #[command(about = "Delete the indexer with the given ID")]
+  Indexer {
+    #[arg(long, help = "The ID of the indexer to delete", required = true)]
+    indexer_id: i64,
+  },
   #[command(about = "Delete the root folder with the given ID")]
   RootFolder {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
@@ -146,6 +151,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrDeleteCommand>
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::DeleteDownload(download_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrDeleteCommand::Indexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::DeleteIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
