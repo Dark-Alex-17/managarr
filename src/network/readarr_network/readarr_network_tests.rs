@@ -47,6 +47,7 @@ mod tests {
   #[case(ReadarrEvent::GetAuthorHistory(1), "/history/author")]
   #[case(ReadarrEvent::GetBookHistory(1, 2), "/history/author")]
   #[case(ReadarrEvent::MarkHistoryItemAsFailed(1), "/history/failed")]
+  #[case(ReadarrEvent::GetIndexers, "/indexer")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]

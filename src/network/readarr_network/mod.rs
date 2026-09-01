@@ -13,6 +13,7 @@ use crate::network::{Network, RequestMethod};
 mod blocklist;
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod root_folders;
 mod system;
@@ -54,6 +55,7 @@ pub enum ReadarrEvent {
   GetDownloads(u64),
   GetHistory(u64),
   GetHostConfig,
+  GetIndexers,
   GetLogs(u64),
   GetMetadataProfiles,
   GetQualityProfiles,
@@ -110,6 +112,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetHistory(_) => "/history",
       ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
       ReadarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
+      ReadarrEvent::GetIndexers => "/indexer",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -239,6 +242,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetHostConfig => self
         .get_readarr_host_config()
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetIndexers => self
+        .get_readarr_indexers()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetLogs(events) => self

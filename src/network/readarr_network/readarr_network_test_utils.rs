@@ -7,9 +7,9 @@ pub mod test_utils {
     NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
     ReadarrRelease,
   };
-  use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
+  use crate::models::servarr_models::{Indexer, IndexerField, Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
-  use serde_json::Number;
+  use serde_json::{Number, json};
 
   pub const AUTHOR_JSON: &str = r#"{
     "id": 1,
@@ -142,6 +142,29 @@ pub mod test_utils {
     "customFormatScore": 0,
     "downloadAllowed": true,
     "publishDate": "2014-05-11T14:38:20Z"
+  }"#;
+
+  pub const INDEXER_JSON: &str = r#"{
+    "enableRss": true,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "protocol": "torrent",
+    "priority": 25,
+    "downloadClientId": 0,
+    "name": "Test Indexer",
+    "implementationName": "Torznab",
+    "implementation": "Torznab",
+    "configContract": "TorznabSettings",
+    "infoLink": "https://wiki.servarr.com/readarr/supported#torznab",
+    "fields": [
+      { "name": "baseUrl", "value": "https://test.com" },
+      { "name": "apiKey", "value": "" },
+      { "name": "seedCriteria.seedRatio", "value": "1.2" }
+    ],
+    "tags": [1],
+    "id": 8
   }"#;
 
   pub fn stale_author() -> Author {
@@ -371,6 +394,49 @@ pub mod test_utils {
   pub fn downloads_response() -> DownloadsResponse {
     DownloadsResponse {
       records: vec![download_record()],
+    }
+  }
+
+  pub fn stale_indexer() -> Indexer {
+    Indexer {
+      id: 99,
+      name: Some("Stale Indexer".to_owned()),
+      protocol: "usenet".to_owned(),
+      priority: 99,
+      ..Indexer::default()
+    }
+  }
+
+  pub fn indexer() -> Indexer {
+    Indexer {
+      id: 8,
+      name: Some("Test Indexer".to_owned()),
+      implementation: Some("Torznab".to_owned()),
+      implementation_name: Some("Torznab".to_owned()),
+      config_contract: Some("TorznabSettings".to_owned()),
+      supports_rss: true,
+      supports_search: true,
+      fields: Some(vec![
+        IndexerField {
+          name: Some("baseUrl".to_owned()),
+          value: Some(json!("https://test.com")),
+        },
+        IndexerField {
+          name: Some("apiKey".to_owned()),
+          value: Some(json!("")),
+        },
+        IndexerField {
+          name: Some("seedCriteria.seedRatio".to_owned()),
+          value: Some(json!("1.2")),
+        },
+      ]),
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      protocol: "torrent".to_owned(),
+      priority: 25,
+      download_client_id: 0,
+      tags: vec![Number::from(1)],
     }
   }
 }

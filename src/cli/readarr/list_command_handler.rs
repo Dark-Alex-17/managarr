@@ -93,6 +93,8 @@ pub enum ReadarrListCommand {
     #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
     events: u64,
   },
+  #[command(about = "List all Readarr indexers")]
+  Indexers,
   #[command(about = "Fetch Readarr logs")]
   Logs {
     #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
@@ -230,6 +232,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::GetHistory(events).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Indexers => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

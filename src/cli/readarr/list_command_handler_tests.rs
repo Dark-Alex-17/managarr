@@ -29,6 +29,7 @@ mod tests {
         "authors",
         "blocklist",
         "disk-space",
+        "indexers",
         "metadata-profiles",
         "quality-profiles",
         "queued-events",
@@ -650,6 +651,29 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_history_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_indexers_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetIndexers.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_indexers_command = ReadarrListCommand::Indexers;
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_indexers_command, &mut mock_network)
           .handle()
           .await;
 
