@@ -272,6 +272,282 @@ mod tests {
       };
       assert_eq!(edit_command, expected_args);
     }
+
+    #[test]
+    fn test_edit_indexer_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "edit", "indexer"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_with_indexer_id_still_requires_arguments() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_rss_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--enable-rss",
+        "--disable-rss",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn test_edit_indexer_automatic_search_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--enable-automatic-search",
+        "--disable-automatic-search",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn test_edit_indexer_interactive_search_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--enable-interactive-search",
+        "--disable-interactive-search",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn test_edit_indexer_tag_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--tag",
+        "1",
+        "--clear-tags",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[rstest]
+    fn test_edit_indexer_assert_argument_flags_require_args(
+      #[values("--name", "--url", "--api-key", "--seed-ratio", "--tag", "--priority")] flag: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        flag,
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[rstest]
+    fn test_edit_indexer_every_boolean_flag_satisfies_the_argument_group(
+      #[values(
+        "--enable-rss",
+        "--disable-rss",
+        "--enable-automatic-search",
+        "--disable-automatic-search",
+        "--enable-interactive-search",
+        "--disable-interactive-search",
+        "--clear-tags"
+      )]
+      flag: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        flag,
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
+    fn test_edit_indexer_only_requires_at_least_one_argument_plus_indexer_id() {
+      let expected_args = ReadarrEditCommand::Indexer {
+        indexer_id: 8,
+        name: Some("Test".to_owned()),
+        enable_rss: false,
+        disable_rss: false,
+        enable_automatic_search: false,
+        disable_automatic_search: false,
+        enable_interactive_search: false,
+        disable_interactive_search: false,
+        url: None,
+        api_key: None,
+        seed_ratio: None,
+        tag: None,
+        priority: None,
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--name",
+        "Test",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Edit(edit_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
+    }
+
+    #[test]
+    fn test_edit_indexer_tag_argument_is_repeatable() {
+      let expected_args = ReadarrEditCommand::Indexer {
+        indexer_id: 8,
+        name: None,
+        enable_rss: false,
+        disable_rss: false,
+        enable_automatic_search: false,
+        disable_automatic_search: false,
+        enable_interactive_search: false,
+        disable_interactive_search: false,
+        url: None,
+        api_key: None,
+        seed_ratio: None,
+        tag: Some(vec![2, 3]),
+        priority: None,
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--tag",
+        "2",
+        "--tag",
+        "3",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Edit(edit_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
+    }
+
+    #[test]
+    fn test_edit_indexer_all_arguments_defined() {
+      let expected_args = ReadarrEditCommand::Indexer {
+        indexer_id: 8,
+        name: Some("Test".to_owned()),
+        enable_rss: true,
+        disable_rss: false,
+        enable_automatic_search: true,
+        disable_automatic_search: false,
+        enable_interactive_search: true,
+        disable_interactive_search: false,
+        url: Some("http://test.com".to_owned()),
+        api_key: Some("testKey".to_owned()),
+        seed_ratio: Some("1.2".to_owned()),
+        tag: Some(vec![2, 3]),
+        priority: Some(25),
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "indexer",
+        "--indexer-id",
+        "8",
+        "--name",
+        "Test",
+        "--enable-rss",
+        "--enable-automatic-search",
+        "--enable-interactive-search",
+        "--url",
+        "http://test.com",
+        "--api-key",
+        "testKey",
+        "--seed-ratio",
+        "1.2",
+        "--tag",
+        "2",
+        "--tag",
+        "3",
+        "--priority",
+        "25",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Edit(edit_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
+    }
   }
 
   mod handler {
@@ -287,6 +563,7 @@ mod tests {
     };
     use crate::models::Serdeable;
     use crate::models::readarr_models::{EditAuthorParams, NewItemMonitorType, ReadarrSerdeable};
+    use crate::models::servarr_models::EditIndexerParams;
     use crate::network::readarr_network::ReadarrEvent;
     use crate::{
       app::App,
@@ -471,6 +748,60 @@ mod tests {
 
       let result =
         ReadarrEditCommandHandler::with(&app_arc, edit_author_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_indexer_command() {
+      let expected_edit_indexer_params = EditIndexerParams {
+        indexer_id: 8,
+        name: Some("Test".to_owned()),
+        enable_rss: Some(true),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(true),
+        url: Some("http://test.com".to_owned()),
+        api_key: Some("testKey".to_owned()),
+        seed_ratio: Some("1.2".to_owned()),
+        tags: Some(vec![2, 3]),
+        tag_input_string: None,
+        priority: Some(25),
+        clear_tags: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::EditIndexer(expected_edit_indexer_params).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_indexer_command = ReadarrEditCommand::Indexer {
+        indexer_id: 8,
+        name: Some("Test".to_owned()),
+        enable_rss: true,
+        disable_rss: false,
+        enable_automatic_search: false,
+        disable_automatic_search: true,
+        enable_interactive_search: true,
+        disable_interactive_search: false,
+        url: Some("http://test.com".to_owned()),
+        api_key: Some("testKey".to_owned()),
+        seed_ratio: Some("1.2".to_owned()),
+        tag: Some(vec![2, 3]),
+        priority: Some(25),
+        clear_tags: false,
+      };
+
+      let result =
+        ReadarrEditCommandHandler::with(&app_arc, edit_indexer_command, &mut mock_network)
           .handle()
           .await;
 

@@ -7,7 +7,9 @@ use crate::models::readarr_models::{
   AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   ReadarrTaskName,
 };
-use crate::models::servarr_models::{MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag};
+use crate::models::servarr_models::{
+  EditIndexerParams, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
+};
 use crate::network::{Network, RequestMethod};
 
 mod blocklist;
@@ -41,6 +43,7 @@ pub enum ReadarrEvent {
   DeleteTag(i64),
   DownloadRelease(ReleaseDownloadBody),
   EditAuthor(EditAuthorParams),
+  EditIndexer(EditIndexerParams),
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
   GetAuthorReleases(i64),
@@ -112,7 +115,7 @@ impl NetworkResource for ReadarrEvent {
       ReadarrEvent::GetHistory(_) => "/history",
       ReadarrEvent::GetAuthorHistory(_) | ReadarrEvent::GetBookHistory(_, _) => "/history/author",
       ReadarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
-      ReadarrEvent::GetIndexers => "/indexer",
+      ReadarrEvent::EditIndexer(_) | ReadarrEvent::GetIndexers => "/indexer",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -187,6 +190,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::EditAuthor(edit_author_params) => self
         .edit_author(edit_author_params)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::EditIndexer(edit_indexer_params) => self
+        .edit_readarr_indexer(edit_indexer_params)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorDetails(author_id) => self

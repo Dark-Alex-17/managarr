@@ -159,9 +159,33 @@ pub mod test_utils {
     "configContract": "TorznabSettings",
     "infoLink": "https://wiki.servarr.com/readarr/supported#torznab",
     "fields": [
-      { "name": "baseUrl", "value": "https://test.com" },
-      { "name": "apiKey", "value": "" },
-      { "name": "seedCriteria.seedRatio", "value": "1.2" }
+      {
+        "order": 0,
+        "name": "baseUrl",
+        "label": "URL",
+        "value": "https://test.com",
+        "type": "textbox",
+        "advanced": false,
+        "isFloat": false
+      },
+      {
+        "order": 2,
+        "name": "apiKey",
+        "label": "API Key",
+        "value": "",
+        "type": "textbox",
+        "advanced": false,
+        "isFloat": false
+      },
+      {
+        "order": 7,
+        "name": "seedCriteria.seedRatio",
+        "label": "Seed Ratio",
+        "value": "1.2",
+        "type": "number",
+        "advanced": false,
+        "isFloat": true
+      }
     ],
     "tags": [1],
     "id": 8

@@ -4,7 +4,9 @@ mod tests {
   use crate::models::readarr_models::{
     AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   };
-  use crate::models::servarr_models::{MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag};
+  use crate::models::servarr_models::{
+    EditIndexerParams, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
+  };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
   use bimap::BiMap;
@@ -47,6 +49,7 @@ mod tests {
   #[case(ReadarrEvent::GetAuthorHistory(1), "/history/author")]
   #[case(ReadarrEvent::GetBookHistory(1, 2), "/history/author")]
   #[case(ReadarrEvent::MarkHistoryItemAsFailed(1), "/history/failed")]
+  #[case(ReadarrEvent::EditIndexer(EditIndexerParams::default()), "/indexer")]
   #[case(ReadarrEvent::GetIndexers, "/indexer")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
