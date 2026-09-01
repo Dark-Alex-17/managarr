@@ -2,9 +2,10 @@
 #[allow(dead_code)]
 pub mod test_utils {
   use crate::models::readarr_models::{
-    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, Book, BookFile,
-    DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType, NewItemMonitorType,
-    ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem, ReadarrRelease,
+    AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, BlocklistItem,
+    Book, BookFile, DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType,
+    NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
+    ReadarrRelease,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
@@ -232,6 +233,30 @@ pub mod test_utils {
 
   pub fn quality_wrapper() -> QualityWrapper {
     QualityWrapper { quality: quality() }
+  }
+
+  pub fn stale_blocklist_item() -> BlocklistItem {
+    BlocklistItem {
+      id: 99,
+      author_id: 99,
+      source_title: "Stale source title".to_owned(),
+      ..BlocklistItem::default()
+    }
+  }
+
+  pub fn blocklist_item() -> BlocklistItem {
+    BlocklistItem {
+      id: 1,
+      author_id: 1,
+      book_ids: Some(vec![Number::from(1)]),
+      source_title: "Test source title".to_owned(),
+      quality: quality_wrapper(),
+      date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
+      protocol: "usenet".to_owned(),
+      indexer: "DrunkenSlug".to_owned(),
+      message: "test message".to_owned(),
+      author: serde_json::from_str(AUTHOR_JSON).unwrap(),
+    }
   }
 
   pub fn stale_release() -> ReadarrRelease {

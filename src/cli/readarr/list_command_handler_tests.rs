@@ -27,6 +27,7 @@ mod tests {
     fn test_list_commands_have_no_arg_requirements(
       #[values(
         "authors",
+        "blocklist",
         "disk-space",
         "metadata-profiles",
         "quality-profiles",
@@ -418,6 +419,29 @@ mod tests {
 
       let result =
         ReadarrListCommandHandler::with(&app_arc, list_authors_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_blocklist_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetBlocklist.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_blocklist_command = ReadarrListCommand::Blocklist;
+
+      let result =
+        ReadarrListCommandHandler::with(&app_arc, list_blocklist_command, &mut mock_network)
           .handle()
           .await;
 

@@ -10,6 +10,7 @@ use crate::models::readarr_models::{
 use crate::models::servarr_models::{MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag};
 use crate::network::{Network, RequestMethod};
 
+mod blocklist;
 mod downloads;
 mod history;
 mod library;
@@ -40,6 +41,7 @@ pub enum ReadarrEvent {
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
   GetAuthorReleases(i64),
+  GetBlocklist,
   GetBookDetails(i64),
   GetBookEditions(i64),
   GetBookFiles(i64),
@@ -84,6 +86,7 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::ListAuthors
       | ReadarrEvent::ToggleAuthorMonitoring(_) => "/author",
       ReadarrEvent::SearchNewAuthor(_) => "/author/lookup",
+      ReadarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       ReadarrEvent::DeleteBook(_)
       | ReadarrEvent::GetBookDetails(_)
       | ReadarrEvent::GetBooks(_)
@@ -181,6 +184,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorReleases(author_id) => self
         .get_author_releases(author_id)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetBlocklist => self
+        .get_readarr_blocklist()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetBookDetails(book_id) => self

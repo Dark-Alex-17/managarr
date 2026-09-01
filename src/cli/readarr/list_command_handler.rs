@@ -37,6 +37,8 @@ pub enum ReadarrListCommand {
   },
   #[command(about = "List all authors in your Readarr library")]
   Authors,
+  #[command(about = "List all items in the Readarr blocklist")]
+  Blocklist,
   #[command(about = "List all editions for the book with the given ID")]
   BookEditions {
     #[arg(
@@ -172,6 +174,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrListCommand> for ReadarrListComman
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::ListAuthors.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrListCommand::Blocklist => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetBlocklist.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
