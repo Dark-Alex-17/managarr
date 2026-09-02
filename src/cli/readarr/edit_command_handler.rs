@@ -5,7 +5,9 @@ use clap::{ArgAction, ArgGroup, Subcommand};
 use tokio::sync::Mutex;
 
 use super::ReadarrCommand;
-use crate::models::servarr_models::EditIndexerParams;
+use crate::models::Serdeable;
+use crate::models::readarr_models::ReadarrSerdeable;
+use crate::models::servarr_models::{EditIndexerParams, IndexerSettings};
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command, mutex_flags_or_option},
@@ -19,6 +21,40 @@ mod edit_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrEditCommand {
+  #[command(
+    about = "Edit the indexer settings that apply to all indexers",
+    group(
+      ArgGroup::new("edit_settings")
+      .args([
+        "maximum_size",
+        "minimum_age",
+        "retention",
+        "rss_sync_interval",
+      ]).required(true)
+      .multiple(true))
+  )]
+  AllIndexerSettings {
+    #[arg(
+      long,
+      help = "The maximum size for a release to be grabbed in MB. Set to zero to set to unlimited"
+    )]
+    maximum_size: Option<i64>,
+    #[arg(
+      long,
+      help = "Usenet only: Minimum age in minutes of NZBs before they are grabbed. Use this to give new releases time to propagate to your usenet provider."
+    )]
+    minimum_age: Option<i64>,
+    #[arg(
+      long,
+      help = "Usenet only: The retention time in days to retain releases. Set to zero to set for unlimited retention"
+    )]
+    retention: Option<i64>,
+    #[arg(
+      long,
+      help = "The RSS sync interval in minutes. Set to zero to disable (this will stop all automatic release grabbing)"
+    )]
+    rss_sync_interval: Option<i64>,
+  },
   #[command(
     about = "Edit preferences for the specified author",
     group(
@@ -200,6 +236,35 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrEditCommand> for ReadarrEditComman
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrEditCommand::AllIndexerSettings {
+        maximum_size,
+        minimum_age,
+        retention,
+        rss_sync_interval,
+      } => {
+        if let Serdeable::Readarr(ReadarrSerdeable::IndexerSettings(previous_indexer_settings)) =
+          self
+            .network
+            .handle_network_event(ReadarrEvent::GetAllIndexerSettings.into())
+            .await?
+        {
+          let params = IndexerSettings {
+            id: 1,
+            maximum_size: maximum_size.unwrap_or(previous_indexer_settings.maximum_size),
+            minimum_age: minimum_age.unwrap_or(previous_indexer_settings.minimum_age),
+            retention: retention.unwrap_or(previous_indexer_settings.retention),
+            rss_sync_interval: rss_sync_interval
+              .unwrap_or(previous_indexer_settings.rss_sync_interval),
+          };
+          self
+            .network
+            .handle_network_event(ReadarrEvent::EditAllIndexerSettings(params).into())
+            .await?;
+          "All indexer settings updated".to_owned()
+        } else {
+          String::new()
+        }
+      }
       ReadarrEditCommand::Author {
         author_id,
         enable_monitoring,

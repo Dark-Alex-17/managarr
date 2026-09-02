@@ -5,7 +5,7 @@ mod tests {
     AddAuthorBody, AddReadarrRootFolderBody, DeleteParams, EditAuthorParams, ReadarrSerdeable,
   };
   use crate::models::servarr_models::{
-    EditIndexerParams, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
+    EditIndexerParams, IndexerSettings, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, readarr_network::ReadarrEvent};
@@ -43,6 +43,10 @@ mod tests {
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
   #[case(ReadarrEvent::GetAllIndexerSettings, "/config/indexer")]
+  #[case(
+    ReadarrEvent::EditAllIndexerSettings(IndexerSettings::default()),
+    "/config/indexer"
+  )]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::GetBookEditions(1), "/edition")]
   #[case(ReadarrEvent::HealthCheck, "/health")]

@@ -37,6 +37,102 @@ mod tests {
     use rstest::rstest;
 
     #[test]
+    fn test_edit_all_indexer_settings_requires_arguments() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "all-indexer-settings",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[rstest]
+    fn test_edit_all_indexer_settings_assert_argument_flags_require_args(
+      #[values(
+        "--maximum-size",
+        "--minimum-age",
+        "--retention",
+        "--rss-sync-interval"
+      )]
+      flag: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "all-indexer-settings",
+        flag,
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_edit_all_indexer_settings_only_requires_at_least_one_argument() {
+      let expected_args = ReadarrEditCommand::AllIndexerSettings {
+        maximum_size: Some(26500),
+        minimum_age: None,
+        retention: None,
+        rss_sync_interval: None,
+      };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "all-indexer-settings",
+        "--maximum-size",
+        "26500",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Edit(edit_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
+    }
+
+    #[test]
+    fn test_edit_all_indexer_settings_all_arguments_defined() {
+      let expected_args = ReadarrEditCommand::AllIndexerSettings {
+        maximum_size: Some(26500),
+        minimum_age: Some(17),
+        retention: Some(43),
+        rss_sync_interval: Some(35),
+      };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "readarr",
+        "edit",
+        "all-indexer-settings",
+        "--maximum-size",
+        "26500",
+        "--minimum-age",
+        "17",
+        "--retention",
+        "43",
+        "--rss-sync-interval",
+        "35",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Readarr(ReadarrCommand::Edit(edit_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
+    }
+
+    #[test]
     fn test_edit_author_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "readarr", "edit", "author"]);
 
@@ -554,6 +650,7 @@ mod tests {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
+    use pretty_assertions::assert_str_eq;
     use serde_json::json;
     use tokio::sync::Mutex;
 
@@ -563,12 +660,159 @@ mod tests {
     };
     use crate::models::Serdeable;
     use crate::models::readarr_models::{EditAuthorParams, NewItemMonitorType, ReadarrSerdeable};
-    use crate::models::servarr_models::EditIndexerParams;
+    use crate::models::servarr_models::{EditIndexerParams, IndexerSettings};
     use crate::network::readarr_network::ReadarrEvent;
     use crate::{
       app::App,
       network::{MockNetworkTrait, NetworkEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_edit_all_indexer_settings_command() {
+      let expected_edit_all_indexer_settings = IndexerSettings {
+        id: 1,
+        maximum_size: 26500,
+        minimum_age: 17,
+        retention: 43,
+        rss_sync_interval: 35,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::IndexerSettings(
+            IndexerSettings {
+              id: 9,
+              maximum_size: 31200,
+              minimum_age: 22,
+              retention: 58,
+              rss_sync_interval: 90,
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_all_indexer_settings_command = ReadarrEditCommand::AllIndexerSettings {
+        maximum_size: Some(26500),
+        minimum_age: Some(17),
+        retention: Some(43),
+        rss_sync_interval: Some(35),
+      };
+
+      let result = ReadarrEditCommandHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_all_indexer_settings_command_defaults_to_previous_values() {
+      let expected_edit_all_indexer_settings = IndexerSettings {
+        id: 1,
+        maximum_size: 26500,
+        minimum_age: 22,
+        retention: 58,
+        rss_sync_interval: 90,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::IndexerSettings(
+            IndexerSettings {
+              id: 9,
+              maximum_size: 31200,
+              minimum_age: 22,
+              retention: 58,
+              rss_sync_interval: 90,
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_all_indexer_settings_command = ReadarrEditCommand::AllIndexerSettings {
+        maximum_size: Some(26500),
+        minimum_age: None,
+        retention: None,
+        rss_sync_interval: None,
+      };
+
+      let result = ReadarrEditCommandHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_all_indexer_settings_command_does_not_edit_on_unexpected_response() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_all_indexer_settings_command = ReadarrEditCommand::AllIndexerSettings {
+        maximum_size: Some(26500),
+        minimum_age: Some(17),
+        retention: Some(43),
+        rss_sync_interval: Some(35),
+      };
+
+      let result = ReadarrEditCommandHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_str_eq!(assert_ok!(result), String::new());
+    }
 
     #[tokio::test]
     async fn test_handle_edit_author_command() {

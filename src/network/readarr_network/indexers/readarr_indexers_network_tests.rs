@@ -714,4 +714,40 @@ mod tests {
     let app = app.lock().await;
     assert_none!(&app.data.readarr_data.indexer_settings);
   }
+
+  #[tokio::test]
+  async fn test_handle_edit_all_readarr_indexer_settings_event() {
+    let (mock, app, _server) = MockServarrApi::put()
+      .with_request_body(serde_json::from_str(INDEXER_SETTINGS_JSON).unwrap())
+      .build_for(ReadarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(&result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_all_readarr_indexer_settings_event_failure() {
+    let (mock, app, _server) = MockServarrApi::put()
+      .with_request_body(serde_json::from_str(INDEXER_SETTINGS_JSON).unwrap())
+      .returns(json!({ "message": "Internal Server Error" }))
+      .status(500)
+      .build_for(ReadarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+  }
 }

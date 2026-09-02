@@ -36,6 +36,23 @@ impl Network<'_, '_> {
       .await
   }
 
+  pub(in crate::network::readarr_network) async fn edit_all_readarr_indexer_settings(
+    &mut self,
+    params: IndexerSettings,
+  ) -> Result<Value> {
+    info!("Updating Readarr indexer settings");
+    let event = ReadarrEvent::EditAllIndexerSettings(IndexerSettings::default());
+    debug!("Indexer settings body: {params:?}");
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Put, Some(params), None, None)
+      .await;
+
+    self
+      .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
+      .await
+  }
+
   pub(in crate::network::readarr_network) async fn get_all_readarr_indexer_settings(
     &mut self,
   ) -> Result<IndexerSettings> {

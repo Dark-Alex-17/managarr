@@ -8,7 +8,7 @@ use crate::models::readarr_models::{
   ReadarrTaskName,
 };
 use crate::models::servarr_models::{
-  EditIndexerParams, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
+  EditIndexerParams, IndexerSettings, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
 };
 use crate::network::{Network, RequestMethod};
 
@@ -43,6 +43,7 @@ pub enum ReadarrEvent {
   DeleteRootFolder(i64),
   DeleteTag(i64),
   DownloadRelease(ReleaseDownloadBody),
+  EditAllIndexerSettings(IndexerSettings),
   EditAuthor(EditAuthorParams),
   EditIndexer(EditIndexerParams),
   GetAllIndexerSettings,
@@ -113,7 +114,9 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::UpdateAndScanAuthor(_)
       | ReadarrEvent::UpdateDownloads => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
-      ReadarrEvent::GetAllIndexerSettings => "/config/indexer",
+      ReadarrEvent::GetAllIndexerSettings | ReadarrEvent::EditAllIndexerSettings(_) => {
+        "/config/indexer"
+      }
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::GetBookEditions(_) => "/edition",
       ReadarrEvent::HealthCheck => "/health",
@@ -199,6 +202,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::DownloadRelease(release_download_body) => self
         .download_readarr_release(release_download_body)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::EditAllIndexerSettings(params) => self
+        .edit_all_readarr_indexer_settings(params)
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::EditAuthor(edit_author_params) => self
