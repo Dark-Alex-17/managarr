@@ -75,6 +75,7 @@ pub enum ReadarrEvent {
   MarkHistoryItemAsFailed(i64),
   SearchNewAuthor(String),
   StartTask(ReadarrTaskName),
+  TestAllIndexers,
   TestIndexer(i64),
   ToggleAuthorMonitoring(i64),
   ToggleBookMonitoring(i64),
@@ -121,6 +122,7 @@ impl NetworkResource for ReadarrEvent {
         "/indexer"
       }
       ReadarrEvent::TestIndexer(_) => "/indexer/test",
+      ReadarrEvent::TestAllIndexers => "/indexer/testall",
       ReadarrEvent::GetLogs(_) => "/log",
       ReadarrEvent::GetMetadataProfiles => "/metadataprofile",
       ReadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -306,6 +308,10 @@ impl Network<'_, '_> {
       }
       ReadarrEvent::StartTask(task_name) => self
         .start_readarr_task(task_name)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::TestAllIndexers => self
+        .test_all_readarr_indexers()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::TestIndexer(indexer_id) => self

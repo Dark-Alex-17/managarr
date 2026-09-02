@@ -1,12 +1,14 @@
 #[cfg(test)]
 mod tests {
   use crate::models::readarr_models::ReadarrSerdeable;
-  use crate::models::servarr_models::{EditIndexerParams, Indexer};
+  use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
+  use crate::models::stateful_table::StatefulTable;
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    INDEXER_JSON, indexer, stale_indexer,
+    INDEXER_JSON, INDEXER_TEST_RESULTS_JSON, indexer, indexer_test_results, stale_indexer,
+    tested_indexers,
   };
   use bimap::BiMap;
   use mockito::Matcher;
@@ -568,6 +570,80 @@ mod tests {
     assert_some_eq_x!(
       &app.data.readarr_data.indexer_test_errors,
       &"stale error".to_owned()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_all_readarr_indexers_event() {
+    let response_json: Value = serde_json::from_str(INDEXER_TEST_RESULTS_JSON).unwrap();
+    let expected_results: Vec<IndexerTestResult> =
+      serde_json::from_str(INDEXER_TEST_RESULTS_JSON).unwrap();
+    let (async_server, app, _server) = MockServarrApi::post()
+      .returns(response_json)
+      .status(400)
+      .build_for(ReadarrEvent::TestAllIndexers)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexers.set_items(tested_indexers());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestAllIndexers)
+      .await;
+
+    async_server.assert_async().await;
+    let ReadarrSerdeable::IndexerTestResults(results) = assert_ok!(result) else {
+      panic!("Expected IndexerTestResults")
+    };
+    assert_eq!(results, expected_results);
+    let app = app.lock().await;
+    assert_eq!(
+      app
+        .data
+        .readarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items,
+      indexer_test_results()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_all_readarr_indexers_event_failure() {
+    let (async_server, app, _server) = MockServarrApi::post()
+      .returns(json!({ "message": "Internal Server Error" }))
+      .status(500)
+      .build_for(ReadarrEvent::TestAllIndexers)
+      .await;
+    {
+      let mut stale_test_all_results = StatefulTable::default();
+      stale_test_all_results.set_items(indexer_test_results());
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexers.set_items(tested_indexers());
+      app.data.readarr_data.indexer_test_all_results = Some(stale_test_all_results);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestAllIndexers)
+      .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_is_empty!(
+      app
+        .data
+        .readarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items
     );
   }
 }

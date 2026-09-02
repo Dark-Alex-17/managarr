@@ -1,4 +1,6 @@
-use crate::models::servarr_models::{EditIndexerParams, Indexer};
+use crate::models::servarr_data::modals::IndexerTestResultModalItem;
+use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
+use crate::models::stateful_table::StatefulTable;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::{Context, Result};
@@ -314,5 +316,66 @@ impl Network<'_, '_> {
         };
       })
       .await
+  }
+
+  pub(in crate::network::readarr_network) async fn test_all_readarr_indexers(
+    &mut self,
+  ) -> Result<Vec<IndexerTestResult>> {
+    info!("Testing all Readarr indexers");
+    let event = ReadarrEvent::TestAllIndexers;
+
+    let mut request_props = self
+      .request_props_from(event, RequestMethod::Post, None, None, None)
+      .await;
+    request_props.ignore_status_code = true;
+
+    let result = self
+      .handle_request::<(), Vec<IndexerTestResult>>(request_props, |test_results, mut app| {
+        let mut test_all_indexer_results = StatefulTable::default();
+        let indexers = app.data.readarr_data.indexers.items.clone();
+        let modal_test_results = test_results
+          .iter()
+          .map(|result| {
+            let name = indexers
+              .iter()
+              .filter(|&indexer| indexer.id == result.id)
+              .map(|indexer| indexer.name.clone())
+              .nth(0)
+              .unwrap_or_default();
+            let validation_failures = result
+              .validation_failures
+              .iter()
+              .map(|failure| {
+                format!(
+                  "Failure for field '{}': {}",
+                  failure.property_name, failure.error_message
+                )
+              })
+              .collect::<Vec<String>>()
+              .join(", ");
+
+            IndexerTestResultModalItem {
+              name: name.unwrap_or_default(),
+              is_valid: result.is_valid,
+              validation_failures: validation_failures.into(),
+            }
+          })
+          .collect();
+        test_all_indexer_results.set_items(modal_test_results);
+        app.data.readarr_data.indexer_test_all_results = Some(test_all_indexer_results);
+      })
+      .await;
+
+    if result.is_err() {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .indexer_test_all_results = Some(StatefulTable::default());
+    }
+
+    result
   }
 }

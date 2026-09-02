@@ -1,12 +1,14 @@
 #[cfg(test)]
 #[allow(dead_code)]
 pub mod test_utils {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{
     AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, BlocklistItem,
     Book, BookFile, DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType,
     NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
     ReadarrRelease,
   };
+  use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_models::{Indexer, IndexerField, Quality, QualityWrapper, RootFolder};
   use chrono::DateTime;
   use serde_json::{Number, json};
@@ -462,5 +464,61 @@ pub mod test_utils {
       download_client_id: 0,
       tags: vec![Number::from(1)],
     }
+  }
+
+  pub const INDEXER_TEST_RESULTS_JSON: &str = r#"[
+    {
+      "id": 8,
+      "isValid": true,
+      "validationFailures": []
+    },
+    {
+      "id": 14,
+      "isValid": false,
+      "validationFailures": [
+        {
+          "propertyName": "baseUrl",
+          "errorMessage": "Unable to connect to indexer",
+          "severity": "error"
+        },
+        {
+          "propertyName": "apiKey",
+          "errorMessage": "Invalid API key",
+          "severity": "error"
+        }
+      ]
+    }
+  ]"#;
+
+  pub fn tested_indexers() -> Vec<Indexer> {
+    vec![
+      Indexer {
+        id: 8,
+        name: Some("Test Indexer".to_owned()),
+        ..Indexer::default()
+      },
+      Indexer {
+        id: 14,
+        name: Some("Other Indexer".to_owned()),
+        ..Indexer::default()
+      },
+    ]
+  }
+
+  pub fn indexer_test_results() -> Vec<IndexerTestResultModalItem> {
+    vec![
+      IndexerTestResultModalItem {
+        name: "Test Indexer".to_owned(),
+        is_valid: true,
+        validation_failures: HorizontallyScrollableText::default(),
+      },
+      IndexerTestResultModalItem {
+        name: "Other Indexer".to_owned(),
+        is_valid: false,
+        validation_failures:
+          "Failure for field 'baseUrl': Unable to connect to indexer, Failure for field 'apiKey': Invalid API key"
+            .into(),
+      },
+    ]
   }
 }

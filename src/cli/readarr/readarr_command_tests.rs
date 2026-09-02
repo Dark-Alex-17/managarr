@@ -4,6 +4,7 @@ mod tests {
     use clap::CommandFactory;
     use clap::error::ErrorKind;
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
     use crate::Cli;
 
@@ -212,9 +213,11 @@ mod tests {
       );
     }
 
-    #[test]
-    fn test_clear_blocklist_has_no_arg_requirements() {
-      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "clear-blocklist"]);
+    #[rstest]
+    fn test_commands_that_have_no_arg_requirements(
+      #[values("clear-blocklist", "test-all-indexers")] subcommand: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", subcommand]);
 
       assert_ok!(&result);
     }
@@ -389,6 +392,28 @@ mod tests {
       let test_indexer_command = ReadarrCommand::TestIndexer { indexer_id: 8 };
 
       let result = ReadarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_test_all_indexers_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::TestAllIndexers.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let test_all_indexers_command = ReadarrCommand::TestAllIndexers;
+
+      let result = ReadarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
 

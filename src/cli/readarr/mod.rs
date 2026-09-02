@@ -110,6 +110,8 @@ pub enum ReadarrCommand {
     )]
     task_name: ReadarrTaskName,
   },
+  #[command(about = "Test all Readarr indexers")]
+  TestAllIndexers,
   #[command(
     about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"
   )]
@@ -244,6 +246,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::StartTask(task_name).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrCommand::TestAllIndexers => {
+        println!("Testing all Readarr indexers. This may take a minute...");
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::TestAllIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
