@@ -3,6 +3,7 @@ mod tests {
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::models::radarr_models::Movie;
+  use crate::models::readarr_models::Author;
   use crate::models::sonarr_models::Series;
   use crate::{assert_modal_present, assert_navigation_popped};
   use pretty_assertions::assert_eq;
@@ -41,6 +42,7 @@ mod tests {
   #[rstest]
   #[case(ActiveRadarrBlock::Movies.into(), ActiveRadarrBlock::SearchMovie.into())]
   #[case(ActiveSonarrBlock::Series.into(), ActiveSonarrBlock::SearchSeries.into())]
+  #[case(ActiveReadarrBlock::Authors.into(), ActiveReadarrBlock::SearchAuthors.into())]
   fn test_handle_events(#[case] base_block: Route, #[case] top_block: Route) {
     let mut app = App::test_default();
     app.push_navigation_stack(base_block);
@@ -55,6 +57,11 @@ mod tests {
       .radarr_data
       .movies
       .set_items(vec![Movie::default()]);
+    app
+      .data
+      .readarr_data
+      .authors
+      .set_items(vec![Author::default()]);
 
     handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
 

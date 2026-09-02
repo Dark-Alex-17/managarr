@@ -1,8 +1,12 @@
 use super::KeyEventHandler;
+use crate::handlers::readarr_handlers::library::LibraryHandler;
 use crate::models::Route;
 use crate::{
-  app::App, event::Key, models::servarr_data::readarr::readarr_data::ActiveReadarrBlock,
+  app::App, event::Key, matches_key,
+  models::servarr_data::readarr::readarr_data::ActiveReadarrBlock,
 };
+
+mod library;
 
 #[cfg(test)]
 #[path = "readarr_handler_tests.rs"]
@@ -16,6 +20,15 @@ pub(super) struct ReadarrHandler<'a, 'b> {
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for ReadarrHandler<'a, 'b> {
+  fn handle(&mut self) {
+    match self.active_readarr_block {
+      _ if LibraryHandler::accepts(self.active_readarr_block) => {
+        LibraryHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();
+      }
+      _ => self.handle_key_event(),
+    }
+  }
+
   fn accepts(_active_block: ActiveReadarrBlock) -> bool {
     true
   }
@@ -70,5 +83,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for ReadarrHandler<'a, 
 
   fn current_route(&self) -> Route {
     self.app.get_current_route()
+  }
+}
+
+pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
+  let key_ref = key;
+  match key_ref {
+    _ if matches_key!(left, key, app.ignore_special_keys_for_textbox_input) => {
+      app.data.readarr_data.main_tabs.previous();
+      app.pop_and_push_navigation_stack(app.data.readarr_data.main_tabs.get_active_route());
+    }
+    _ if matches_key!(right, key, app.ignore_special_keys_for_textbox_input) => {
+      app.data.readarr_data.main_tabs.next();
+      app.pop_and_push_navigation_stack(app.data.readarr_data.main_tabs.get_active_route());
+    }
+    _ => (),
   }
 }
