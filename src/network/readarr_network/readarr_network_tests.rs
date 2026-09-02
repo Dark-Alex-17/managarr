@@ -42,6 +42,7 @@ mod tests {
   #[case(ReadarrEvent::UpdateDownloads, "/command")]
   #[case(ReadarrEvent::GetHostConfig, "/config/host")]
   #[case(ReadarrEvent::GetSecurityConfig, "/config/host")]
+  #[case(ReadarrEvent::GetAllIndexerSettings, "/config/indexer")]
   #[case(ReadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(ReadarrEvent::GetBookEditions(1), "/edition")]
   #[case(ReadarrEvent::HealthCheck, "/health")]

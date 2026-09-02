@@ -7,8 +7,8 @@ mod tests {
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::readarr_network::ReadarrEvent;
   use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
-    INDEXER_JSON, INDEXER_TEST_RESULTS_JSON, indexer, indexer_test_results, stale_indexer,
-    tested_indexers,
+    INDEXER_JSON, INDEXER_SETTINGS_JSON, INDEXER_TEST_RESULTS_JSON, indexer, indexer_settings,
+    indexer_test_results, stale_indexer, stale_indexer_settings, tested_indexers,
   };
   use bimap::BiMap;
   use mockito::Matcher;
@@ -645,5 +645,73 @@ mod tests {
         .unwrap()
         .items
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_all_readarr_indexer_settings_event() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_SETTINGS_JSON).unwrap())
+      .build_for(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+
+    mock.assert_async().await;
+    let ReadarrSerdeable::IndexerSettings(settings) = assert_ok!(result) else {
+      panic!("Expected IndexerSettings")
+    };
+    assert_eq!(settings, indexer_settings());
+    let app = app.lock().await;
+    assert_some_eq_x!(&app.data.readarr_data.indexer_settings, &indexer_settings());
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_all_readarr_indexer_settings_event_does_not_overwrite_pending_edits() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_SETTINGS_JSON).unwrap())
+      .build_for(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexer_settings = Some(stale_indexer_settings());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+
+    mock.assert_async().await;
+    assert_ok!(&result);
+    let app = app.lock().await;
+    assert_some_eq_x!(
+      &app.data.readarr_data.indexer_settings,
+      &stale_indexer_settings()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_all_readarr_indexer_settings_event_failure() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_SETTINGS_JSON).unwrap())
+      .status(500)
+      .build_for(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAllIndexerSettings)
+      .await;
+
+    mock.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_none!(&app.data.readarr_data.indexer_settings);
   }
 }

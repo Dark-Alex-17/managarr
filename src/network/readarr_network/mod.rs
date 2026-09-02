@@ -45,6 +45,7 @@ pub enum ReadarrEvent {
   DownloadRelease(ReleaseDownloadBody),
   EditAuthor(EditAuthorParams),
   EditIndexer(EditIndexerParams),
+  GetAllIndexerSettings,
   GetAuthorDetails(i64),
   GetAuthorHistory(i64),
   GetAuthorReleases(i64),
@@ -112,6 +113,7 @@ impl NetworkResource for ReadarrEvent {
       | ReadarrEvent::UpdateAndScanAuthor(_)
       | ReadarrEvent::UpdateDownloads => "/command",
       ReadarrEvent::GetHostConfig | ReadarrEvent::GetSecurityConfig => "/config/host",
+      ReadarrEvent::GetAllIndexerSettings => "/config/indexer",
       ReadarrEvent::GetDiskSpace => "/diskspace",
       ReadarrEvent::GetBookEditions(_) => "/edition",
       ReadarrEvent::HealthCheck => "/health",
@@ -205,6 +207,10 @@ impl Network<'_, '_> {
         .map(ReadarrSerdeable::from),
       ReadarrEvent::EditIndexer(edit_indexer_params) => self
         .edit_readarr_indexer(edit_indexer_params)
+        .await
+        .map(ReadarrSerdeable::from),
+      ReadarrEvent::GetAllIndexerSettings => self
+        .get_all_readarr_indexer_settings()
         .await
         .map(ReadarrSerdeable::from),
       ReadarrEvent::GetAuthorDetails(author_id) => self

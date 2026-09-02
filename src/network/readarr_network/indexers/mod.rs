@@ -1,5 +1,7 @@
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
-use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
+use crate::models::servarr_models::{
+  EditIndexerParams, Indexer, IndexerSettings, IndexerTestResult,
+};
 use crate::models::stateful_table::StatefulTable;
 use crate::network::readarr_network::ReadarrEvent;
 use crate::network::{Network, RequestMethod};
@@ -31,6 +33,27 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::readarr_network) async fn get_all_readarr_indexer_settings(
+    &mut self,
+  ) -> Result<IndexerSettings> {
+    info!("Fetching Readarr indexer settings");
+    let event = ReadarrEvent::GetAllIndexerSettings;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), IndexerSettings>(request_props, |indexer_settings, mut app| {
+        if app.data.readarr_data.indexer_settings.is_none() {
+          app.data.readarr_data.indexer_settings = Some(indexer_settings);
+        } else {
+          debug!("Indexer Settings are being modified. Ignoring update...");
+        }
+      })
       .await
   }
 

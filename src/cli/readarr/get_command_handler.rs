@@ -18,6 +18,8 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum ReadarrGetCommand {
+  #[command(about = "Get the shared settings for all indexers")]
+  AllIndexerSettings,
   #[command(about = "Get detailed information for the author with the given ID")]
   AuthorDetails {
     #[arg(
@@ -71,6 +73,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrGetCommand> for ReadarrGetCommandH
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      ReadarrGetCommand::AllIndexerSettings => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::GetAllIndexerSettings.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       ReadarrGetCommand::AuthorDetails { author_id } => {
         let resp = self
           .network

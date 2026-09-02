@@ -25,6 +25,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_all_indexer_settings_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "readarr", "get", "all-indexer-settings"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_author_details_requires_author_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "get", "author-details"]);
@@ -102,6 +110,34 @@ mod tests {
       models::{Serdeable, readarr_models::ReadarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_get_all_indexer_settings_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_all_indexer_settings_command = ReadarrGetCommand::AllIndexerSettings;
+
+      let result = ReadarrGetCommandHandler::with(
+        &app_arc,
+        get_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_get_author_details_command() {

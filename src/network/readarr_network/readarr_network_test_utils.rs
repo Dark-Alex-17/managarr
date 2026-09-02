@@ -9,7 +9,9 @@ pub mod test_utils {
     ReadarrRelease,
   };
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
-  use crate::models::servarr_models::{Indexer, IndexerField, Quality, QualityWrapper, RootFolder};
+  use crate::models::servarr_models::{
+    Indexer, IndexerField, IndexerSettings, Quality, QualityWrapper, RootFolder,
+  };
   use chrono::DateTime;
   use serde_json::{Number, json};
 
@@ -520,5 +522,33 @@ pub mod test_utils {
             .into(),
       },
     ]
+  }
+
+  pub const INDEXER_SETTINGS_JSON: &str = r#"{
+    "id": 4,
+    "minimumAge": 17,
+    "retention": 43,
+    "maximumSize": 26500,
+    "rssSyncInterval": 35
+  }"#;
+
+  pub fn indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      id: 4,
+      minimum_age: 17,
+      retention: 43,
+      maximum_size: 26500,
+      rss_sync_interval: 35,
+    }
+  }
+
+  pub fn stale_indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      id: 9,
+      minimum_age: 22,
+      retention: 58,
+      maximum_size: 31200,
+      rss_sync_interval: 90,
+    }
   }
 }
