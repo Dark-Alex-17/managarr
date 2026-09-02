@@ -111,6 +111,13 @@ pub enum ReadarrCommand {
     task_name: ReadarrTaskName,
   },
   #[command(
+    about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"
+  )]
+  TestIndexer {
+    #[arg(long, help = "The ID of the indexer to test", required = true)]
+    indexer_id: i64,
+  },
+  #[command(
     about = "Toggle monitoring for the specified author corresponding to the given author ID"
   )]
   ToggleAuthorMonitoring {
@@ -237,6 +244,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrCommand> for ReadarrCliHandler<'a,
         let resp = self
           .network
           .handle_network_event(ReadarrEvent::StartTask(task_name).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      ReadarrCommand::TestIndexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event(ReadarrEvent::TestIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

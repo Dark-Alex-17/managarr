@@ -425,4 +425,149 @@ mod tests {
     async_edit_server.assert_async().await;
     assert_err!(result);
   }
+
+  #[tokio::test]
+  async fn test_handle_test_readarr_indexer_event() {
+    let expected_body: Value = serde_json::from_str(INDEXER_JSON).unwrap();
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_JSON).unwrap())
+      .path("/8")
+      .build_for(ReadarrEvent::GetIndexers)
+      .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v1{}", ReadarrEvent::TestIndexer(8).resource()).as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .with_body("{}")
+      .create_async()
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexer_test_errors = Some("stale error".to_owned());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestIndexer(8))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_ok!(&result);
+    let app = app.lock().await;
+    assert_some_eq_x!(&app.data.readarr_data.indexer_test_errors, &String::new());
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_readarr_indexer_event_captures_validation_errors() {
+    let expected_body: Value = serde_json::from_str(INDEXER_JSON).unwrap();
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_JSON).unwrap())
+      .path("/8")
+      .build_for(ReadarrEvent::GetIndexers)
+      .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v1{}", ReadarrEvent::TestIndexer(8).resource()).as_str(),
+      )
+      .with_status(400)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .with_body(json!([{ "errorMessage": "Unable to connect to indexer" }]).to_string())
+      .create_async()
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexer_test_errors = Some("stale error".to_owned());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestIndexer(8))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_ok!(&result);
+    let app = app.lock().await;
+    assert_some_eq_x!(
+      &app.data.readarr_data.indexer_test_errors,
+      &"\"Unable to connect to indexer\"".to_owned()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_readarr_indexer_event_falls_back_to_a_generic_error_message() {
+    let expected_body: Value = serde_json::from_str(INDEXER_JSON).unwrap();
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_JSON).unwrap())
+      .path("/8")
+      .build_for(ReadarrEvent::GetIndexers)
+      .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v1{}", ReadarrEvent::TestIndexer(8).resource()).as_str(),
+      )
+      .with_status(400)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .with_body("[]")
+      .create_async()
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexer_test_errors = Some("stale error".to_owned());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestIndexer(8))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_ok!(&result);
+    let app = app.lock().await;
+    assert_some_eq_x!(
+      &app.data.readarr_data.indexer_test_errors,
+      &"Unknown indexer test error".to_owned()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_readarr_indexer_event_failure() {
+    let (async_details_server, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(INDEXER_JSON).unwrap())
+      .path("/8")
+      .status(500)
+      .build_for(ReadarrEvent::GetIndexers)
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app.data.readarr_data.indexer_test_errors = Some("stale error".to_owned());
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::TestIndexer(8))
+      .await;
+
+    async_details_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some_eq_x!(
+      &app.data.readarr_data.indexer_test_errors,
+      &"stale error".to_owned()
+    );
+  }
 }

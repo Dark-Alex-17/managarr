@@ -263,4 +263,56 @@ impl Network<'_, '_> {
       })
       .await
   }
+
+  pub(in crate::network::readarr_network) async fn test_readarr_indexer(
+    &mut self,
+    indexer_id: i64,
+  ) -> Result<Value> {
+    let detail_event = ReadarrEvent::GetIndexers;
+    let event = ReadarrEvent::TestIndexer(indexer_id);
+    info!("Testing Readarr indexer with ID: {indexer_id}");
+
+    info!("Fetching indexer details for indexer with ID: {indexer_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{indexer_id}")),
+        None,
+      )
+      .await;
+
+    let mut test_body: Value = Value::default();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_indexer_body, _| {
+        test_body = detailed_indexer_body;
+      })
+      .await?;
+
+    info!("Testing indexer");
+
+    let mut request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(test_body), None, None)
+      .await;
+    request_props.ignore_status_code = true;
+
+    self
+      .handle_request::<Value, Value>(request_props, |test_results, mut app| {
+        if test_results.as_object().is_none() {
+          let error_message = test_results
+            .as_array()
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("errorMessage"))
+            .map(|msg| msg.to_string())
+            .unwrap_or_else(|| "Unknown indexer test error".to_string());
+          app.data.readarr_data.indexer_test_errors = Some(error_message);
+        } else {
+          app.data.readarr_data.indexer_test_errors = Some(String::new());
+        };
+      })
+      .await
+  }
 }

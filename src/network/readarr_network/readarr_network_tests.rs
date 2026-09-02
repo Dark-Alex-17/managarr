@@ -52,6 +52,7 @@ mod tests {
   #[case(ReadarrEvent::DeleteIndexer(1), "/indexer")]
   #[case(ReadarrEvent::EditIndexer(EditIndexerParams::default()), "/indexer")]
   #[case(ReadarrEvent::GetIndexers, "/indexer")]
+  #[case(ReadarrEvent::TestIndexer(8), "/indexer/test")]
   #[case(ReadarrEvent::GetLogs(500), "/log")]
   #[case(ReadarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(ReadarrEvent::GetQualityProfiles, "/qualityprofile")]

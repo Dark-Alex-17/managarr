@@ -152,6 +152,30 @@ mod tests {
     }
 
     #[test]
+    fn test_test_indexer_requires_indexer_id() {
+      let result = Cli::command().try_get_matches_from(["managarr", "readarr", "test-indexer"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_test_indexer_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "readarr",
+        "test-indexer",
+        "--indexer-id",
+        "8",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_toggle_author_monitoring_requires_author_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "readarr", "toggle-author-monitoring"]);
@@ -340,6 +364,31 @@ mod tests {
       };
 
       let result = ReadarrCliHandler::with(&app_arc, start_task_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_test_indexer_command() {
+      let expected_indexer_id = 8;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::TestIndexer(expected_indexer_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let test_indexer_command = ReadarrCommand::TestIndexer { indexer_id: 8 };
+
+      let result = ReadarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
         .handle()
         .await;
 
