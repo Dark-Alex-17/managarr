@@ -26,6 +26,7 @@ use crate::{
 };
 
 mod author_details_ui;
+mod book_details_ui;
 
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]

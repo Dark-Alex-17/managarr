@@ -7,7 +7,7 @@ mod tests {
 
   use crate::models::readarr_models::{Book, BookStatistics};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::author_details_ui::{
@@ -17,8 +17,11 @@ mod tests {
 
   #[test]
   fn test_author_details_ui_accepts() {
+    let mut author_details_blocks = AUTHOR_DETAILS_BLOCKS.to_vec();
+    author_details_blocks.extend(BOOK_DETAILS_BLOCKS);
+
     ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
-      if AUTHOR_DETAILS_BLOCKS.contains(&active_readarr_block) {
+      if author_details_blocks.contains(&active_readarr_block) {
         assert!(AuthorDetailsUi::accepts(active_readarr_block.into()));
       } else {
         assert!(!AuthorDetailsUi::accepts(active_readarr_block.into()));
@@ -288,6 +291,18 @@ mod tests {
       });
       app.data.readarr_data.books.set_items(vec![book]);
       app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_author_details_ui_renders_book_details_over_author_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         AuthorDetailsUi::draw(f, app, f.area());

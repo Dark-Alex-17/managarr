@@ -29,7 +29,7 @@ use strum::EnumIter;
 use {
   super::modals::EditionDetailsModal,
   crate::models::readarr_models::{
-    AuthorStatus, BookFile, DownloadStatus, Edition, MonitorType, NewItemMonitorType,
+    AuthorStatus, BookFile, DownloadStatus, Edition, MediaInfo, MonitorType, NewItemMonitorType,
     ReadarrHistoryEventType, ReadarrTaskName,
   },
   crate::models::servarr_models::{IndexerField, Quality, QualityWrapper},
@@ -461,6 +461,10 @@ impl ReadarrData<'_> {
       monitored: true,
       is_ebook: true,
       title: "Test Edition".to_owned(),
+      format: Some("Hardcover".to_owned()),
+      publisher: Some("DAW Books".to_owned()),
+      isbn13: Some("9780756404079".to_owned()),
+      asin: Some("B0043RSJ9S".to_owned()),
       page_count: Some(288),
       release_date: Some(date),
       ..Edition::default()
@@ -474,7 +478,13 @@ impl ReadarrData<'_> {
       size: 3543348019,
       date_added: date,
       quality: quality.clone(),
-      media_info: None,
+      media_info: Some(MediaInfo {
+        audio_bit_rate: Some("128 kbps".to_owned()),
+        audio_channels: 2,
+        audio_codec: Some("MP3".to_owned()),
+        audio_bits: Some("16".to_owned()),
+        audio_sample_rate: Some("44100".to_owned()),
+      }),
       quality_cutoff_not_met: false,
     }]);
     book_details_modal

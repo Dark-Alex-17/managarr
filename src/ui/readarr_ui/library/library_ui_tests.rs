@@ -4,7 +4,7 @@ mod tests {
 
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, LIBRARY_BLOCKS,
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::{LibraryUi, decorate_author_row_with_style};
@@ -16,6 +16,7 @@ mod tests {
   fn test_library_ui_accepts() {
     let mut blocks = LIBRARY_BLOCKS.to_vec();
     blocks.extend(AUTHOR_DETAILS_BLOCKS);
+    blocks.extend(BOOK_DETAILS_BLOCKS);
 
     for active_readarr_block in ActiveReadarrBlock::iter() {
       if blocks.contains(&active_readarr_block) {
