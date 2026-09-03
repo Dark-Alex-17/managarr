@@ -22,12 +22,14 @@ use crate::models::Route;
 mod add_author_handler;
 mod author_details_handler;
 mod book_details_handler;
+mod delete_author_handler;
 mod edit_author_handler;
 mod edition_details_handler;
 
 pub(in crate::handlers::readarr_handlers) use {
   add_author_handler::AddAuthorHandler, author_details_handler::AuthorDetailsHandler,
-  book_details_handler::BookDetailsHandler, edit_author_handler::EditAuthorHandler,
+  book_details_handler::BookDetailsHandler, delete_author_handler::DeleteAuthorHandler,
+  edit_author_handler::EditAuthorHandler,
 };
 
 #[cfg(test)]
@@ -70,6 +72,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
           AddAuthorHandler::new(self.key, self.app, self.active_readarr_block, self.context)
             .handle();
         }
+        _ if DeleteAuthorHandler::accepts(self.active_readarr_block) => {
+          DeleteAuthorHandler::new(self.key, self.app, self.active_readarr_block, self.context)
+            .handle();
+        }
         _ if EditAuthorHandler::accepts(self.active_readarr_block) => {
           EditAuthorHandler::new(self.key, self.app, self.active_readarr_block, self.context)
             .handle();
@@ -89,6 +95,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
     AddAuthorHandler::accepts(active_block)
+      || DeleteAuthorHandler::accepts(active_block)
       || EditAuthorHandler::accepts(active_block)
       || AuthorDetailsHandler::accepts(active_block)
       || BookDetailsHandler::accepts(active_block)
