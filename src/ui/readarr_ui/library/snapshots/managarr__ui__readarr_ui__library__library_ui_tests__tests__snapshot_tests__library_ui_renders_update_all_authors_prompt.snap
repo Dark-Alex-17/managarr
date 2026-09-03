@@ -1,0 +1,38 @@
+---
+source: src/ui/readarr_ui/library/library_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Name ▼                                             Status        Quality Profile       Metadata Profile      Books       Size        Monitored  Tags              
+=> Test Author                                        Continuing    Standard              Standard              0           0.00 GB     🏷          alex              
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                   ╭──────────────────  Update All Authors  ───────────────────╮                                                     
+                                                   │ Do you want to update info and scan your disks for all of │                                                     
+                                                   │                       your authors?                       │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │╭────────────────────────────╮╭───────────────────────────╮│                                                     
+                                                   ││             Yes            ││            No             ││                                                     
+                                                   │╰────────────────────────────╯╰───────────────────────────╯│                                                     
+                                                   ╰───────────────────────────────────────────────────────────╯

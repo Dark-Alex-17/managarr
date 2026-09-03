@@ -6,6 +6,10 @@ use ratatui::{
 };
 
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::{
+  confirmation_prompt::ConfirmationPrompt,
+  popup::{Popup, Size},
+};
 use crate::utils::convert_to_gb;
 use crate::{
   app::App,
@@ -44,6 +48,17 @@ impl DrawUi for LibraryUi {
 
     match route {
       _ if AuthorDetailsUi::accepts(route) => AuthorDetailsUi::draw(f, app, area),
+      Route::Readarr(ActiveReadarrBlock::UpdateAllAuthorsPrompt, _) => {
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Update All Authors")
+          .prompt("Do you want to update info and scan your disks for all of your authors?")
+          .yes_no_value(app.data.readarr_data.prompt_confirm);
+
+        f.render_widget(
+          Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+          f.area(),
+        );
+      }
       _ => (),
     }
   }
