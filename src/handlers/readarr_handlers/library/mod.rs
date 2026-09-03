@@ -19,12 +19,14 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::models::Route;
 
+mod add_author_handler;
 mod author_details_handler;
 mod book_details_handler;
 mod edition_details_handler;
 
 pub(in crate::handlers::readarr_handlers) use {
-  author_details_handler::AuthorDetailsHandler, book_details_handler::BookDetailsHandler,
+  add_author_handler::AddAuthorHandler, author_details_handler::AuthorDetailsHandler,
+  book_details_handler::BookDetailsHandler,
 };
 
 #[cfg(test)]
@@ -63,6 +65,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
       authors_table_handling_config,
     ) {
       match self.active_readarr_block {
+        _ if AddAuthorHandler::accepts(self.active_readarr_block) => {
+          AddAuthorHandler::new(self.key, self.app, self.active_readarr_block, self.context)
+            .handle();
+        }
         _ if AuthorDetailsHandler::accepts(self.active_readarr_block) => {
           AuthorDetailsHandler::new(self.key, self.app, self.active_readarr_block, self.context)
             .handle();
@@ -77,7 +83,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
   }
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
-    AuthorDetailsHandler::accepts(active_block)
+    AddAuthorHandler::accepts(active_block)
+      || AuthorDetailsHandler::accepts(active_block)
       || BookDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
