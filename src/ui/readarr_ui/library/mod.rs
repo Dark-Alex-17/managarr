@@ -1,3 +1,4 @@
+use author_details_ui::AuthorDetailsUi;
 use ratatui::{
   Frame,
   layout::{Constraint, Rect},
@@ -20,6 +21,8 @@ use crate::{
   },
 };
 
+mod author_details_ui;
+
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
@@ -29,14 +32,20 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Readarr(active_readarr_block, _) = route {
-      return LIBRARY_BLOCKS.contains(&active_readarr_block);
+      return AuthorDetailsUi::accepts(route) || LIBRARY_BLOCKS.contains(&active_readarr_block);
     }
 
     false
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+    let route = app.get_current_route();
     draw_library(f, app, area);
+
+    match route {
+      _ if AuthorDetailsUi::accepts(route) => AuthorDetailsUi::draw(f, app, area),
+      _ => (),
+    }
   }
 }
 

@@ -1,0 +1,52 @@
+---
+source: src/ui/readarr_ui/library/author_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+        ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
+        │Author: Test Author                                                                                                                                │        
+        │Overview: some interesting description of the author                                                                                               │        
+        │Status: Continuing                                                                                                                                 │        
+        │Genres: science fiction                                                                                                                            │        
+        │Rating: N/A                                                                                                                                        │        
+        │Path: /nfs/books/Test Author                                                                                                                       │        
+        │Quality Profile: Standard                                                                                                                          │        
+        │Metadata Profile: Standard                                                                                                                         │        
+        │Monitored: Yes                                                                                                                                     │        
+        │                                                                                                                                                   │        
+        │                                                                                                                                                   │        
+        │                                         ╭─────────────────  Download Rejected Release  ──────────────────╮                                        │        
+        │╭  Author Details  ──────────────────────│    Do you really want to download the rejected release: Test   │───────────────────────────────────────╮│        
+        ││ Books │ History │ Author Search        │                        Torrent Release?                        │                                       ││        
+        ││────────────────────────────────────────│                                                                │───────────────────────────────────────││        
+        ││   Source ▼  Age        ⛔     Title     │                                                                │e         Peers        Quality         ││        
+        ││=> torrent   1 days     ⛔     Test Torre│Rejection reasons:                                              │ GB       2 / 1        EPUB            ││        
+        ││   usenet    1 days     ⛔     Test Usene│• Unknown quality profile                                       │ GB                    EPUB            ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │                                                                │                                       ││        
+        ││                                        │╭──────────────────────────────╮╭──────────────────────────────╮│                                       ││        
+        ││                                        ││              Yes             ││              No              ││                                       ││        
+        ││                                        │╰──────────────────────────────╯╰──────────────────────────────╯│                                       ││        
+        ││                                        ╰────────────────────────────────────────────────────────────────╯                                       ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        │╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯│        
+        ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -35,6 +35,7 @@ use crate::{
 };
 
 mod library;
+mod readarr_ui_utils;
 
 #[cfg(test)]
 #[path = "readarr_ui_tests.rs"]

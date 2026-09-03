@@ -3,7 +3,9 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
-  use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, LIBRARY_BLOCKS};
+  use crate::models::servarr_data::readarr::readarr_data::{
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, LIBRARY_BLOCKS,
+  };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::{LibraryUi, decorate_author_row_with_style};
   use crate::ui::styles::ManagarrStyle;
@@ -12,8 +14,11 @@ mod tests {
 
   #[test]
   fn test_library_ui_accepts() {
+    let mut blocks = LIBRARY_BLOCKS.to_vec();
+    blocks.extend(AUTHOR_DETAILS_BLOCKS);
+
     for active_readarr_block in ActiveReadarrBlock::iter() {
-      if LIBRARY_BLOCKS.contains(&active_readarr_block) {
+      if blocks.contains(&active_readarr_block) {
         assert!(
           LibraryUi::accepts(active_readarr_block.into()),
           "{active_readarr_block} is not accepted by the LibraryUi"
@@ -224,6 +229,19 @@ mod tests {
     fn test_library_ui_renders_empty() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_author_details_over_library() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
