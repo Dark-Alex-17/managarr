@@ -448,17 +448,21 @@ impl ReadarrData<'_> {
 
     let edition_details_modal = EditionDetailsModal {
       edition_details: ScrollableText::with_string(
-        "Title: Test Edition
-Format: Hardcover
-Language: English
-Publisher: DAW Books
-Page Count: 288
-Release Date: 2023-05-20 00:00:00 UTC
-ISBN13: 9780756404079
-ASIN: B0043RSJ9S
-Ratings: 4.5 (1000 votes)
-Monitored: true
-Overview: A test edition overview."
+        "Title: Test Edition\n\
+         Format: Hardcover\n\
+         Language: English\n\
+         Publisher: DAW Books\n\
+         Page Count: 288\n\
+         Release Date: 2023-05-20 00:00:00 UTC\n\
+         ISBN13: 9780756404079\n\
+         ASIN: B0043RSJ9S\n\
+         Ratings: 4.5 (1000 votes)\n\
+         Monitored: true\n\
+         Overview: original cover of ISBN 075640407X\r\n\
+         \r\n\
+         My name is Kvothe, pronounced nearly the same as \"quothe.\"\r\n\
+         \r\n\
+         The Adem call me Maedre: which means The Flame.\r\n"
           .to_owned(),
       ),
     };

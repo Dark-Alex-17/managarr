@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_eq;
+  use ratatui::text::Line;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
@@ -9,7 +10,9 @@ mod tests {
     ActiveReadarrBlock, EDITION_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
-  use crate::ui::readarr_ui::library::edition_details_ui::{EditionDetailsUi, style_from_edition};
+  use crate::ui::readarr_ui::library::edition_details_ui::{
+    EditionDetailsUi, edition_detail_line, style_from_edition,
+  };
   use crate::ui::styles::{primary_style, unmonitored_style};
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
@@ -46,6 +49,64 @@ mod tests {
     let style = style_from_edition(&edition);
 
     assert_eq!(style, unmonitored_style());
+  }
+
+  #[test]
+  fn test_edition_detail_line_splits_a_label_from_its_value() {
+    let line = edition_detail_line("Title: Test Edition", primary_style());
+
+    assert_eq!(span_contents(&line), vec!["Title:", " Test Edition"]);
+  }
+
+  #[test]
+  fn test_edition_detail_line_keeps_colons_within_a_value() {
+    let line = edition_detail_line("Release Date: 2023-01-05 15:00:00 UTC", primary_style());
+
+    assert_eq!(
+      span_contents(&line),
+      vec!["Release Date:", " 2023-01-05 15:00:00 UTC"]
+    );
+  }
+
+  #[test]
+  fn test_edition_detail_line_does_not_append_a_colon_to_a_line_without_one() {
+    let line = edition_detail_line(
+      "My name is Kvothe, pronounced nearly the same as \"quothe.\"",
+      primary_style(),
+    );
+
+    assert_eq!(
+      span_contents(&line),
+      vec!["My name is Kvothe, pronounced nearly the same as \"quothe.\""]
+    );
+  }
+
+  #[test]
+  fn test_edition_detail_line_renders_a_carriage_return_only_line_as_blank() {
+    let line = edition_detail_line("\r", primary_style());
+
+    assert_eq!(span_contents(&line), vec![""]);
+  }
+
+  #[test]
+  fn test_edition_detail_line_trims_a_trailing_carriage_return() {
+    let line = edition_detail_line(
+      "I have stolen princesses back from sleeping barrow kings.\r",
+      primary_style(),
+    );
+
+    assert_eq!(
+      span_contents(&line),
+      vec!["I have stolen princesses back from sleeping barrow kings."]
+    );
+  }
+
+  fn span_contents(line: &Line<'_>) -> Vec<String> {
+    line
+      .spans
+      .iter()
+      .map(|span| span.content.to_string())
+      .collect()
   }
 
   mod snapshot_tests {

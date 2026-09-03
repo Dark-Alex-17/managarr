@@ -56,17 +56,8 @@ fn draw_edition_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
           edition_details
             .items
             .iter()
-            .filter(|line| !line.is_empty())
-            .map(|line| {
-              let split = line.split(':').collect::<Vec<&str>>();
-              let title = format!("{}:", split[0]);
-
-              Line::from(vec![
-                title.bold().style(style),
-                Span::styled(split[1..].join(":"), style),
-              ])
-            })
-            .collect::<Vec<Line<'_>>>(),
+            .map(|line| edition_detail_line(line, style))
+            .collect::<Vec<Line<'static>>>(),
         );
 
         let paragraph = Paragraph::new(text)
@@ -99,4 +90,16 @@ fn style_from_edition(edition: &Edition) -> Style {
   }
 
   primary_style()
+}
+
+fn edition_detail_line(line: &str, style: Style) -> Line<'static> {
+  let line = line.trim_end();
+
+  match line.split_once(':') {
+    Some((label, value)) => Line::from(vec![
+      format!("{label}:").bold().style(style),
+      Span::styled(value.to_owned(), style),
+    ]),
+    None => Line::from(Span::styled(line.to_owned(), style)),
+  }
 }
