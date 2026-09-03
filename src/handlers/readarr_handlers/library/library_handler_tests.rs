@@ -14,8 +14,9 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, LIBRARY_BLOCKS,
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, LIBRARY_BLOCKS,
   };
+  use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_str_eq;
@@ -879,10 +880,20 @@ mod tests {
   }
 
   #[test]
+  fn test_delegates_book_details_blocks_to_book_details_handler() {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveReadarrBlock::AuthorDetails,
+      ActiveReadarrBlock::BookDetails
+    );
+  }
+
+  #[test]
   fn test_library_handler_accepts() {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(AUTHOR_DETAILS_BLOCKS);
+    library_handler_blocks.extend(BOOK_DETAILS_BLOCKS);
 
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
       if library_handler_blocks.contains(&readarr_block) {

@@ -389,7 +389,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for AuthorDetailsHandle
   }
 }
 
-fn releases_sorting_options() -> Vec<SortOption<ReadarrRelease>> {
+pub(in crate::handlers::readarr_handlers::library) fn releases_sorting_options()
+-> Vec<SortOption<ReadarrRelease>> {
   vec![
     SortOption {
       name: "Source",

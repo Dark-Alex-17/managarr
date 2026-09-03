@@ -20,8 +20,11 @@ use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::models::Route;
 
 mod author_details_handler;
+mod book_details_handler;
 
-pub(in crate::handlers::readarr_handlers) use author_details_handler::AuthorDetailsHandler;
+pub(in crate::handlers::readarr_handlers) use {
+  author_details_handler::AuthorDetailsHandler, book_details_handler::BookDetailsHandler,
+};
 
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
@@ -63,13 +66,19 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
           AuthorDetailsHandler::new(self.key, self.app, self.active_readarr_block, self.context)
             .handle();
         }
+        _ if BookDetailsHandler::accepts(self.active_readarr_block) => {
+          BookDetailsHandler::new(self.key, self.app, self.active_readarr_block, self.context)
+            .handle();
+        }
         _ => self.handle_key_event(),
       }
     }
   }
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
-    AuthorDetailsHandler::accepts(active_block) || LIBRARY_BLOCKS.contains(&active_block)
+    AuthorDetailsHandler::accepts(active_block)
+      || BookDetailsHandler::accepts(active_block)
+      || LIBRARY_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
