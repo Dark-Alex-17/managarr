@@ -15,7 +15,7 @@ mod tests {
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
     ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
-    EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
+    EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -899,6 +899,15 @@ mod tests {
   }
 
   #[test]
+  fn test_delegates_edit_author_blocks_to_edit_author_handler() {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveReadarrBlock::Authors,
+      ActiveReadarrBlock::EditAuthorPrompt
+    );
+  }
+
+  #[test]
   fn test_library_handler_accepts() {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
@@ -906,6 +915,7 @@ mod tests {
     library_handler_blocks.extend(BOOK_DETAILS_BLOCKS);
     library_handler_blocks.extend(EDITION_DETAILS_BLOCKS);
     library_handler_blocks.extend(ADD_AUTHOR_BLOCKS);
+    library_handler_blocks.extend(EDIT_AUTHOR_BLOCKS);
 
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
       if library_handler_blocks.contains(&readarr_block) {
