@@ -13,9 +13,10 @@ mod tests {
   };
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
   use crate::models::servarr_data::readarr::readarr_data::{
-    ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
+    ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, EDITION_DETAILS_BLOCKS,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper};
+  use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
     use super::*;
@@ -866,8 +867,12 @@ mod tests {
 
   #[test]
   fn test_book_details_handler_accepts() {
+    let mut book_details_handler_blocks = Vec::new();
+    book_details_handler_blocks.extend(BOOK_DETAILS_BLOCKS);
+    book_details_handler_blocks.extend(EDITION_DETAILS_BLOCKS);
+
     ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
-      if BOOK_DETAILS_BLOCKS.contains(&active_readarr_block) {
+      if book_details_handler_blocks.contains(&active_readarr_block) {
         assert!(
           BookDetailsHandler::accepts(active_readarr_block),
           "{active_readarr_block} is not accepted by the BookDetailsHandler"
@@ -879,6 +884,15 @@ mod tests {
         );
       }
     });
+  }
+
+  #[test]
+  fn test_delegates_edition_details_blocks_to_edition_details_handler() {
+    test_handler_delegation!(
+      BookDetailsHandler,
+      ActiveReadarrBlock::BookDetails,
+      ActiveReadarrBlock::BookEditionDetails
+    );
   }
 
   #[test]

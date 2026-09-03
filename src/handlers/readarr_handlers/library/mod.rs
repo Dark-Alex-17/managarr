@@ -21,6 +21,7 @@ use crate::models::Route;
 
 mod author_details_handler;
 mod book_details_handler;
+mod edition_details_handler;
 
 pub(in crate::handlers::readarr_handlers) use {
   author_details_handler::AuthorDetailsHandler, book_details_handler::BookDetailsHandler,

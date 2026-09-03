@@ -14,7 +14,8 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, LIBRARY_BLOCKS,
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, EDITION_DETAILS_BLOCKS,
+    LIBRARY_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -894,6 +895,7 @@ mod tests {
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(AUTHOR_DETAILS_BLOCKS);
     library_handler_blocks.extend(BOOK_DETAILS_BLOCKS);
+    library_handler_blocks.extend(EDITION_DETAILS_BLOCKS);
 
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
       if library_handler_blocks.contains(&readarr_block) {

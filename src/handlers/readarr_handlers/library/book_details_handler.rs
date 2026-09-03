@@ -13,6 +13,7 @@ use crate::network::readarr_network::ReadarrEvent;
 use indoc::formatdoc;
 
 use super::author_details_handler::releases_sorting_options;
+use super::edition_details_handler::EditionDetailsHandler;
 
 #[cfg(test)]
 #[path = "book_details_handler_tests.rs"]
@@ -133,6 +134,16 @@ impl BookDetailsHandler<'_, '_> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for BookDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
+    if EditionDetailsHandler::accepts(self.active_readarr_block) {
+      return EditionDetailsHandler::new(
+        self.key,
+        self.app,
+        self.active_readarr_block,
+        self._context,
+      )
+      .handle();
+    }
+
     let editions_table_handling_config =
       TableHandlingConfig::new(ActiveReadarrBlock::BookDetails.into())
         .searching_block(ActiveReadarrBlock::SearchEditions.into())
@@ -197,7 +208,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for BookDetailsHandler<
   }
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
-    BOOK_DETAILS_BLOCKS.contains(&active_block)
+    EditionDetailsHandler::accepts(active_block) || BOOK_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
