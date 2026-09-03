@@ -7,7 +7,7 @@ mod tests {
   use crate::app::App;
   use crate::models::readarr_models::Edition;
   use crate::models::servarr_data::readarr::readarr_data::{
-    ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
+    ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, EDITION_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::book_details_ui::{
@@ -18,8 +18,11 @@ mod tests {
 
   #[test]
   fn test_book_details_ui_accepts() {
+    let mut book_details_blocks = BOOK_DETAILS_BLOCKS.to_vec();
+    book_details_blocks.extend(EDITION_DETAILS_BLOCKS);
+
     ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
-      if BOOK_DETAILS_BLOCKS.contains(&active_readarr_block) {
+      if book_details_blocks.contains(&active_readarr_block) {
         assert!(BookDetailsUi::accepts(active_readarr_block.into()));
       } else {
         assert!(!BookDetailsUi::accepts(active_readarr_block.into()));
@@ -231,6 +234,18 @@ mod tests {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
       app.data.readarr_data.book_details_modal = None;
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        BookDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_book_details_ui_renders_edition_details_over_book_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::BookEditionDetails.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         BookDetailsUi::draw(f, app, f.area());

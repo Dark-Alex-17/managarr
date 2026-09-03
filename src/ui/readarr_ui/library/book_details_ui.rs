@@ -2,6 +2,7 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::readarr_models::{BookFile, Edition, ReadarrHistoryItem, ReadarrRelease};
 use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, BOOK_DETAILS_BLOCKS};
+use crate::ui::readarr_ui::library::edition_details_ui::EditionDetailsUi;
 use crate::ui::readarr_ui::readarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{
@@ -31,10 +32,11 @@ impl DrawUi for BookDetailsUi {
     let Route::Readarr(active_readarr_block, _) = route else {
       return false;
     };
-    BOOK_DETAILS_BLOCKS.contains(&active_readarr_block)
+    EditionDetailsUi::accepts(route) || BOOK_DETAILS_BLOCKS.contains(&active_readarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    let route = app.get_current_route();
     if app.data.readarr_data.book_details_modal.is_some()
       && let Route::Readarr(active_readarr_block, _) = app.get_current_route()
     {
@@ -98,6 +100,10 @@ impl DrawUi for BookDetailsUi {
       };
 
       draw_popup(f, app, draw_book_details_popup, Size::XLarge);
+
+      if EditionDetailsUi::accepts(route) {
+        EditionDetailsUi::draw(f, app, _area);
+      }
     }
   }
 }

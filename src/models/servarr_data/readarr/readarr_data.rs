@@ -447,7 +447,20 @@ impl ReadarrData<'_> {
       .set_items(vec!["Standard".to_owned()]);
 
     let edition_details_modal = EditionDetailsModal {
-      edition_details: ScrollableText::with_string("Some details".to_owned()),
+      edition_details: ScrollableText::with_string(
+        "Title: Test Edition
+Format: Hardcover
+Language: English
+Publisher: DAW Books
+Page Count: 288
+Release Date: 2023-05-20 00:00:00 UTC
+ISBN13: 9780756404079
+ASIN: B0043RSJ9S
+Ratings: 4.5 (1000 votes)
+Monitored: true
+Overview: A test edition overview."
+          .to_owned(),
+      ),
     };
 
     let mut book_details_modal = BookDetailsModal {
