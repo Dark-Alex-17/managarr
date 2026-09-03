@@ -68,7 +68,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         app.should_text_scroll,
       );
       let monitored = if author.monitored { "🏷" } else { "" };
-      let author_type = author.author_type.clone().unwrap_or_default();
       let size = author
         .statistics
         .as_ref()
@@ -99,7 +98,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         author,
         Row::new(vec![
           Cell::from(author.author_name.to_string()),
-          Cell::from(author_type),
           Cell::from(author.status.to_display_str()),
           Cell::from(quality_profile),
           Cell::from(metadata_profile),
@@ -120,7 +118,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .filter_produced_empty_results(active_readarr_block == ActiveReadarrBlock::FilterAuthorsError)
       .headers([
         "Name",
-        "Type",
         "Status",
         "Quality Profile",
         "Metadata Profile",
@@ -130,8 +127,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Tags",
       ])
       .constraints([
-        Constraint::Percentage(25),
-        Constraint::Percentage(9),
+        Constraint::Percentage(34),
         Constraint::Percentage(8),
         Constraint::Percentage(13),
         Constraint::Percentage(13),

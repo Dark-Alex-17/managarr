@@ -3,7 +3,7 @@ source: src/ui/readarr_ui/library/library_ui_tests.rs
 expression: output
 ---
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-   Name ▼                             Type            Status        Quality Profile       Metadata Profile      Books       Size        Monitored  Tags              
+   Name ▼                                             Status        Quality Profile       Metadata Profile      Books       Size        Monitored  Tags              
 => Test Author                                        Continuing    Standard              Standard              0           0.00 GB     🏷          alex              
         ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Author: Test Author                                                                                                                                │        
