@@ -6,6 +6,7 @@ use crate::{
   models::servarr_data::readarr::readarr_data::ActiveReadarrBlock,
 };
 
+mod history;
 mod library;
 
 #[cfg(test)]

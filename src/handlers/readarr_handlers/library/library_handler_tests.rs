@@ -13,7 +13,9 @@ mod tests {
   use crate::handlers::readarr_handlers::library::{LibraryHandler, authors_sorting_options};
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
-  use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, LIBRARY_BLOCKS};
+  use crate::models::servarr_data::readarr::readarr_data::{
+    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, LIBRARY_BLOCKS,
+  };
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_str_eq;
@@ -878,8 +880,12 @@ mod tests {
 
   #[test]
   fn test_library_handler_accepts() {
+    let mut library_handler_blocks = Vec::new();
+    library_handler_blocks.extend(LIBRARY_BLOCKS);
+    library_handler_blocks.extend(AUTHOR_DETAILS_BLOCKS);
+
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
-      if LIBRARY_BLOCKS.contains(&readarr_block) {
+      if library_handler_blocks.contains(&readarr_block) {
         assert!(
           LibraryHandler::accepts(readarr_block),
           "{readarr_block} is not accepted by the LibraryHandler"

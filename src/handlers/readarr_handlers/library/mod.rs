@@ -19,6 +19,10 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::models::Route;
 
+mod author_details_handler;
+
+pub(in crate::handlers::readarr_handlers) use author_details_handler::AuthorDetailsHandler;
+
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
@@ -54,12 +58,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for LibraryHandler<'a, 
       |app| &mut app.data.readarr_data.authors,
       authors_table_handling_config,
     ) {
-      self.handle_key_event();
+      match self.active_readarr_block {
+        _ if AuthorDetailsHandler::accepts(self.active_readarr_block) => {
+          AuthorDetailsHandler::new(self.key, self.app, self.active_readarr_block, self.context)
+            .handle();
+        }
+        _ => self.handle_key_event(),
+      }
     }
   }
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
-    LIBRARY_BLOCKS.contains(&active_block)
+    AuthorDetailsHandler::accepts(active_block) || LIBRARY_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
