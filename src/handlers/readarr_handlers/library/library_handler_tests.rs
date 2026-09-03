@@ -15,7 +15,8 @@ mod tests {
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
     ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
-    DELETE_AUTHOR_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
+    DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS,
+    LIBRARY_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -908,6 +909,15 @@ mod tests {
   }
 
   #[test]
+  fn test_delegates_delete_book_blocks_to_delete_book_handler() {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveReadarrBlock::Authors,
+      ActiveReadarrBlock::DeleteBookPrompt
+    );
+  }
+
+  #[test]
   fn test_delegates_edit_author_blocks_to_edit_author_handler() {
     test_handler_delegation!(
       LibraryHandler,
@@ -925,6 +935,7 @@ mod tests {
     library_handler_blocks.extend(EDITION_DETAILS_BLOCKS);
     library_handler_blocks.extend(ADD_AUTHOR_BLOCKS);
     library_handler_blocks.extend(DELETE_AUTHOR_BLOCKS);
+    library_handler_blocks.extend(DELETE_BOOK_BLOCKS);
     library_handler_blocks.extend(EDIT_AUTHOR_BLOCKS);
 
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
