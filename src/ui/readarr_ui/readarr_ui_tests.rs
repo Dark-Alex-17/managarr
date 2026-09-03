@@ -20,6 +20,68 @@ mod tests {
     use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
     use rstest::rstest;
 
+    #[test]
+    fn test_readarr_ui_renders_loading() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ReadarrUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_readarr_ui_renders_empty() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ReadarrUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_readarr_ui_renders_context_row() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ReadarrUi::draw_context_row(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_readarr_ui_renders_context_row_loading() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ReadarrUi::draw_context_row(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_readarr_ui_renders_context_row_empty() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ReadarrUi::draw_context_row(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
     #[rstest]
     #[case(ActiveReadarrBlock::Authors, 0)]
     #[case(ActiveReadarrBlock::Downloads, 1)]
