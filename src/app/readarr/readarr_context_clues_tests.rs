@@ -9,8 +9,9 @@ mod tests {
   use crate::app::readarr::readarr_context_clues::{
     ADD_AUTHOR_SEARCH_RESULTS_CONTEXT_CLUES, AUTHOR_DETAILS_CONTEXT_CLUES,
     AUTHOR_HISTORY_CONTEXT_CLUES, AUTHORS_CONTEXT_CLUES, BOOK_DETAILS_CONTEXT_CLUES,
-    BOOK_HISTORY_CONTEXT_CLUES, EDITION_DETAILS_CONTEXT_CLUES, MANUAL_AUTHOR_SEARCH_CONTEXT_CLUES,
-    MANUAL_BOOK_SEARCH_CONTEXT_CLUES, ReadarrContextClueProvider,
+    BOOK_FILE_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES, EDITION_DETAILS_CONTEXT_CLUES,
+    MANUAL_AUTHOR_SEARCH_CONTEXT_CLUES, MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
+    ReadarrContextClueProvider,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
@@ -317,6 +318,28 @@ mod tests {
   }
 
   #[test]
+  fn test_book_file_context_clues() {
+    let mut book_file_context_clues_iter = BOOK_FILE_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      book_file_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      book_file_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, "delete book file")
+    );
+    assert_some_eq_x!(
+      book_file_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(book_file_context_clues_iter.next());
+  }
+
+  #[test]
   fn test_manual_book_search_context_clues() {
     let mut manual_book_search_context_clues_iter = MANUAL_BOOK_SEARCH_CONTEXT_CLUES.iter();
 
@@ -389,7 +412,8 @@ mod tests {
   #[rstest]
   #[case(0, ActiveReadarrBlock::BookDetails, &BOOK_DETAILS_CONTEXT_CLUES)]
   #[case(1, ActiveReadarrBlock::BookHistory, &BOOK_HISTORY_CONTEXT_CLUES)]
-  #[case(2, ActiveReadarrBlock::ManualBookSearch, &MANUAL_BOOK_SEARCH_CONTEXT_CLUES)]
+  #[case(2, ActiveReadarrBlock::BookFileInfo, &BOOK_FILE_CONTEXT_CLUES)]
+  #[case(3, ActiveReadarrBlock::ManualBookSearch, &MANUAL_BOOK_SEARCH_CONTEXT_CLUES)]
   fn test_readarr_context_clue_provider_book_details_tabs(
     #[case] index: usize,
     #[case] active_readarr_block: ActiveReadarrBlock,

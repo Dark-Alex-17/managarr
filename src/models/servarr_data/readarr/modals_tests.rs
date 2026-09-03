@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::app::readarr::readarr_context_clues::{
-    BOOK_DETAILS_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES, MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
+    BOOK_DETAILS_CONTEXT_CLUES, BOOK_FILE_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES,
+    MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
   };
   use crate::models::readarr_models::{Author, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::modals::EditIndexerModal;
@@ -268,7 +269,7 @@ mod tests {
     assert_is_empty!(book_details_modal.book_releases);
     assert_is_empty!(book_details_modal.book_history);
 
-    assert_eq!(book_details_modal.book_details_tabs.tabs.len(), 3);
+    assert_eq!(book_details_modal.book_details_tabs.tabs.len(), 4);
 
     assert_str_eq!(
       book_details_modal.book_details_tabs.tabs[0].title,
@@ -298,19 +299,30 @@ mod tests {
     );
     assert_none!(book_details_modal.book_details_tabs.tabs[1].config);
 
-    assert_str_eq!(
-      book_details_modal.book_details_tabs.tabs[2].title,
-      "Manual Search"
-    );
+    assert_str_eq!(book_details_modal.book_details_tabs.tabs[2].title, "File");
     assert_eq!(
       book_details_modal.book_details_tabs.tabs[2].route,
-      ActiveReadarrBlock::ManualBookSearch.into()
+      ActiveReadarrBlock::BookFileInfo.into()
     );
     assert_some_eq_x!(
       &book_details_modal.book_details_tabs.tabs[2].contextual_help,
-      &MANUAL_BOOK_SEARCH_CONTEXT_CLUES
+      &BOOK_FILE_CONTEXT_CLUES
     );
     assert_none!(book_details_modal.book_details_tabs.tabs[2].config);
+
+    assert_str_eq!(
+      book_details_modal.book_details_tabs.tabs[3].title,
+      "Manual Search"
+    );
+    assert_eq!(
+      book_details_modal.book_details_tabs.tabs[3].route,
+      ActiveReadarrBlock::ManualBookSearch.into()
+    );
+    assert_some_eq_x!(
+      &book_details_modal.book_details_tabs.tabs[3].contextual_help,
+      &MANUAL_BOOK_SEARCH_CONTEXT_CLUES
+    );
+    assert_none!(book_details_modal.book_details_tabs.tabs[3].config);
   }
 
   #[test]

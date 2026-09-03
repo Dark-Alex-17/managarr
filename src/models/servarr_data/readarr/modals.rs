@@ -1,6 +1,7 @@
 use super::readarr_data::{ActiveReadarrBlock, ReadarrData};
 use crate::app::readarr::readarr_context_clues::{
-  BOOK_DETAILS_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES, MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
+  BOOK_DETAILS_CONTEXT_CLUES, BOOK_FILE_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES,
+  MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
 };
 use crate::models::readarr_models::{BookFile, Edition, ReadarrHistoryItem, ReadarrRelease};
 use crate::models::servarr_data::modals::EditIndexerModal;
@@ -251,6 +252,12 @@ impl Default for BookDetailsModal {
           title: "History".to_string(),
           route: ActiveReadarrBlock::BookHistory.into(),
           contextual_help: Some(&BOOK_HISTORY_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "File".to_string(),
+          route: ActiveReadarrBlock::BookFileInfo.into(),
+          contextual_help: Some(&BOOK_FILE_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {

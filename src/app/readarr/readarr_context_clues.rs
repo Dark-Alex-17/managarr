@@ -124,6 +124,15 @@ pub static BOOK_HISTORY_CONTEXT_CLUES: [ContextClue; 7] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter/close"),
 ];
 
+pub static BOOK_FILE_CONTEXT_CLUES: [ContextClue; 3] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.delete, "delete book file"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
 pub static MANUAL_BOOK_SEARCH_CONTEXT_CLUES: [ContextClue; 5] = [
   (
     DEFAULT_KEYBINDINGS.refresh,

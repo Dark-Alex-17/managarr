@@ -208,7 +208,8 @@ mod tests {
 
     #[rstest]
     #[case(ActiveReadarrBlock::BookDetails, ActiveReadarrBlock::BookHistory)]
-    #[case(ActiveReadarrBlock::BookHistory, ActiveReadarrBlock::ManualBookSearch)]
+    #[case(ActiveReadarrBlock::BookHistory, ActiveReadarrBlock::BookFileInfo)]
+    #[case(ActiveReadarrBlock::BookFileInfo, ActiveReadarrBlock::ManualBookSearch)]
     #[case(ActiveReadarrBlock::ManualBookSearch, ActiveReadarrBlock::BookDetails)]
     fn test_book_details_tabs_left_right_action(
       #[case] left_block: ActiveReadarrBlock,
