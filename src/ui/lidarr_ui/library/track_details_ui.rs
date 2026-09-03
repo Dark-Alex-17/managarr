@@ -13,7 +13,7 @@ use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Style;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 
@@ -97,7 +97,7 @@ fn draw_track_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
               let style = style_from_status(&track);
 
               Line::from(vec![
-                title.bold().style(style),
+                Span::styled(title, style.bold()),
                 Span::styled(split[1..].join(":"), style),
               ])
             })

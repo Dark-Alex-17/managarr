@@ -204,7 +204,7 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
             let style = style_from_download_status(download_status, is_monitored, status.clone());
 
             Line::from(vec![
-              title.bold().style(style),
+              Span::styled(title, style.bold()),
               Span::styled(split[1..].join(":"), style),
             ])
           })

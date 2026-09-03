@@ -157,7 +157,7 @@ fn draw_episode_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
               let style = style_from_status(download, &episode);
 
               Line::from(vec![
-                title.bold().style(style),
+                Span::styled(title, style.bold()),
                 Span::styled(split[1..].join(":"), style),
               ])
             })

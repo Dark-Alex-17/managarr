@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_eq;
+  use ratatui::style::Modifier;
   use ratatui::text::Line;
   use strum::IntoEnumIterator;
 
@@ -56,6 +57,15 @@ mod tests {
     let line = edition_detail_line("Title: Test Edition", primary_style());
 
     assert_eq!(span_contents(&line), vec!["Title:", " Test Edition"]);
+  }
+
+  #[test]
+  fn test_edition_detail_line_renders_the_label_in_bold() {
+    let line = edition_detail_line("Title: Test Edition", unmonitored_style());
+
+    assert!(line.spans[0].style.add_modifier.contains(Modifier::BOLD));
+    assert_eq!(line.spans[0].style.fg, unmonitored_style().fg);
+    assert!(!line.spans[1].style.add_modifier.contains(Modifier::BOLD));
   }
 
   #[test]

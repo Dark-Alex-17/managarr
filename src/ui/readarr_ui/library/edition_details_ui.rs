@@ -9,7 +9,7 @@ use crate::ui::widgets::popup::Size;
 use crate::ui::{DrawUi, draw_popup};
 use ratatui::Frame;
 use ratatui::layout::Rect;
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Style;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Paragraph, Wrap};
 
@@ -97,7 +97,7 @@ fn edition_detail_line(line: &str, style: Style) -> Line<'static> {
 
   match line.split_once(':') {
     Some((label, value)) => Line::from(vec![
-      format!("{label}:").bold().style(style),
+      Span::styled(format!("{label}:"), style.bold()),
       Span::styled(value.to_owned(), style),
     ]),
     None => Line::from(Span::styled(line.to_owned(), style)),
