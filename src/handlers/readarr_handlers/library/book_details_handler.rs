@@ -260,7 +260,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for BookDetailsHandler<
   fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
-    if self.active_readarr_block == ActiveReadarrBlock::BookDetails
+    if self.active_readarr_block == ActiveReadarrBlock::BookFileInfo
       && self.book_files_are_populated()
     {
       self

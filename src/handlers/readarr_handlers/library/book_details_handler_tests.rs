@@ -166,11 +166,23 @@ mod tests {
     fn test_delete_book_file_prompt() {
       let mut app = App::test_default();
       app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      app.push_navigation_stack(ActiveReadarrBlock::BookFileInfo.into());
+
+      BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookFileInfo, None)
+        .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::DeleteBookFilePrompt.into());
+    }
+
+    #[test]
+    fn test_delete_book_file_prompt_is_a_no_op_on_the_editions_tab() {
+      let mut app = App::test_default();
+      app.data.readarr_data.book_details_modal = Some(book_details_modal());
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
 
       BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookDetails, None).handle();
 
-      assert_navigation_pushed!(app, ActiveReadarrBlock::DeleteBookFilePrompt.into());
+      assert_navigation_pushed!(app, ActiveReadarrBlock::BookDetails.into());
     }
 
     #[test]
@@ -179,11 +191,12 @@ mod tests {
       let mut modal = book_details_modal();
       modal.book_files.set_items(Vec::new());
       app.data.readarr_data.book_details_modal = Some(modal);
-      app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
+      app.push_navigation_stack(ActiveReadarrBlock::BookFileInfo.into());
 
-      BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookDetails, None).handle();
+      BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookFileInfo, None)
+        .handle();
 
-      assert_navigation_pushed!(app, ActiveReadarrBlock::BookDetails.into());
+      assert_navigation_pushed!(app, ActiveReadarrBlock::BookFileInfo.into());
     }
 
     #[test]
@@ -191,11 +204,12 @@ mod tests {
       let mut app = App::test_default();
       app.is_loading = true;
       app.data.readarr_data.book_details_modal = Some(book_details_modal());
-      app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
+      app.push_navigation_stack(ActiveReadarrBlock::BookFileInfo.into());
 
-      BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookDetails, None).handle();
+      BookDetailsHandler::new(DELETE_KEY, &mut app, ActiveReadarrBlock::BookFileInfo, None)
+        .handle();
 
-      assert_navigation_pushed!(app, ActiveReadarrBlock::BookDetails.into());
+      assert_navigation_pushed!(app, ActiveReadarrBlock::BookFileInfo.into());
     }
   }
 

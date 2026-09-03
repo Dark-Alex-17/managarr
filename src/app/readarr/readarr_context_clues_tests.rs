@@ -269,10 +269,6 @@ mod tests {
       book_details_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.submit, "edition details")
     );
-    assert_some_eq_x!(
-      book_details_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.delete, "delete book file")
-    );
     assert_none!(book_details_context_clues_iter.next());
   }
 

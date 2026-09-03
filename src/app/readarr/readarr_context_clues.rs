@@ -93,7 +93,7 @@ pub static MANUAL_AUTHOR_SEARCH_CONTEXT_CLUES: [ContextClue; 7] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static BOOK_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
+pub static BOOK_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -105,7 +105,6 @@ pub static BOOK_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
   ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
   (DEFAULT_KEYBINDINGS.submit, "edition details"),
-  (DEFAULT_KEYBINDINGS.delete, "delete book file"),
 ];
 
 pub static BOOK_HISTORY_CONTEXT_CLUES: [ContextClue; 7] = [
