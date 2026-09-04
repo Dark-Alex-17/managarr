@@ -21,6 +21,7 @@ use super::{
   },
   widgets::loading_block::LoadingBlock,
 };
+use crate::ui::readarr_ui::blocklist::BlocklistUi;
 use crate::ui::utils::{extract_monitored_disk_space_vec, extract_monitored_root_folders};
 use crate::{
   app::App,
@@ -34,6 +35,7 @@ use crate::{
   utils::convert_to_gb,
 };
 
+mod blocklist;
 mod library;
 mod readarr_ui_utils;
 
@@ -54,6 +56,7 @@ impl DrawUi for ReadarrUi {
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
+      _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ => (),
     }
   }
