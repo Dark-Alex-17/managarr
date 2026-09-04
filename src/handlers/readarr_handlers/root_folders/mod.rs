@@ -1,3 +1,5 @@
+use add_root_folder_handler::AddRootFolderHandler;
+
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::readarr_handlers::handle_change_tab_left_right_keys;
@@ -11,6 +13,8 @@ use crate::models::servarr_data::readarr::readarr_data::{
 use crate::models::{BlockSelectionState, Route};
 use crate::network::readarr_network::ReadarrEvent;
 
+mod add_root_folder_handler;
+
 #[cfg(test)]
 #[path = "root_folders_handler_tests.rs"]
 mod root_folders_handler_tests;
@@ -19,7 +23,7 @@ pub(super) struct RootFoldersHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_readarr_block: ActiveReadarrBlock,
-  _context: Option<ActiveReadarrBlock>,
+  context: Option<ActiveReadarrBlock>,
 }
 
 impl RootFoldersHandler<'_, '_> {
@@ -38,6 +42,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for RootFoldersHandler<
   fn handle(&mut self) {
     let root_folders_table_handling_config =
       TableHandlingConfig::new(ActiveReadarrBlock::RootFolders.into());
+
+    if AddRootFolderHandler::accepts(self.active_readarr_block) {
+      return AddRootFolderHandler::new(
+        self.key,
+        self.app,
+        self.active_readarr_block,
+        self.context,
+      )
+      .handle();
+    }
 
     if !handle_table(
       self,
@@ -60,13 +74,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for RootFoldersHandler<
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveReadarrBlock,
-    _context: Option<ActiveReadarrBlock>,
+    context: Option<ActiveReadarrBlock>,
   ) -> RootFoldersHandler<'a, 'b> {
     RootFoldersHandler {
       key,
       app,
       active_readarr_block: active_block,
-      _context,
+      context,
     }
   }
 

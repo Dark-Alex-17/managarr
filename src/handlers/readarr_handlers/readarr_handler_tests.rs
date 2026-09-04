@@ -235,6 +235,7 @@ mod tests {
   fn test_delegates_root_folders_blocks_to_root_folders_handler(
     #[values(
       ActiveReadarrBlock::RootFolders,
+      ActiveReadarrBlock::AddRootFolderPrompt,
       ActiveReadarrBlock::DeleteRootFolderPrompt
     )]
     active_readarr_block: ActiveReadarrBlock,

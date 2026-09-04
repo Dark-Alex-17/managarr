@@ -143,9 +143,39 @@ mod tests {
 
     use super::*;
     use crate::assert_navigation_popped;
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::readarr::modals::AddReadarrRootFolderModal;
+    use crate::models::servarr_data::readarr::readarr_data::ADD_ROOT_FOLDER_SELECTION_BLOCKS;
     use crate::network::readarr_network::ReadarrEvent;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
+
+    #[test]
+    fn test_add_root_folder_prompt_submit_passes_the_context_to_the_add_root_folder_handler() {
+      let mut app = App::test_default();
+      app.data.readarr_data.add_root_folder_modal = Some(AddReadarrRootFolderModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(ADD_ROOT_FOLDER_SELECTION_BLOCKS);
+      app.push_navigation_stack(ActiveReadarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveReadarrBlock::AddRootFolderPrompt.into());
+
+      RootFoldersHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::AddRootFolderPrompt,
+        Some(ActiveReadarrBlock::RootFolders),
+      )
+      .handle();
+
+      assert_navigation_pushed!(
+        app,
+        (
+          ActiveReadarrBlock::AddRootFolderNameInput,
+          Some(ActiveReadarrBlock::RootFolders)
+        )
+          .into()
+      );
+    }
 
     #[test]
     fn test_delete_root_folder_prompt_confirm_submit() {
