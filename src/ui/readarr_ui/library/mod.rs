@@ -32,6 +32,7 @@ mod add_author_ui;
 mod author_details_ui;
 mod book_details_ui;
 mod delete_author_ui;
+mod delete_book_ui;
 mod edit_author_ui;
 mod edition_details_ui;
 

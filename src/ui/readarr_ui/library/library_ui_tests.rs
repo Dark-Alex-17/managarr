@@ -5,7 +5,8 @@ mod tests {
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
     ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
-    DELETE_AUTHOR_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
+    DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS,
+    LIBRARY_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::{LibraryUi, decorate_author_row_with_style};
@@ -21,6 +22,7 @@ mod tests {
     blocks.extend(EDITION_DETAILS_BLOCKS);
     blocks.extend(ADD_AUTHOR_BLOCKS);
     blocks.extend(DELETE_AUTHOR_BLOCKS);
+    blocks.extend(DELETE_BOOK_BLOCKS);
     blocks.extend(EDIT_AUTHOR_BLOCKS);
 
     for active_readarr_block in ActiveReadarrBlock::iter() {

@@ -14,6 +14,7 @@ use crate::models::servarr_data::readarr::readarr_data::{
   AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
 };
 use crate::ui::readarr_ui::library::book_details_ui::BookDetailsUi;
+use crate::ui::readarr_ui::library::delete_book_ui::DeleteBookUi;
 use crate::ui::readarr_ui::readarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::decorate_peer_style;
@@ -42,7 +43,9 @@ impl DrawUi for AuthorDetailsUi {
     let Route::Readarr(active_readarr_block, _) = route else {
       return false;
     };
-    BookDetailsUi::accepts(route) || AUTHOR_DETAILS_BLOCKS.contains(&active_readarr_block)
+    BookDetailsUi::accepts(route)
+      || DeleteBookUi::accepts(route)
+      || AUTHOR_DETAILS_BLOCKS.contains(&active_readarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
@@ -75,6 +78,7 @@ impl DrawUi for AuthorDetailsUi {
         draw_author_details(f, app, content_area);
 
         match active_readarr_block {
+          _ if DeleteBookUi::accepts(route) => DeleteBookUi::draw(f, app, _area),
           ActiveReadarrBlock::AuthorHistoryDetails => {
             draw_author_history_item_details_popup(f, app);
           }
