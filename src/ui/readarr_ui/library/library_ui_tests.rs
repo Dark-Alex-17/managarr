@@ -5,7 +5,7 @@ mod tests {
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
     ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
-    EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
+    DELETE_AUTHOR_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::{LibraryUi, decorate_author_row_with_style};
@@ -20,6 +20,7 @@ mod tests {
     blocks.extend(BOOK_DETAILS_BLOCKS);
     blocks.extend(EDITION_DETAILS_BLOCKS);
     blocks.extend(ADD_AUTHOR_BLOCKS);
+    blocks.extend(DELETE_AUTHOR_BLOCKS);
     blocks.extend(EDIT_AUTHOR_BLOCKS);
 
     for active_readarr_block in ActiveReadarrBlock::iter() {
@@ -190,7 +191,7 @@ mod tests {
     use crate::app::App;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::readarr::readarr_data::{
-      ActiveReadarrBlock, EDIT_AUTHOR_SELECTION_BLOCKS,
+      ActiveReadarrBlock, DELETE_AUTHOR_SELECTION_BLOCKS, EDIT_AUTHOR_SELECTION_BLOCKS,
     };
     use rstest::rstest;
 
@@ -290,6 +291,23 @@ mod tests {
       app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
       app.data.readarr_data.selected_block = BlockSelectionState::new(EDIT_AUTHOR_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveReadarrBlock::EditAuthorPrompt.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_delete_author_over_library() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+      app.data.readarr_data.delete_files = true;
+      app.data.readarr_data.add_import_list_exclusion = false;
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(DELETE_AUTHOR_SELECTION_BLOCKS);
+      app.push_navigation_stack(ActiveReadarrBlock::DeleteAuthorPrompt.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());

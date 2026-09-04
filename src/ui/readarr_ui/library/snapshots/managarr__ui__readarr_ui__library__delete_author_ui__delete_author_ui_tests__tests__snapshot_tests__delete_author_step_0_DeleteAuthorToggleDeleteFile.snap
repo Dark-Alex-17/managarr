@@ -1,0 +1,38 @@
+---
+source: src/ui/readarr_ui/library/delete_author_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                   ╭─────────────────────  Delete Author  ─────────────────────╮                                                     
+                                                   │         Do you really want to delete the author:          │                                                     
+                                                   │                       Test Author?                        │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                            ╭───╮                          │                                                     
+                                                   │       Delete Author Files: │ ✔ │                          │                                                     
+                                                   │                            ╰───╯                          │                                                     
+                                                   │                            ╭───╮                          │                                                     
+                                                   │        Add List Exclusion: │   │                          │                                                     
+                                                   │                            ╰───╯                          │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │╭────────────────────────────╮╭───────────────────────────╮│                                                     
+                                                   ││             Yes            ││            No             ││                                                     
+                                                   │╰────────────────────────────╯╰───────────────────────────╯│                                                     
+                                                   ╰───────────────────────────────────────────────────────────╯

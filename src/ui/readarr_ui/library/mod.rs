@@ -1,5 +1,6 @@
 use add_author_ui::AddAuthorUi;
 use author_details_ui::AuthorDetailsUi;
+use delete_author_ui::DeleteAuthorUi;
 use edit_author_ui::EditAuthorUi;
 use ratatui::{
   Frame,
@@ -30,6 +31,7 @@ use crate::{
 mod add_author_ui;
 mod author_details_ui;
 mod book_details_ui;
+mod delete_author_ui;
 mod edit_author_ui;
 mod edition_details_ui;
 
@@ -43,6 +45,7 @@ impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Readarr(active_readarr_block, _) = route {
       return AddAuthorUi::accepts(route)
+        || DeleteAuthorUi::accepts(route)
         || EditAuthorUi::accepts(route)
         || AuthorDetailsUi::accepts(route)
         || LIBRARY_BLOCKS.contains(&active_readarr_block);
@@ -57,6 +60,7 @@ impl DrawUi for LibraryUi {
 
     match route {
       _ if AddAuthorUi::accepts(route) => AddAuthorUi::draw(f, app, area),
+      _ if DeleteAuthorUi::accepts(route) => DeleteAuthorUi::draw(f, app, area),
       _ if AuthorDetailsUi::accepts(route) => AuthorDetailsUi::draw(f, app, area),
       _ if EditAuthorUi::accepts(route) => EditAuthorUi::draw(f, app, area),
       Route::Readarr(ActiveReadarrBlock::UpdateAllAuthorsPrompt, _) => {
