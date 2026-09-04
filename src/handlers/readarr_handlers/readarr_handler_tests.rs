@@ -194,4 +194,20 @@ mod tests {
       active_readarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_downloads_blocks_to_downloads_handler(
+    #[values(
+      ActiveReadarrBlock::Downloads,
+      ActiveReadarrBlock::DeleteDownloadPrompt,
+      ActiveReadarrBlock::UpdateDownloadsPrompt
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::Downloads,
+      active_readarr_block
+    );
+  }
 }
