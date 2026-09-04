@@ -1,0 +1,38 @@
+---
+source: src/ui/readarr_ui/history/history_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Source Title                                                                   Event Type                    Quality              Date                            
+   First Source Title                                                             grabbed                       EPUB                 2023-05-20 21:29:16 UTC         
+=> Second Source Title                                                            downloadFailed                MOBI                 2024-08-14 09:03:47 UTC         
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                         ╭───────────────────────────────────  Details  ───────────────────────────────────╮                                         
+                                         │Source Title: Second Source Title                                                │                                         
+                                         │Event Type: downloadFailed                                                       │                                         
+                                         │Quality: MOBI                                                                    │                                         
+                                         │Date: 2024-08-14 09:03:47 UTC                                                    │                                         
+                                         │Download Client: sabnzbd                                                         │                                         
+                                         │Message: The download client reported a failure                                  │                                         
+                                         │Release Group: SecondReleaseGroup                                                │                                         
+                                         │Indexer: Nyaa                                                                    │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         │                                                                                 │                                         
+                                         ╰─────────────────────────────────────────────────────────────────────────────────╯

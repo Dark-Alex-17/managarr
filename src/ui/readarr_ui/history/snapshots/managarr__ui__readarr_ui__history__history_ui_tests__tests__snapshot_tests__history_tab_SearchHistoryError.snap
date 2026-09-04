@@ -1,0 +1,31 @@
+---
+source: src/ui/readarr_ui/history/history_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Source Title ▼                                                                 Event Type                    Quality              Date                            
+=> Test Source Title                                                              grabbed                       EPUB                 2023-05-20 21:29:16 UTC         
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                             ╭───────────────  Error  ───────────────╮                                                               
+                                                             │    No items found matching search     │                                                               
+                                                             │                                       │                                                               
+                                                             ╰───────────────────────────────────────╯

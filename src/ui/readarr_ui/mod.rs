@@ -3,6 +3,7 @@ use crate::ui::ui_test_utils::test_utils::Utc;
 use chrono::Duration;
 #[cfg(not(test))]
 use chrono::Utc;
+use history::HistoryUi;
 use library::LibraryUi;
 use ratatui::{
   Frame,
@@ -38,6 +39,7 @@ use crate::{
 
 mod blocklist;
 mod downloads;
+mod history;
 mod library;
 mod readarr_ui_utils;
 
@@ -60,6 +62,7 @@ impl DrawUi for ReadarrUi {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
       _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
+      _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ => (),
     }
   }
