@@ -4,9 +4,17 @@ mod tests {
 
   use chrono::DateTime;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
+  use strum::IntoEnumIterator;
 
-  use crate::handlers::readarr_handlers::history::history_sorting_options;
+  use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
+  use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
+  use crate::handlers::readarr_handlers::history::{HistoryHandler, history_sorting_options};
   use crate::models::readarr_models::{ReadarrHistoryEventType, ReadarrHistoryItem};
+  use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, HISTORY_BLOCKS};
   use crate::models::servarr_models::{Quality, QualityWrapper};
 
   #[test]
@@ -80,6 +88,301 @@ mod tests {
 
     assert_eq!(sorted_history_vec, expected_history_vec);
     assert_str_eq!(sort_option.name, "Date");
+  }
+
+  mod test_handle_left_right_action {
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use super::*;
+    use crate::assert_navigation_pushed;
+
+    #[rstest]
+    fn test_history_tab_left(#[values(true, false)] is_ready: bool) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+      app.is_loading = is_ready;
+      app.data.readarr_data.main_tabs.set_index(3);
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.readarr_data.main_tabs.get_active_route(),
+        ActiveReadarrBlock::Blocklist.into()
+      );
+      assert_navigation_pushed!(app, ActiveReadarrBlock::Blocklist.into());
+    }
+
+    #[rstest]
+    fn test_history_tab_right(#[values(true, false)] is_ready: bool) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+      app.is_loading = is_ready;
+      app.data.readarr_data.main_tabs.set_index(3);
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.readarr_data.main_tabs.get_active_route(),
+        ActiveReadarrBlock::RootFolders.into()
+      );
+      assert_navigation_pushed!(app, ActiveReadarrBlock::RootFolders.into());
+    }
+  }
+
+  mod test_handle_submit {
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+
+    const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
+
+    #[test]
+    fn test_history_submit() {
+      let mut app = App::test_default();
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(SUBMIT_KEY, &mut app, ActiveReadarrBlock::History, None).handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::HistoryItemDetails.into());
+    }
+
+    #[test]
+    fn test_history_submit_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(SUBMIT_KEY, &mut app, ActiveReadarrBlock::History, None).handle();
+
+      assert_eq!(app.get_current_route(), ActiveReadarrBlock::History.into());
+    }
+  }
+
+  mod test_handle_esc {
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use super::*;
+    use crate::assert_navigation_popped;
+
+    const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
+
+    #[test]
+    fn test_esc_history_item_details() {
+      let mut app = App::test_default();
+      app
+        .data
+        .readarr_data
+        .history
+        .set_items(vec![ReadarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+      app.push_navigation_stack(ActiveReadarrBlock::HistoryItemDetails.into());
+
+      HistoryHandler::new(
+        ESC_KEY,
+        &mut app,
+        ActiveReadarrBlock::HistoryItemDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::History.into());
+    }
+
+    #[rstest]
+    fn test_default_esc(#[values(true, false)] is_ready: bool) {
+      let mut app = App::test_default();
+      app.is_loading = is_ready;
+      app.error = "test error".to_owned().into();
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+      app
+        .data
+        .readarr_data
+        .history
+        .set_items(vec![ReadarrHistoryItem::default()]);
+
+      HistoryHandler::new(ESC_KEY, &mut app, ActiveReadarrBlock::History, None).handle();
+
+      assert_eq!(app.get_current_route(), ActiveReadarrBlock::History.into());
+      assert_is_empty!(app.error.text);
+    }
+  }
+
+  mod test_handle_key_char {
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+    use crate::assert_navigation_pushed;
+
+    #[test]
+    fn test_refresh_history_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.refresh.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::History.into());
+      assert!(app.should_refresh);
+    }
+
+    #[test]
+    fn test_refresh_history_key_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.refresh.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveReadarrBlock::History.into());
+      assert!(!app.should_refresh);
+    }
+
+    #[test]
+    fn test_search_history_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchHistory.into());
+    }
+
+    #[test]
+    fn test_filter_history_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveReadarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::FilterHistory.into());
+    }
+  }
+
+  #[test]
+  fn test_history_handler_accepts() {
+    ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
+      if HISTORY_BLOCKS.contains(&active_readarr_block) {
+        assert!(HistoryHandler::accepts(active_readarr_block));
+      } else {
+        assert!(!HistoryHandler::accepts(active_readarr_block));
+      }
+    })
+  }
+
+  #[rstest]
+  fn test_history_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = HistoryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
+  #[test]
+  fn test_history_handler_not_ready_when_loading() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::History.into());
+    app.is_loading = true;
+
+    let handler = HistoryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::History,
+      None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_history_handler_not_ready_when_history_is_empty() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::History.into());
+    app.is_loading = false;
+
+    let handler = HistoryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::History,
+      None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_history_handler_ready_when_not_loading_and_history_is_not_empty() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::History.into());
+    app.is_loading = false;
+    app
+      .data
+      .readarr_data
+      .history
+      .set_items(vec![ReadarrHistoryItem::default()]);
+
+    let handler = HistoryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::History,
+      None,
+    );
+
+    assert!(handler.is_ready());
   }
 
   fn history_vec() -> Vec<ReadarrHistoryItem> {

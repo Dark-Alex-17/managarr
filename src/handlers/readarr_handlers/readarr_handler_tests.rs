@@ -210,4 +210,24 @@ mod tests {
       active_readarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_history_blocks_to_history_handler(
+    #[values(
+      ActiveReadarrBlock::History,
+      ActiveReadarrBlock::HistoryItemDetails,
+      ActiveReadarrBlock::HistorySortPrompt,
+      ActiveReadarrBlock::SearchHistory,
+      ActiveReadarrBlock::SearchHistoryError,
+      ActiveReadarrBlock::FilterHistory,
+      ActiveReadarrBlock::FilterHistoryError
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::History,
+      active_readarr_block
+    );
+  }
 }
