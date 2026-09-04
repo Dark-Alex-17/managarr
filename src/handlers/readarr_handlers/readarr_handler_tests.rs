@@ -230,4 +230,19 @@ mod tests {
       active_readarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_root_folders_blocks_to_root_folders_handler(
+    #[values(
+      ActiveReadarrBlock::RootFolders,
+      ActiveReadarrBlock::DeleteRootFolderPrompt
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::RootFolders,
+      active_readarr_block
+    );
+  }
 }

@@ -3,6 +3,7 @@ use crate::handlers::readarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::readarr_handlers::downloads::DownloadsHandler;
 use crate::handlers::readarr_handlers::history::HistoryHandler;
 use crate::handlers::readarr_handlers::library::LibraryHandler;
+use crate::handlers::readarr_handlers::root_folders::RootFoldersHandler;
 use crate::models::Route;
 use crate::{
   app::App, event::Key, matches_key,
@@ -13,6 +14,7 @@ mod blocklist;
 mod downloads;
 mod history;
 mod library;
+mod root_folders;
 
 #[cfg(test)]
 #[path = "readarr_handler_tests.rs"]
@@ -39,6 +41,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for ReadarrHandler<'a, 
       }
       _ if HistoryHandler::accepts(self.active_readarr_block) => {
         HistoryHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();
+      }
+      _ if RootFoldersHandler::accepts(self.active_readarr_block) => {
+        RootFoldersHandler::new(self.key, self.app, self.active_readarr_block, self.context)
+          .handle();
       }
       _ => self.handle_key_event(),
     }
