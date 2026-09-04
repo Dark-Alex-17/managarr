@@ -176,4 +176,22 @@ mod tests {
       active_readarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_blocklist_blocks_to_blocklist_handler(
+    #[values(
+      ActiveReadarrBlock::Blocklist,
+      ActiveReadarrBlock::BlocklistItemDetails,
+      ActiveReadarrBlock::DeleteBlocklistItemPrompt,
+      ActiveReadarrBlock::BlocklistClearAllItemsPrompt,
+      ActiveReadarrBlock::BlocklistSortPrompt
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::Blocklist,
+      active_readarr_block
+    );
+  }
 }

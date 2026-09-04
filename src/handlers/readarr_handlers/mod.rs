@@ -1,4 +1,5 @@
 use super::KeyEventHandler;
+use crate::handlers::readarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::readarr_handlers::library::LibraryHandler;
 use crate::models::Route;
 use crate::{
@@ -6,6 +7,7 @@ use crate::{
   models::servarr_data::readarr::readarr_data::ActiveReadarrBlock,
 };
 
+mod blocklist;
 mod history;
 mod library;
 
@@ -25,6 +27,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for ReadarrHandler<'a, 
     match self.active_readarr_block {
       _ if LibraryHandler::accepts(self.active_readarr_block) => {
         LibraryHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();
+      }
+      _ if BlocklistHandler::accepts(self.active_readarr_block) => {
+        BlocklistHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();
       }
       _ => self.handle_key_event(),
     }
