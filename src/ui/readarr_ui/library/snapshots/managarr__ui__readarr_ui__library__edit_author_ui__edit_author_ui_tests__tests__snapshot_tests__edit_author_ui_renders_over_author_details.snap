@@ -7,14 +7,14 @@ expression: output
                                                                                                                                                                      
         ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Author: Test Author                                                                                                                                │        
-        │Overview: some interesting description of the author                                                                                               │        
-        │Status: Continuing ╭─────────────────────────────────────────  Edit - Test Author  ──────────────────────────────────────────╮                     │        
-        │Genres: science fic│                                                                                                         │                     │        
+        │Status: Continuing                                                                                                                                 │        
+        │Genres: science fic╭─────────────────────────────────────────  Edit - Test Author  ──────────────────────────────────────────╮                     │        
         │Rating: N/A        │                                                                                                         │                     │        
         │Path: /nfs/books/Te│                                                                                                         │                     │        
         │Quality Profile: St│                                                                                                         │                     │        
         │Metadata Profile: S│                                                                                                         │                     │        
         │Monitored: Yes     │                                                                                                         │                     │        
+        │Overview: some inte│                                                                                                         │                     │        
         │                   │                                                                                                         │                     │        
         │                   │                                                                                                         │                     │        
         │                   │                                                  ╭───╮                                                  │                     │        

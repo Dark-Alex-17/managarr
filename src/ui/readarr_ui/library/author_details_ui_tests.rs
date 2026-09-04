@@ -200,6 +200,26 @@ mod tests {
       );
     }
 
+    #[test]
+    fn test_author_details_ui_renders_every_field_despite_a_long_overview() {
+      let mut app = App::test_default_fully_populated();
+      let mut author = app.data.readarr_data.authors.current_selection().clone();
+      author.overview = Some("Carl Edward Sagan was an American astronomer, planetary scientist, cosmologist, astrophysicist, astrobiologist, author, and science communicator. His best known scientific contribution is his research on the possibility of extraterrestrial life, including experimental demonstration of the production of amino acids from basic chemicals by radiation. He assembled the first physical messages sent into space, the Pioneer plaque and the Voyager Golden Record, universal messages that could potentially be understood by any extraterrestrial intelligence that might find them. He argued in favor of the hypothesis, which has become accepted, that the high surface temperatures of Venus are the result of the greenhouse effect.".to_owned());
+      app.data.readarr_data.authors.set_items(vec![author]);
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+
+      assert_contains!(output, "Status:");
+      assert_contains!(output, "Genres:");
+      assert_contains!(output, "Rating:");
+      assert_contains!(output, "Path:");
+      assert_contains!(output, "Monitored:");
+      assert_contains!(output, "Overview:");
+    }
+
     #[rstest]
     #[case(ActiveReadarrBlock::AuthorDetails, 0)]
     #[case(ActiveReadarrBlock::AuthorHistory, 1)]

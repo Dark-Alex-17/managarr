@@ -7,7 +7,6 @@ expression: output
                                                                                                                                                                      
         ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Author: Test Author                                                                                                                                │        
-        │Overview: some interesting description of the author                                                                                               │        
         │Status: Continuing                                                                                                                                 │        
         │Genres: science fiction                                                                                                                            │        
         │Rating: N/A                                                                                                                                        │        
@@ -18,6 +17,7 @@ expression: output
         │Books: 3                                                                                                                                           │        
         │Files: 2/3                                                                                                                                         │        
         │Size on Disk: 3.30 GB                                                                                                                              │        
+        │Overview: some interesting description of the author                                                                                               │        
         │╭  Author Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
         ││ Books │ History │ Author Search                                                                                                                 ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        

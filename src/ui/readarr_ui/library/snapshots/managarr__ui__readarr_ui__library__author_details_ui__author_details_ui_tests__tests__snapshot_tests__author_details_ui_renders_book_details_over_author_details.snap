@@ -7,14 +7,14 @@ expression: output
                                                                                                                                                                      
         ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Auth╭  Test Book Details  ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮      │        
-        │Over│ Editions │ History │ File │ Manual Search                                                                                             │      │        
-        │Stat│───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│      │        
-        │Genr│   Format             ISBN13              ASIN               Publisher                 Page Count     Release Date        Monitored    │      │        
-        │Rati│=> Hardcover          9780756404079       B0043RSJ9S         DAW Books                 288            2023-05-20          🏷            │      │        
-        │Path│                                                                                                                                       │      │        
+        │Stat│ Editions │ History │ File │ Manual Search                                                                                             │      │        
+        │Genr│───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│      │        
+        │Rati│   Format             ISBN13              ASIN               Publisher                 Page Count     Release Date        Monitored    │      │        
+        │Path│=> Hardcover          9780756404079       B0043RSJ9S         DAW Books                 288            2023-05-20          🏷            │      │        
         │Qual│                                                                                                                                       │      │        
         │Meta│                                                                                                                                       │      │        
         │Moni│                                                                                                                                       │      │        
+        │Over│                                                                                                                                       │      │        
         │    │                                                                                                                                       │      │        
         │    │                                                                                                                                       │      │        
         │    │                                                                                                                                       │      │        

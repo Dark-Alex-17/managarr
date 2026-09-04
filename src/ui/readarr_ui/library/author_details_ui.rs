@@ -178,10 +178,6 @@ fn draw_author_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       current_selection.author_name.text.clone().primary().bold(),
     ]),
     Line::from(vec![
-      "Overview: ".primary().bold(),
-      overview.default_color(),
-    ]),
-    Line::from(vec![
       "Status: ".primary().bold(),
       current_selection.status.to_display_str().default_color(),
     ]),
@@ -235,6 +231,11 @@ fn draw_author_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ]),
     ]);
   }
+
+  author_description.push(Line::from(vec![
+    "Overview: ".primary().bold(),
+    overview.default_color(),
+  ]));
 
   let description_paragraph = Paragraph::new(author_description)
     .block(borderless_block())
