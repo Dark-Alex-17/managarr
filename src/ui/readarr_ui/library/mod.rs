@@ -1,3 +1,4 @@
+use add_author_ui::AddAuthorUi;
 use author_details_ui::AuthorDetailsUi;
 use ratatui::{
   Frame,
@@ -25,6 +26,7 @@ use crate::{
   },
 };
 
+mod add_author_ui;
 mod author_details_ui;
 mod book_details_ui;
 mod edition_details_ui;
@@ -38,7 +40,9 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Readarr(active_readarr_block, _) = route {
-      return AuthorDetailsUi::accepts(route) || LIBRARY_BLOCKS.contains(&active_readarr_block);
+      return AddAuthorUi::accepts(route)
+        || AuthorDetailsUi::accepts(route)
+        || LIBRARY_BLOCKS.contains(&active_readarr_block);
     }
 
     false
@@ -49,6 +53,7 @@ impl DrawUi for LibraryUi {
     draw_library(f, app, area);
 
     match route {
+      _ if AddAuthorUi::accepts(route) => AddAuthorUi::draw(f, app, area),
       _ if AuthorDetailsUi::accepts(route) => AuthorDetailsUi::draw(f, app, area),
       Route::Readarr(ActiveReadarrBlock::UpdateAllAuthorsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()

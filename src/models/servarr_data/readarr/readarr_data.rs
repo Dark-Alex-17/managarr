@@ -30,7 +30,7 @@ use {
   super::modals::EditionDetailsModal,
   crate::models::readarr_models::{
     AuthorStatus, BookFile, DownloadStatus, Edition, MediaInfo, MonitorType, NewItemMonitorType,
-    ReadarrHistoryEventType, ReadarrTaskName,
+    Ratings, ReadarrHistoryEventType, ReadarrTaskName,
   },
   crate::models::servarr_models::{IndexerField, Quality, QualityWrapper},
   crate::models::stateful_table::SortOption,
@@ -378,7 +378,24 @@ impl ReadarrData<'_> {
       author_name: "Test Author".into(),
       status: AuthorStatus::Continuing,
       overview: Some("some interesting description of the author".to_owned()),
+      author_type: Some("Person".to_owned()),
+      disambiguation: Some("American novelist".to_owned()),
+      ratings: Some(Ratings {
+        votes: 1024,
+        value: 4.5,
+        popularity: Some(9.75),
+      }),
       genres: vec!["science fiction".to_owned()],
+      ..AddAuthorSearchResult::default()
+    };
+    let unadded_author_search_result = AddAuthorSearchResult {
+      foreign_author_id: "unadded-foreign-id".to_owned(),
+      author_name: "Unadded Author".into(),
+      status: AuthorStatus::Ended,
+      ended: true,
+      overview: Some("an author who is not yet in the library".to_owned()),
+      author_type: Some("Group".to_owned()),
+      genres: vec!["fantasy".to_owned(), "horror".to_owned()],
       ..AddAuthorSearchResult::default()
     };
     let task = ReadarrTask {
@@ -589,7 +606,7 @@ impl ReadarrData<'_> {
     readarr_data.queued_events.set_items(vec![queued_event()]);
     readarr_data.add_author_search = Some("Test Author".into());
     let mut add_searched_authors = StatefulTable::default();
-    add_searched_authors.set_items(vec![add_author_search_result]);
+    add_searched_authors.set_items(vec![add_author_search_result, unadded_author_search_result]);
     readarr_data.add_searched_authors = Some(add_searched_authors);
     readarr_data.logs.set_items(vec![log_line.into()]);
     readarr_data.log_details.set_items(vec![log_line.into()]);
