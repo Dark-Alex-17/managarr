@@ -1,0 +1,8 @@
+---
+source: src/ui/readarr_ui/root_folders/root_folders_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Path                                                                                            Free Space                        Unmapped Folders                
+=> /nfs/books                                                                                      204800.00 GB                      0                               
+   /nfs/audiobooks                                                                                 1024.00 GB                        3
