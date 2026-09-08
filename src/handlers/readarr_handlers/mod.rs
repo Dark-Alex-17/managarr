@@ -2,6 +2,7 @@ use super::KeyEventHandler;
 use crate::handlers::readarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::readarr_handlers::downloads::DownloadsHandler;
 use crate::handlers::readarr_handlers::history::HistoryHandler;
+use crate::handlers::readarr_handlers::indexers::IndexersHandler;
 use crate::handlers::readarr_handlers::library::LibraryHandler;
 use crate::handlers::readarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::readarr_handlers::system::SystemHandler;
@@ -14,6 +15,7 @@ use crate::{
 mod blocklist;
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod root_folders;
 mod system;
@@ -47,6 +49,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for ReadarrHandler<'a, 
       _ if RootFoldersHandler::accepts(self.active_readarr_block) => {
         RootFoldersHandler::new(self.key, self.app, self.active_readarr_block, self.context)
           .handle();
+      }
+      _ if IndexersHandler::accepts(self.active_readarr_block) => {
+        IndexersHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();
       }
       _ if SystemHandler::accepts(self.active_readarr_block) => {
         SystemHandler::new(self.key, self.app, self.active_readarr_block, self.context).handle();

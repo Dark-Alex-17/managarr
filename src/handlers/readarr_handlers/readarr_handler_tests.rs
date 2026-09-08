@@ -248,6 +248,30 @@ mod tests {
   }
 
   #[rstest]
+  fn test_delegates_indexers_blocks_to_indexers_handler(
+    #[values(
+      ActiveReadarrBlock::Indexers,
+      ActiveReadarrBlock::DeleteIndexerPrompt,
+      ActiveReadarrBlock::TestIndexer,
+      ActiveReadarrBlock::TestAllIndexers,
+      ActiveReadarrBlock::EditIndexerPrompt,
+      ActiveReadarrBlock::AllIndexerSettingsPrompt,
+      ActiveReadarrBlock::IndexerSettingsConfirmPrompt,
+      ActiveReadarrBlock::IndexerSettingsMaximumSizeInput,
+      ActiveReadarrBlock::IndexerSettingsMinimumAgeInput,
+      ActiveReadarrBlock::IndexerSettingsRetentionInput,
+      ActiveReadarrBlock::IndexerSettingsRssSyncIntervalInput
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::Indexers,
+      active_readarr_block
+    );
+  }
+
+  #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
       ActiveReadarrBlock::System,
