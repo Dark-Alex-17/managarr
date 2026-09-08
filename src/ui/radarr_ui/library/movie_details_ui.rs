@@ -487,12 +487,12 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
   let prompt = if current_selection.rejected {
     format!(
       "Do you really want to download the rejected release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   } else {
     format!(
       "Do you want to download the release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   };
 
