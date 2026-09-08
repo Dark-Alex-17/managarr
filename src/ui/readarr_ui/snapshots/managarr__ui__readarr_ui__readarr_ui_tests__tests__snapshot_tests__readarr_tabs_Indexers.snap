@@ -4,9 +4,9 @@ expression: output
 ---
 ╭  Authors  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Library │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                                      │
-│                                                                                                                                                                   │
-│                                                                                                                                                                   │
-│                                                                                                                                                                   │
+│───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│   Indexer                             RSS                   Automatic Search      Interactive Search   Priority              Tags                                 │
+│=> Test Indexer                        Enabled               Enabled               Enabled              25                    alex                                 │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │

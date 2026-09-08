@@ -24,6 +24,7 @@ use super::{
 };
 use crate::ui::readarr_ui::blocklist::BlocklistUi;
 use crate::ui::readarr_ui::downloads::DownloadsUi;
+use crate::ui::readarr_ui::indexers::IndexersUi;
 use crate::ui::readarr_ui::root_folders::RootFoldersUi;
 use crate::ui::readarr_ui::system::SystemUi;
 use crate::ui::utils::{extract_monitored_disk_space_vec, extract_monitored_root_folders};
@@ -42,6 +43,7 @@ use crate::{
 mod blocklist;
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod readarr_ui_utils;
 mod root_folders;
@@ -68,6 +70,7 @@ impl DrawUi for ReadarrUi {
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
+      _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
       _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
       _ => (),
     }

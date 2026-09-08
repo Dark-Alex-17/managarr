@@ -1,0 +1,182 @@
+use crate::ui::styles::success_style;
+use ratatui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::text::Text;
+use ratatui::widgets::{Cell, Row};
+
+use crate::app::App;
+use crate::models::Route;
+use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, INDEXERS_BLOCKS};
+use crate::models::servarr_models::Indexer;
+use crate::ui::DrawUi;
+use crate::ui::readarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
+use crate::ui::readarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
+use crate::ui::readarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::{layout_block_top_border, title_block};
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
+use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
+use crate::ui::widgets::popup::{Popup, Size};
+
+mod edit_indexer_ui;
+mod indexer_settings_ui;
+mod test_all_indexers_ui;
+
+#[cfg(test)]
+#[path = "indexers_ui_tests.rs"]
+mod indexers_ui_tests;
+
+pub(super) struct IndexersUi;
+
+impl DrawUi for IndexersUi {
+  fn accepts(route: Route) -> bool {
+    if let Route::Readarr(active_readarr_block, _) = route {
+      return EditIndexerUi::accepts(route)
+        || IndexerSettingsUi::accepts(route)
+        || TestAllIndexersUi::accepts(route)
+        || INDEXERS_BLOCKS.contains(&active_readarr_block);
+    }
+
+    false
+  }
+
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+    let route = app.get_current_route();
+    draw_indexers(f, app, area);
+
+    match route {
+      _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, area),
+      _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, area),
+      _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
+      Route::Readarr(active_readarr_block, _) => match active_readarr_block {
+        ActiveReadarrBlock::TestIndexer => {
+          if let Some(result) = app
+            .data
+            .readarr_data
+            .indexer_test_errors
+            .as_ref()
+            .filter(|_| !app.is_loading)
+          {
+            let popup = if !result.is_empty() {
+              Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
+            } else {
+              let message = Message::new("Indexer test succeeded!")
+                .title("Success")
+                .style(success_style().bold());
+              Popup::new(message).size(Size::Message)
+            };
+
+            f.render_widget(popup, f.area());
+          } else {
+            let loading_popup = Popup::new(LoadingBlock::new(
+              app.is_loading || app.data.readarr_data.indexer_test_errors.is_none(),
+              title_block("Testing Indexer"),
+            ))
+            .size(Size::LargeMessage);
+            f.render_widget(loading_popup, f.area());
+          }
+        }
+        ActiveReadarrBlock::DeleteIndexerPrompt => {
+          let prompt = format!(
+            "Do you really want to delete this indexer: \n{}?",
+            app
+              .data
+              .readarr_data
+              .indexers
+              .current_selection()
+              .name
+              .clone()
+              .unwrap_or_default()
+          );
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Delete Indexer")
+            .prompt(&prompt)
+            .yes_no_value(app.data.readarr_data.prompt_confirm);
+
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
+        }
+        _ => (),
+      },
+      _ => (),
+    }
+  }
+}
+
+fn indexer_flag_text(flag: bool) -> Text<'static> {
+  if flag {
+    return Text::from("Enabled").success();
+  }
+
+  Text::from("Disabled").failure()
+}
+
+fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let indexers_row_mapping = |indexer: &'_ Indexer| {
+    let Indexer {
+      name,
+      enable_rss,
+      enable_automatic_search,
+      enable_interactive_search,
+      priority,
+      tags,
+      ..
+    } = indexer;
+
+    let rss = indexer_flag_text(*enable_rss);
+    let automatic_search = indexer_flag_text(*enable_automatic_search);
+    let interactive_search = indexer_flag_text(*enable_interactive_search);
+    let empty_tag = String::new();
+    let tags: String = tags
+      .iter()
+      .map(|tag_id| {
+        app
+          .data
+          .readarr_data
+          .tags_map
+          .get_by_left(&tag_id.as_i64().unwrap())
+          .unwrap_or(&empty_tag)
+          .clone()
+      })
+      .collect::<Vec<String>>()
+      .join(", ");
+
+    Row::new(vec![
+      Cell::from(name.clone().unwrap_or_default()),
+      Cell::from(rss),
+      Cell::from(automatic_search),
+      Cell::from(interactive_search),
+      Cell::from(priority.to_string()),
+      Cell::from(tags),
+    ])
+    .primary()
+  };
+  let indexers_table = ManagarrTable::new(
+    Some(&mut app.data.readarr_data.indexers),
+    indexers_row_mapping,
+  )
+  .block(layout_block_top_border())
+  .loading(app.is_loading)
+  .headers([
+    "Indexer",
+    "RSS",
+    "Automatic Search",
+    "Interactive Search",
+    "Priority",
+    "Tags",
+  ])
+  .constraints([
+    Constraint::Percentage(25),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(23),
+  ]);
+
+  f.render_widget(indexers_table, area);
+}
