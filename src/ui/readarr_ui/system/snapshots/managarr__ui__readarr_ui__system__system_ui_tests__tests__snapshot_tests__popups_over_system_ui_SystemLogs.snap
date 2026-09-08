@@ -1,0 +1,54 @@
+---
+source: src/ui/readarr_ui/system/system_ui_tests.rs
+expression: output
+---
+╭  Tasks  ────────────────────────────────────────────────────────────────────────╮╭  Queued Events  ───────────────────────────────────────────────────────────────╮
+│Name                   Interval            Last Execution     Next Execution     ││Trigger    Status      Name                Queued        Started     Duration   │
+│Backup task            2 hours             30 minutes ago     1 hour             ││manual     completed   queued event one    1 hour ago    30 minutes  00:29:14   │
+│Rss sync task          15 minutes          8 minutes ago      3 minutes          ││scheduled  started     queued event two    15 minutes ag 4 minutes a 01:02:03   │
+│Housekeeping task      1 day               4 hours ago        18 hours           ││external   queued      queued event three  1 minute ago                         │
+│                                                                                 ││                                                                                │
+│                   ╭  Log Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮                    │
+│                   │2025-12-16 16:40:59 UTC|INFO|ImportListSyncService|log line alpha                                                         │                    │
+│                   │2025-12-16 16:41:12 UTC|WARN|BookScanService|log line beta                                                                │                    │
+│                   │2025-12-16 16:41:30 UTC|FATAL|CommandExecutor|log line gamma                                                              │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+╰───────────────────│                                                                                                                          │────────────────────╯
+╭  Logs  ───────────│                                                                                                                          │────────────────────╮
+│2025-12-16 16:40:59│                                                                                                                          │                    │
+│2025-12-16 16:41:12│                                                                                                                          │                    │
+│2025-12-16 16:41:30│                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   │                                                                                                                          │                    │
+│                   ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯                    │
+│                                                                                                                                                                   │
+│                                                                                                                                                                   │
+│                                                                                                                                                                   │
+│                                                                                                                                                                   │
+│                                                                                                                                                                   │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
