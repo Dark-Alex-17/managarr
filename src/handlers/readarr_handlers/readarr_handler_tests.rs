@@ -246,4 +246,23 @@ mod tests {
       active_readarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_system_blocks_to_system_handler(
+    #[values(
+      ActiveReadarrBlock::System,
+      ActiveReadarrBlock::SystemLogs,
+      ActiveReadarrBlock::SystemQueuedEvents,
+      ActiveReadarrBlock::SystemTasks,
+      ActiveReadarrBlock::SystemTaskStartConfirmPrompt,
+      ActiveReadarrBlock::SystemUpdates
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    test_handler_delegation!(
+      ReadarrHandler,
+      ActiveReadarrBlock::System,
+      active_readarr_block
+    );
+  }
 }
