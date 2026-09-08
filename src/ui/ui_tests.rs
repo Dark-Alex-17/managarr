@@ -5,6 +5,7 @@ mod snapshot_tests {
   use crate::models::servarr_data::Notification;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::ui;
   use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
@@ -183,6 +184,78 @@ mod snapshot_tests {
     let mut app = App::test_default_fully_populated();
     populate_keymapping_table(&mut app);
     app.push_navigation_stack(ActiveLidarrBlock::default().into());
+
+    let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+      ui(f, app);
+    });
+
+    insta::assert_snapshot!(output);
+  }
+
+  #[test]
+  fn test_readarr_ui_renders_library_tab() {
+    let mut app = App::test_default_fully_populated();
+    app.push_navigation_stack(ActiveReadarrBlock::default().into());
+
+    let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+      ui(f, app);
+    });
+
+    insta::assert_snapshot!(output);
+  }
+
+  #[test]
+  fn test_readarr_ui_renders_library_tab_with_error() {
+    let mut app = App::test_default_fully_populated();
+    app.error = "Some error".into();
+    app.push_navigation_stack(ActiveReadarrBlock::default().into());
+
+    let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+      ui(f, app);
+    });
+
+    insta::assert_snapshot!(output);
+  }
+
+  #[test]
+  fn test_readarr_ui_renders_library_tab_error_popup() {
+    let mut app = App::test_default_fully_populated();
+    populate_keymapping_table(&mut app);
+    app.push_navigation_stack(ActiveReadarrBlock::default().into());
+
+    let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+      ui(f, app);
+    });
+
+    insta::assert_snapshot!(output);
+  }
+
+  #[test]
+  fn test_readarr_ui_renders_notification_success_popup() {
+    let mut app = App::test_default_fully_populated();
+    app.notification = Some(Notification::new(
+      "Download Result".to_owned(),
+      "Download request sent successfully".to_owned(),
+      true,
+    ));
+    app.push_navigation_stack(ActiveReadarrBlock::default().into());
+
+    let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+      ui(f, app);
+    });
+
+    insta::assert_snapshot!(output);
+  }
+
+  #[test]
+  fn test_readarr_ui_renders_notification_failure_popup() {
+    let mut app = App::test_default_fully_populated();
+    app.notification = Some(Notification::new(
+      "Download Failed".to_owned(),
+      "Request failed. Received 500 response code".to_owned(),
+      false,
+    ));
+    app.push_navigation_stack(ActiveReadarrBlock::default().into());
 
     let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
       ui(f, app);
