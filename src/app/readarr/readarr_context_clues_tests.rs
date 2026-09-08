@@ -548,6 +548,42 @@ mod tests {
     assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
+  #[rstest]
+  fn test_readarr_context_clue_provider_confirmation_prompt_context_clues_delete_author_blocks(
+    #[values(
+      ActiveReadarrBlock::DeleteAuthorPrompt,
+      ActiveReadarrBlock::DeleteAuthorConfirmPrompt,
+      ActiveReadarrBlock::DeleteAuthorToggleAddListExclusion,
+      ActiveReadarrBlock::DeleteAuthorToggleDeleteFile
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_readarr_block.into());
+
+    let context_clues = ReadarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
+  fn test_readarr_context_clue_provider_confirmation_prompt_context_clues_delete_book_blocks(
+    #[values(
+      ActiveReadarrBlock::DeleteBookPrompt,
+      ActiveReadarrBlock::DeleteBookConfirmPrompt,
+      ActiveReadarrBlock::DeleteBookToggleAddListExclusion,
+      ActiveReadarrBlock::DeleteBookToggleDeleteFile
+    )]
+    active_readarr_block: ActiveReadarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_readarr_block.into());
+
+    let context_clues = ReadarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
   #[test]
   fn test_readarr_context_clue_provider_system_tasks_clues() {
     let mut app = App::test_default();

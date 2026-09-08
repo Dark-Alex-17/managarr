@@ -5,8 +5,9 @@ use crate::app::context_clues::{
 use crate::app::{App, context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS};
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{
-  ADD_SERIES_BLOCKS, ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, EDIT_SERIES_BLOCKS,
-  EPISODE_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+  ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_INDEXER_BLOCKS,
+  EDIT_SERIES_BLOCKS, EPISODE_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS, SEASON_DETAILS_BLOCKS,
+  SERIES_DETAILS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -205,6 +206,9 @@ impl ContextClueProvider for SonarrContextClueProvider {
         || INDEXER_SETTINGS_BLOCKS.contains(&active_sonarr_block)
         || EDIT_SERIES_BLOCKS.contains(&active_sonarr_block) =>
       {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
+      _ if DELETE_SERIES_BLOCKS.contains(&active_sonarr_block) => {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }
       ActiveSonarrBlock::AddSeriesPrompt

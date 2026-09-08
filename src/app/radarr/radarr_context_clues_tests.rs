@@ -416,6 +416,25 @@ mod tests {
   }
 
   #[rstest]
+  fn test_radarr_context_clue_provider_confirmation_prompt_context_clues_delete_movie_blocks(
+    #[values(
+      ActiveRadarrBlock::DeleteMoviePrompt,
+      ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+      ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
+      ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.data.radarr_data = RadarrData::default();
+    app.push_navigation_stack(active_radarr_block.into());
+
+    let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
   fn test_radarr_context_clue_provider_add_movie_search_results_context_clues(
     #[values(
       ActiveRadarrBlock::AddMovieSearchResults,

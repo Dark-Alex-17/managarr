@@ -6,8 +6,8 @@ use crate::app::context_clues::{
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ADD_MOVIE_BLOCKS, ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS, EDIT_INDEXER_BLOCKS,
-  EDIT_MOVIE_BLOCKS, INDEXER_SETTINGS_BLOCKS, MOVIE_DETAILS_BLOCKS,
+  ADD_MOVIE_BLOCKS, ActiveRadarrBlock, DELETE_MOVIE_BLOCKS, EDIT_COLLECTION_BLOCKS,
+  EDIT_INDEXER_BLOCKS, EDIT_MOVIE_BLOCKS, INDEXER_SETTINGS_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -118,6 +118,9 @@ impl ContextClueProvider for RadarrContextClueProvider {
         || INDEXER_SETTINGS_BLOCKS.contains(&active_radarr_block)
         || EDIT_MOVIE_BLOCKS.contains(&active_radarr_block) =>
       {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
+      _ if DELETE_MOVIE_BLOCKS.contains(&active_radarr_block) => {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }
       ActiveRadarrBlock::AddMoviePrompt

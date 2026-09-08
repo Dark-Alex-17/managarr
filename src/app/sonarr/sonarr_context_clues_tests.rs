@@ -604,6 +604,24 @@ mod tests {
   }
 
   #[rstest]
+  fn test_sonarr_context_clue_provider_confirmation_prompt_popup_clues_delete_series_blocks(
+    #[values(
+      ActiveSonarrBlock::DeleteSeriesPrompt,
+      ActiveSonarrBlock::DeleteSeriesConfirmPrompt,
+      ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion,
+      ActiveSonarrBlock::DeleteSeriesToggleDeleteFile
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_sonarr_block.into());
+
+    let context_clues = SonarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
   fn test_sonarr_context_clue_provider_add_series_search_results_clues(
     #[values(
       ActiveSonarrBlock::AddSeriesAlreadyInLibrary,

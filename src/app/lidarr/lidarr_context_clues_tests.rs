@@ -577,6 +577,42 @@ mod tests {
     assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
+  #[rstest]
+  fn test_lidarr_context_clue_provider_confirmation_prompt_context_clues_delete_artist_blocks(
+    #[values(
+      ActiveLidarrBlock::DeleteArtistPrompt,
+      ActiveLidarrBlock::DeleteArtistConfirmPrompt,
+      ActiveLidarrBlock::DeleteArtistToggleAddListExclusion,
+      ActiveLidarrBlock::DeleteArtistToggleDeleteFile
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
+  fn test_lidarr_context_clue_provider_confirmation_prompt_context_clues_delete_album_blocks(
+    #[values(
+      ActiveLidarrBlock::DeleteAlbumPrompt,
+      ActiveLidarrBlock::DeleteAlbumConfirmPrompt,
+      ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion,
+      ActiveLidarrBlock::DeleteAlbumToggleDeleteFile
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
   #[test]
   fn test_lidarr_context_clue_provider_system_tasks_clues() {
     let mut app = App::test_default();

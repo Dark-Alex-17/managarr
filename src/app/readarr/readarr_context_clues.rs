@@ -7,8 +7,8 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::readarr::readarr_data::{
   ADD_AUTHOR_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
-  BOOK_DETAILS_BLOCKS, EDIT_AUTHOR_BLOCKS, EDIT_INDEXER_BLOCKS, EDITION_DETAILS_BLOCKS,
-  INDEXER_SETTINGS_BLOCKS,
+  BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS,
+  EDIT_INDEXER_BLOCKS, EDITION_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -188,6 +188,11 @@ impl ContextClueProvider for ReadarrContextClueProvider {
         || EDIT_INDEXER_BLOCKS.contains(&active_readarr_block)
         || INDEXER_SETTINGS_BLOCKS.contains(&active_readarr_block)
         || ADD_ROOT_FOLDER_BLOCKS.contains(&active_readarr_block) =>
+      {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
+      _ if DELETE_AUTHOR_BLOCKS.contains(&active_readarr_block)
+        || DELETE_BOOK_BLOCKS.contains(&active_readarr_block) =>
       {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }

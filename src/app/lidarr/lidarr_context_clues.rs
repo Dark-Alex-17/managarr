@@ -7,8 +7,8 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS,
-  ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS,
-  TRACK_DETAILS_BLOCKS,
+  ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS,
+  EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, TRACK_DETAILS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -200,6 +200,11 @@ impl ContextClueProvider for LidarrContextClueProvider {
         || EDIT_INDEXER_BLOCKS.contains(&active_lidarr_block)
         || INDEXER_SETTINGS_BLOCKS.contains(&active_lidarr_block)
         || ADD_ROOT_FOLDER_BLOCKS.contains(&active_lidarr_block) =>
+      {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
+      _ if DELETE_ARTIST_BLOCKS.contains(&active_lidarr_block)
+        || DELETE_ALBUM_BLOCKS.contains(&active_lidarr_block) =>
       {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }
