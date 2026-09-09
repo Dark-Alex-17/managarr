@@ -314,11 +314,15 @@ mod tests {
     #[test]
     fn test_delete_root_folder_prompt_confirm_submit() {
       let mut app = App::test_default();
-      app
-        .data
-        .radarr_data
-        .root_folders
-        .set_items(vec![root_folder()]);
+      app.data.radarr_data.root_folders.set_items(vec![
+        root_folder(),
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          ..root_folder()
+        },
+      ]);
+      app.data.radarr_data.root_folders.select_index(Some(1));
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
@@ -334,7 +338,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::DeleteRootFolder(1)
+        &RadarrEvent::DeleteRootFolder(2)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
@@ -583,11 +587,15 @@ mod tests {
     #[test]
     fn test_delete_root_folder_prompt_confirm() {
       let mut app = App::test_default();
-      app
-        .data
-        .radarr_data
-        .root_folders
-        .set_items(vec![root_folder()]);
+      app.data.radarr_data.root_folders.set_items(vec![
+        root_folder(),
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          ..root_folder()
+        },
+      ]);
+      app.data.radarr_data.root_folders.select_index(Some(1));
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
 
@@ -602,7 +610,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::DeleteRootFolder(1)
+        &RadarrEvent::DeleteRootFolder(2)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }

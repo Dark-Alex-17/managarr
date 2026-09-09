@@ -656,18 +656,24 @@ mod tests {
       edit_movie
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      edit_movie.quality_profile_list.state.select(Some(1));
+      edit_movie.minimum_availability_list.state.select(Some(1));
       app.data.radarr_data.edit_movie_modal = Some(edit_movie);
-      app.data.radarr_data.movies.set_items(vec![Movie {
-        monitored: false,
-        ..movie()
-      }]);
+      app.data.radarr_data.movies.set_items(vec![
+        Movie { id: 999, ..movie() },
+        Movie {
+          monitored: false,
+          ..movie()
+        },
+      ]);
+      app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       let expected_edit_movie_params = EditMovieParams {
         movie_id: 1,
         monitored: Some(false),
-        minimum_availability: Some(MinimumAvailability::Announced),
-        quality_profile_id: Some(1111),
+        minimum_availability: Some(MinimumAvailability::InCinemas),
+        quality_profile_id: Some(2222),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".into()),
         ..EditMovieParams::default()
@@ -1089,18 +1095,24 @@ mod tests {
       edit_movie
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      edit_movie.quality_profile_list.state.select(Some(1));
+      edit_movie.minimum_availability_list.state.select(Some(1));
       app.data.radarr_data.edit_movie_modal = Some(edit_movie);
-      app.data.radarr_data.movies.set_items(vec![Movie {
-        monitored: false,
-        ..movie()
-      }]);
+      app.data.radarr_data.movies.set_items(vec![
+        Movie { id: 999, ..movie() },
+        Movie {
+          monitored: false,
+          ..movie()
+        },
+      ]);
+      app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       let expected_edit_movie_params = EditMovieParams {
         movie_id: 1,
         monitored: Some(false),
-        minimum_availability: Some(MinimumAvailability::Announced),
-        quality_profile_id: Some(1111),
+        minimum_availability: Some(MinimumAvailability::InCinemas),
+        quality_profile_id: Some(2222),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".into()),
         ..EditMovieParams::default()
@@ -1177,18 +1189,24 @@ mod tests {
     edit_movie
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    edit_movie.quality_profile_list.state.select(Some(1));
+    edit_movie.minimum_availability_list.state.select(Some(1));
     app.data.radarr_data.edit_movie_modal = Some(edit_movie);
-    app.data.radarr_data.movies.set_items(vec![Movie {
-      monitored: false,
-      ..movie()
-    }]);
+    app.data.radarr_data.movies.set_items(vec![
+      Movie { id: 999, ..movie() },
+      Movie {
+        monitored: false,
+        ..movie()
+      },
+    ]);
+    app.data.radarr_data.movies.select_index(Some(1));
     app.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     let expected_edit_movie_params = EditMovieParams {
       movie_id: 1,
       monitored: Some(false),
-      minimum_availability: Some(MinimumAvailability::Announced),
-      quality_profile_id: Some(1111),
+      minimum_availability: Some(MinimumAvailability::InCinemas),
+      quality_profile_id: Some(2222),
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       tag_input_string: Some("usenet, testing".into()),
       ..EditMovieParams::default()

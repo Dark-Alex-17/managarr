@@ -136,7 +136,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
-      RadarrEvent::DeleteDownload(1)
+      RadarrEvent::DeleteDownload(2)
     )]
     #[case(
       ActiveRadarrBlock::Downloads,
@@ -149,11 +149,15 @@ mod tests {
       #[case] expected_action: RadarrEvent,
     ) {
       let mut app = App::test_default();
-      app
-        .data
-        .radarr_data
-        .downloads
-        .set_items(vec![download_record()]);
+      app.data.radarr_data.downloads.set_items(vec![
+        download_record(),
+        DownloadRecord {
+          id: 2,
+          title: "Test Download Title 2".to_owned(),
+          ..download_record()
+        },
+      ]);
+      app.data.radarr_data.downloads.select_index(Some(1));
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -332,7 +336,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
-      RadarrEvent::DeleteDownload(1)
+      RadarrEvent::DeleteDownload(2)
     )]
     #[case(
       ActiveRadarrBlock::Downloads,
@@ -345,11 +349,15 @@ mod tests {
       #[case] expected_action: RadarrEvent,
     ) {
       let mut app = App::test_default();
-      app
-        .data
-        .radarr_data
-        .downloads
-        .set_items(vec![download_record()]);
+      app.data.radarr_data.downloads.set_items(vec![
+        download_record(),
+        DownloadRecord {
+          id: 2,
+          title: "Test Download Title 2".to_owned(),
+          ..download_record()
+        },
+      ]);
+      app.data.radarr_data.downloads.select_index(Some(1));
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -403,11 +411,15 @@ mod tests {
   #[test]
   fn test_extract_download_id() {
     let mut app = App::test_default();
-    app
-      .data
-      .radarr_data
-      .downloads
-      .set_items(vec![download_record()]);
+    app.data.radarr_data.downloads.set_items(vec![
+      download_record(),
+      DownloadRecord {
+        id: 2,
+        title: "Test Download Title 2".to_owned(),
+        ..download_record()
+      },
+    ]);
+    app.data.radarr_data.downloads.select_index(Some(1));
 
     let download_id = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -417,7 +429,7 @@ mod tests {
     )
     .extract_download_id();
 
-    assert_eq!(download_id, 1);
+    assert_eq!(download_id, 2);
   }
 
   #[test]

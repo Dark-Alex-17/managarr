@@ -10,7 +10,7 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
-  use crate::models::radarr_models::DeleteMovieParams;
+  use crate::models::radarr_models::{DeleteMovieParams, Movie};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
@@ -131,7 +131,12 @@ mod tests {
       };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
-      app.data.radarr_data.movies.set_items(vec![movie()]);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
+      app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
@@ -275,7 +280,12 @@ mod tests {
       };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
-      app.data.radarr_data.movies.set_items(vec![movie()]);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
+      app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
@@ -338,7 +348,12 @@ mod tests {
   #[test]
   fn test_build_delete_movie_params() {
     let mut app = App::test_default();
-    app.data.radarr_data.movies.set_items(vec![movie()]);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
+    app.data.radarr_data.movies.select_index(Some(1));
     app.data.radarr_data.delete_movie_files = true;
     app.data.radarr_data.add_list_exclusion = true;
     let expected_delete_movie_params = DeleteMovieParams {

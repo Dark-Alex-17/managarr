@@ -143,6 +143,11 @@ mod tests {
       } else {
         "usenet".to_owned()
       };
+      let other_protocol = if torrent_protocol {
+        "usenet".to_owned()
+      } else {
+        "torrent".to_owned()
+      };
       let mut expected_edit_indexer_modal = EditIndexerModal {
         name: "Test".into(),
         enable_rss: Some(true),
@@ -186,7 +191,14 @@ mod tests {
         fields: Some(fields),
         ..Indexer::default()
       };
-      radarr_data.indexers.set_items(vec![indexer]);
+      radarr_data.indexers.set_items(vec![
+        Indexer {
+          protocol: other_protocol,
+          ..Indexer::default()
+        },
+        indexer,
+      ]);
+      radarr_data.indexers.select_index(Some(1));
       app.data.radarr_data = radarr_data;
 
       IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
@@ -233,7 +245,12 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm_submit() {
       let mut app = App::test_default();
-      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![indexer(), Indexer { id: 2, ..indexer() }]);
+      app.data.radarr_data.indexers.select_index(Some(1));
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
@@ -249,7 +266,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::DeleteIndexer(1)
+        &RadarrEvent::DeleteIndexer(2)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
     }
@@ -523,7 +540,12 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm() {
       let mut app = App::test_default();
-      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![indexer(), Indexer { id: 2, ..indexer() }]);
+      app.data.radarr_data.indexers.select_index(Some(1));
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
 
@@ -538,7 +560,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::DeleteIndexer(1)
+        &RadarrEvent::DeleteIndexer(2)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
     }

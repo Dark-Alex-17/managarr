@@ -142,11 +142,15 @@ mod tests {
     #[test]
     fn test_collection_details_submit_movie_already_in_library() {
       let mut app = App::test_default();
-      app
-        .data
-        .radarr_data
-        .collection_movies
-        .set_items(vec![collection_movie()]);
+      app.data.radarr_data.collection_movies.set_items(vec![
+        CollectionMovie {
+          tmdb_id: 5678,
+          overview: "Some other overview".to_owned(),
+          ..CollectionMovie::default()
+        },
+        collection_movie(),
+      ]);
+      app.data.radarr_data.collection_movies.select_index(Some(1));
       app.data.radarr_data.movies.set_items(vec![Movie {
         tmdb_id: collection_movie().tmdb_id,
         ..Movie::default()

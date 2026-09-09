@@ -11,7 +11,7 @@ mod tests {
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
-  use crate::models::servarr_models::EditIndexerParams;
+  use crate::models::servarr_models::{EditIndexerParams, Indexer};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
@@ -916,9 +916,14 @@ mod tests {
         priority: 25,
       };
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![indexer(), Indexer { id: 2, ..indexer() }]);
+      app.data.radarr_data.indexers.select_index(Some(1));
       let expected_edit_indexer_params = EditIndexerParams {
-        indexer_id: 1,
+        indexer_id: 2,
         name: Some("Test Update".to_owned()),
         enable_rss: Some(false),
         enable_automatic_search: Some(false),
@@ -1759,9 +1764,14 @@ mod tests {
         priority: 25,
       };
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![indexer(), Indexer { id: 2, ..indexer() }]);
+      app.data.radarr_data.indexers.select_index(Some(1));
       let expected_edit_indexer_params = EditIndexerParams {
-        indexer_id: 1,
+        indexer_id: 2,
         name: Some("Test Update".to_owned()),
         enable_rss: Some(false),
         enable_automatic_search: Some(false),
@@ -1837,9 +1847,14 @@ mod tests {
       priority: 25,
     };
     app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-    app.data.radarr_data.indexers.set_items(vec![indexer()]);
+    app
+      .data
+      .radarr_data
+      .indexers
+      .set_items(vec![indexer(), Indexer { id: 2, ..indexer() }]);
+    app.data.radarr_data.indexers.select_index(Some(1));
     let expected_edit_indexer_params = EditIndexerParams {
-      indexer_id: 1,
+      indexer_id: 2,
       name: Some("Test Update".to_owned()),
       enable_rss: Some(false),
       enable_automatic_search: Some(false),

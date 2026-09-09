@@ -677,10 +677,17 @@ mod tests {
       let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.tasks.set_items(vec![RadarrTask {
-        task_name: RadarrTaskName::default(),
-        ..RadarrTask::default()
-      }]);
+      app.data.radarr_data.tasks.set_items(vec![
+        RadarrTask {
+          task_name: RadarrTaskName::Backup,
+          ..RadarrTask::default()
+        },
+        RadarrTask {
+          task_name: RadarrTaskName::RefreshMovie,
+          ..RadarrTask::default()
+        },
+      ]);
+      app.data.radarr_data.tasks.select_index(Some(1));
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -695,7 +702,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::StartTask(RadarrTaskName::default())
+        &RadarrEvent::StartTask(RadarrTaskName::RefreshMovie)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
@@ -891,10 +898,17 @@ mod tests {
     fn test_system_tasks_start_task_prompt_confirm() {
       let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
-      app.data.radarr_data.tasks.set_items(vec![RadarrTask {
-        task_name: RadarrTaskName::default(),
-        ..RadarrTask::default()
-      }]);
+      app.data.radarr_data.tasks.set_items(vec![
+        RadarrTask {
+          task_name: RadarrTaskName::Backup,
+          ..RadarrTask::default()
+        },
+        RadarrTask {
+          task_name: RadarrTaskName::RefreshMovie,
+          ..RadarrTask::default()
+        },
+      ]);
+      app.data.radarr_data.tasks.select_index(Some(1));
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -909,7 +923,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::StartTask(RadarrTaskName::default())
+        &RadarrEvent::StartTask(RadarrTaskName::RefreshMovie)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
@@ -948,10 +962,17 @@ mod tests {
   #[test]
   fn test_extract_task_name() {
     let mut app = App::test_default();
-    app.data.radarr_data.tasks.set_items(vec![RadarrTask {
-      task_name: RadarrTaskName::default(),
-      ..RadarrTask::default()
-    }]);
+    app.data.radarr_data.tasks.set_items(vec![
+      RadarrTask {
+        task_name: RadarrTaskName::Backup,
+        ..RadarrTask::default()
+      },
+      RadarrTask {
+        task_name: RadarrTaskName::RefreshMovie,
+        ..RadarrTask::default()
+      },
+    ]);
+    app.data.radarr_data.tasks.select_index(Some(1));
 
     let task_name = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -961,7 +982,7 @@ mod tests {
     )
     .extract_task_name();
 
-    assert_eq!(task_name, RadarrTaskName::default());
+    assert_eq!(task_name, RadarrTaskName::RefreshMovie);
   }
 
   #[test]
