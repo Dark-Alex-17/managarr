@@ -833,13 +833,13 @@ mod tests {
     async fn test_handle_edit_all_indexer_settings_command() {
       let expected_edit_all_indexer_settings = IndexerSettings {
         allow_hardcoded_subs: true,
-        availability_delay: 1,
+        availability_delay: 19,
         id: 1,
-        maximum_size: 1,
-        minimum_age: 1,
+        maximum_size: 18400,
+        minimum_age: 27,
         prefer_indexer_flags: true,
-        retention: 1,
-        rss_sync_interval: 1,
+        retention: 44,
+        rss_sync_interval: 60,
         whitelisted_hardcoded_subs: "test".into(),
       };
       let mut mock_network = MockNetworkTrait::new();
@@ -853,13 +853,13 @@ mod tests {
           Ok(Serdeable::Radarr(RadarrSerdeable::IndexerSettings(
             IndexerSettings {
               allow_hardcoded_subs: false,
-              availability_delay: 2,
-              id: 1,
-              maximum_size: 2,
-              minimum_age: 2,
+              availability_delay: 31,
+              id: 8,
+              maximum_size: 22750,
+              minimum_age: 52,
               prefer_indexer_flags: false,
-              retention: 2,
-              rss_sync_interval: 2,
+              retention: 66,
+              rss_sync_interval: 90,
               whitelisted_hardcoded_subs: "testing".into(),
             },
           )))
@@ -879,13 +879,13 @@ mod tests {
       let edit_all_indexer_settings_command = RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs: true,
         disable_allow_hardcoded_subs: false,
-        availability_delay: Some(1),
-        maximum_size: Some(1),
-        minimum_age: Some(1),
+        availability_delay: Some(19),
+        maximum_size: Some(18400),
+        minimum_age: Some(27),
         prefer_indexer_flags: true,
         disable_prefer_indexer_flags: false,
-        retention: Some(1),
-        rss_sync_interval: Some(1),
+        retention: Some(44),
+        rss_sync_interval: Some(60),
         whitelisted_subtitle_tags: Some("test".to_owned()),
       };
 
@@ -904,13 +904,13 @@ mod tests {
     async fn test_handle_edit_all_indexer_settings_command_disable_flags_function_properly() {
       let expected_edit_all_indexer_settings = IndexerSettings {
         allow_hardcoded_subs: false,
-        availability_delay: 1,
+        availability_delay: 19,
         id: 1,
-        maximum_size: 1,
-        minimum_age: 1,
+        maximum_size: 18400,
+        minimum_age: 27,
         prefer_indexer_flags: false,
-        retention: 1,
-        rss_sync_interval: 1,
+        retention: 44,
+        rss_sync_interval: 60,
         whitelisted_hardcoded_subs: "test".into(),
       };
       let mut mock_network = MockNetworkTrait::new();
@@ -924,13 +924,13 @@ mod tests {
           Ok(Serdeable::Radarr(RadarrSerdeable::IndexerSettings(
             IndexerSettings {
               allow_hardcoded_subs: true,
-              availability_delay: 2,
-              id: 1,
-              maximum_size: 2,
-              minimum_age: 2,
+              availability_delay: 31,
+              id: 8,
+              maximum_size: 22750,
+              minimum_age: 52,
               prefer_indexer_flags: true,
-              retention: 2,
-              rss_sync_interval: 2,
+              retention: 66,
+              rss_sync_interval: 90,
               whitelisted_hardcoded_subs: "testing".into(),
             },
           )))
@@ -950,13 +950,13 @@ mod tests {
       let edit_all_indexer_settings_command = RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs: false,
         disable_allow_hardcoded_subs: true,
-        availability_delay: Some(1),
-        maximum_size: Some(1),
-        minimum_age: Some(1),
+        availability_delay: Some(19),
+        maximum_size: Some(18400),
+        minimum_age: Some(27),
         prefer_indexer_flags: false,
         disable_prefer_indexer_flags: true,
-        retention: Some(1),
-        rss_sync_interval: Some(1),
+        retention: Some(44),
+        rss_sync_interval: Some(60),
         whitelisted_subtitle_tags: Some("test".to_owned()),
       };
 
@@ -976,13 +976,13 @@ mod tests {
      {
       let expected_edit_all_indexer_settings = IndexerSettings {
         allow_hardcoded_subs: true,
-        availability_delay: 2,
+        availability_delay: 31,
         id: 1,
-        maximum_size: 2,
-        minimum_age: 2,
-        prefer_indexer_flags: true,
-        retention: 2,
-        rss_sync_interval: 2,
+        maximum_size: 22750,
+        minimum_age: 52,
+        prefer_indexer_flags: false,
+        retention: 66,
+        rss_sync_interval: 90,
         whitelisted_hardcoded_subs: "testing".into(),
       };
       let mut mock_network = MockNetworkTrait::new();
@@ -996,13 +996,13 @@ mod tests {
           Ok(Serdeable::Radarr(RadarrSerdeable::IndexerSettings(
             IndexerSettings {
               allow_hardcoded_subs: true,
-              availability_delay: 2,
-              id: 1,
-              maximum_size: 2,
-              minimum_age: 2,
-              prefer_indexer_flags: true,
-              retention: 2,
-              rss_sync_interval: 2,
+              availability_delay: 31,
+              id: 8,
+              maximum_size: 22750,
+              minimum_age: 52,
+              prefer_indexer_flags: false,
+              retention: 66,
+              rss_sync_interval: 90,
               whitelisted_hardcoded_subs: "testing".into(),
             },
           )))

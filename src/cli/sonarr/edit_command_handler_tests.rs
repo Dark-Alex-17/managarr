@@ -632,10 +632,10 @@ mod tests {
     async fn test_handle_edit_all_indexer_settings_command() {
       let expected_edit_all_indexer_settings = IndexerSettings {
         id: 1,
-        maximum_size: 1,
-        minimum_age: 1,
-        retention: 1,
-        rss_sync_interval: 1,
+        maximum_size: 12345,
+        minimum_age: 13,
+        retention: 21,
+        rss_sync_interval: 60,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -647,11 +647,11 @@ mod tests {
         .returning(|_| {
           Ok(Serdeable::Sonarr(SonarrSerdeable::IndexerSettings(
             IndexerSettings {
-              id: 1,
-              maximum_size: 2,
-              minimum_age: 2,
-              retention: 2,
-              rss_sync_interval: 2,
+              id: 9,
+              maximum_size: 22222,
+              minimum_age: 33,
+              retention: 47,
+              rss_sync_interval: 90,
             },
           )))
         });
@@ -668,10 +668,10 @@ mod tests {
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command = SonarrEditCommand::AllIndexerSettings {
-        maximum_size: Some(1),
-        minimum_age: Some(1),
-        retention: Some(1),
-        rss_sync_interval: Some(1),
+        maximum_size: Some(12345),
+        minimum_age: Some(13),
+        retention: Some(21),
+        rss_sync_interval: Some(60),
       };
 
       let result = SonarrEditCommandHandler::with(
