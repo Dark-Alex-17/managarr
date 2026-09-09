@@ -417,7 +417,7 @@ mod tests {
         event_type: ReadarrHistoryEventType::BookFileDeleted,
         quality: QualityWrapper {
           quality: Quality {
-            name: "EPUB".to_owned(),
+            name: "MOBI".to_owned(),
           },
         },
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-03-10T07:28:45Z").unwrap()),
