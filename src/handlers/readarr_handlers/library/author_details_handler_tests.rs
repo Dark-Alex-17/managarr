@@ -301,11 +301,15 @@ mod tests {
     fn test_manual_author_search_confirm_prompt_confirm_submit() {
       let mut app = App::test_default();
       let release = torrent_release();
+      let mut decoy_release = torrent_release();
+      decoy_release.guid = "decoy-guid".to_owned();
+      decoy_release.indexer_id = 999;
       app
         .data
         .readarr_data
         .author_releases
-        .set_items(vec![release.clone()]);
+        .set_items(vec![decoy_release, release.clone()]);
+      app.data.readarr_data.author_releases.select_index(Some(1));
       app.data.readarr_data.prompt_confirm = true;
       let expected_action = ReadarrEvent::DownloadRelease(ReleaseDownloadBody {
         guid: release.guid,
@@ -562,6 +566,16 @@ mod tests {
     fn test_author_details_view_key_builds_the_overview_from_the_selected_author() {
       let mut app = App::test_default_fully_populated();
       app.data.readarr_data.author_overview_modal = None;
+      let author = app.data.readarr_data.authors.current_selection().clone();
+      let mut decoy_author = author.clone();
+      decoy_author.id = 999;
+      decoy_author.overview = Some("decoy author overview".to_owned());
+      app
+        .data
+        .readarr_data
+        .authors
+        .set_items(vec![decoy_author, author]);
+      app.data.readarr_data.authors.select_index(Some(1));
       app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
 
       AuthorDetailsHandler::new(
@@ -698,6 +712,15 @@ mod tests {
     #[test]
     fn test_author_details_toggle_monitoring_key() {
       let mut app = App::test_default_fully_populated();
+      let book = app.data.readarr_data.books.current_selection().clone();
+      let mut decoy_book = book.clone();
+      decoy_book.id = 999;
+      app
+        .data
+        .readarr_data
+        .books
+        .set_items(vec![decoy_book, book]);
+      app.data.readarr_data.books.select_index(Some(1));
       app.is_routing = false;
       app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
       app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
@@ -954,11 +977,15 @@ mod tests {
     fn test_manual_author_search_confirm_prompt_confirm_key() {
       let mut app = App::test_default();
       let release = torrent_release();
+      let mut decoy_release = torrent_release();
+      decoy_release.guid = "decoy-guid".to_owned();
+      decoy_release.indexer_id = 999;
       app
         .data
         .readarr_data
         .author_releases
-        .set_items(vec![release.clone()]);
+        .set_items(vec![decoy_release, release.clone()]);
+      app.data.readarr_data.author_releases.select_index(Some(1));
       let expected_action = ReadarrEvent::DownloadRelease(ReleaseDownloadBody {
         guid: release.guid,
         indexer_id: release.indexer_id,
@@ -980,6 +1007,54 @@ mod tests {
         &app.data.readarr_data.prompt_confirm_action,
         &expected_action
       );
+    }
+
+    #[test]
+    fn test_search_books_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchBooks.into());
+    }
+
+    #[test]
+    fn test_search_author_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorHistory.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchAuthorHistory.into());
+    }
+
+    #[test]
+    fn test_filter_author_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorHistory.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::FilterAuthorHistory.into());
     }
   }
 
@@ -1012,6 +1087,15 @@ mod tests {
   #[test]
   fn test_extract_author_id() {
     let mut app = App::test_default_fully_populated();
+    let author = app.data.readarr_data.authors.current_selection().clone();
+    let mut decoy_author = author.clone();
+    decoy_author.id = 999;
+    app
+      .data
+      .readarr_data
+      .authors
+      .set_items(vec![decoy_author, author]);
+    app.data.readarr_data.authors.select_index(Some(1));
 
     let author_id = AuthorDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -1027,6 +1111,15 @@ mod tests {
   #[test]
   fn test_extract_book_id() {
     let mut app = App::test_default_fully_populated();
+    let book = app.data.readarr_data.books.current_selection().clone();
+    let mut decoy_book = book.clone();
+    decoy_book.id = 999;
+    app
+      .data
+      .readarr_data
+      .books
+      .set_items(vec![decoy_book, book]);
+    app.data.readarr_data.books.select_index(Some(1));
 
     let book_id = AuthorDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

@@ -571,11 +571,8 @@ mod tests {
     #[test]
     fn test_toggle_monitoring_key() {
       let mut app = App::test_default();
-      app
-        .data
-        .readarr_data
-        .authors
-        .set_items(vec![Author::default()]);
+      app.data.readarr_data.authors.set_items(authors_vec());
+      app.data.readarr_data.authors.select_index(Some(1));
       app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
       app.is_routing = false;
 
@@ -592,7 +589,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.readarr_data.prompt_confirm_action,
-        &ReadarrEvent::ToggleAuthorMonitoring(0)
+        &ReadarrEvent::ToggleAuthorMonitoring(2)
       );
     }
 
@@ -702,6 +699,40 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveReadarrBlock::Authors.into());
       assert!(!app.should_refresh);
+    }
+
+    #[test]
+    fn test_search_authors_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.authors.set_items(authors_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::Authors,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchAuthors.into());
+    }
+
+    #[test]
+    fn test_filter_authors_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.authors.set_items(authors_vec());
+      app.push_navigation_stack(ActiveReadarrBlock::Authors.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveReadarrBlock::Authors,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::FilterAuthors.into());
     }
 
     #[test]

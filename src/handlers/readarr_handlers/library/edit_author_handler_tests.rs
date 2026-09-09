@@ -1323,18 +1323,32 @@ mod tests {
     edit_author_modal
       .quality_profile_list
       .set_items(vec!["Lossless".to_owned(), "HD - 1080p".to_owned()]);
+    edit_author_modal.quality_profile_list.state.select(Some(1));
     edit_author_modal
       .metadata_profile_list
       .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
     edit_author_modal
+      .metadata_profile_list
+      .state
+      .select(Some(1));
+    edit_author_modal
       .monitor_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    edit_author_modal.monitor_list.state.select(Some(1));
     app.data.readarr_data.edit_author_modal = Some(edit_author_modal);
-    app.data.readarr_data.authors.set_items(vec![Author {
-      id: 42,
-      monitored: false,
-      ..Author::default()
-    }]);
+    app.data.readarr_data.authors.set_items(vec![
+      Author {
+        id: 999,
+        monitored: false,
+        ..Author::default()
+      },
+      Author {
+        id: 42,
+        monitored: false,
+        ..Author::default()
+      },
+    ]);
+    app.data.readarr_data.authors.select_index(Some(1));
     app.data.readarr_data.quality_profile_map = BiMap::from_iter([
       (1111, "Lossless".to_owned()),
       (2222, "HD - 1080p".to_owned()),
@@ -1349,9 +1363,9 @@ mod tests {
     EditAuthorParams {
       author_id: 42,
       monitored: Some(false),
-      monitor_new_items: Some(NewItemMonitorType::All),
-      quality_profile_id: Some(1111),
-      metadata_profile_id: Some(3333),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(2222),
+      metadata_profile_id: Some(4444),
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       tag_input_string: Some("usenet, testing".to_owned()),
       ..EditAuthorParams::default()

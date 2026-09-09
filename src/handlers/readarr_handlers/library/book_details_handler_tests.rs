@@ -494,7 +494,9 @@ mod tests {
     fn test_manual_book_search_confirm_prompt_submit() {
       let mut app = App::test_default();
       app.data.readarr_data.prompt_confirm = true;
-      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      let mut modal = book_details_modal();
+      modal.book_releases.select_index(Some(1));
+      app.data.readarr_data.book_details_modal = Some(modal);
       app.push_navigation_stack(ActiveReadarrBlock::ManualBookSearch.into());
       app.push_navigation_stack(ActiveReadarrBlock::ManualBookSearchConfirmPrompt.into());
 
@@ -509,8 +511,8 @@ mod tests {
       assert_eq!(
         app.data.readarr_data.prompt_confirm_action,
         Some(ReadarrEvent::DownloadRelease(ReleaseDownloadBody {
-          guid: "guid-1".to_owned(),
-          indexer_id: 1,
+          guid: "guid-2".to_owned(),
+          indexer_id: 2,
         }))
       );
       assert_navigation_pushed!(app, ActiveReadarrBlock::ManualBookSearch.into());
@@ -540,6 +542,7 @@ mod tests {
       let mut app = App::test_default();
       app.data.readarr_data.prompt_confirm = true;
       app.data.readarr_data.books.set_items(books_vec());
+      app.data.readarr_data.books.select_index(Some(1));
       app.data.readarr_data.book_details_modal = Some(book_details_modal());
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
       app.push_navigation_stack(ActiveReadarrBlock::AutomaticallySearchBookPrompt.into());
@@ -583,7 +586,9 @@ mod tests {
     fn test_delete_book_file_prompt_submit() {
       let mut app = App::test_default();
       app.data.readarr_data.prompt_confirm = true;
-      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      let mut modal = book_details_modal();
+      modal.book_files.select_index(Some(1));
+      app.data.readarr_data.book_details_modal = Some(modal);
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
       app.push_navigation_stack(ActiveReadarrBlock::DeleteBookFilePrompt.into());
 
@@ -810,6 +815,7 @@ mod tests {
     fn test_automatically_search_book_prompt_confirm() {
       let mut app = App::test_default();
       app.data.readarr_data.books.set_items(books_vec());
+      app.data.readarr_data.books.select_index(Some(1));
       app.data.readarr_data.book_details_modal = Some(book_details_modal());
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
       app.push_navigation_stack(ActiveReadarrBlock::AutomaticallySearchBookPrompt.into());
@@ -833,7 +839,9 @@ mod tests {
     #[test]
     fn test_delete_book_file_prompt_confirm() {
       let mut app = App::test_default();
-      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      let mut modal = book_details_modal();
+      modal.book_files.select_index(Some(1));
+      app.data.readarr_data.book_details_modal = Some(modal);
       app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
       app.push_navigation_stack(ActiveReadarrBlock::DeleteBookFilePrompt.into());
 
@@ -856,7 +864,9 @@ mod tests {
     #[test]
     fn test_manual_book_search_confirm_prompt_confirm() {
       let mut app = App::test_default();
-      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      let mut modal = book_details_modal();
+      modal.book_releases.select_index(Some(1));
+      app.data.readarr_data.book_details_modal = Some(modal);
       app.push_navigation_stack(ActiveReadarrBlock::ManualBookSearch.into());
       app.push_navigation_stack(ActiveReadarrBlock::ManualBookSearchConfirmPrompt.into());
 
@@ -872,11 +882,62 @@ mod tests {
       assert_eq!(
         app.data.readarr_data.prompt_confirm_action,
         Some(ReadarrEvent::DownloadRelease(ReleaseDownloadBody {
-          guid: "guid-1".to_owned(),
-          indexer_id: 1,
+          guid: "guid-2".to_owned(),
+          indexer_id: 2,
         }))
       );
       assert_navigation_popped!(app, ActiveReadarrBlock::ManualBookSearch.into());
+    }
+
+    #[test]
+    fn test_search_editions_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      app.push_navigation_stack(ActiveReadarrBlock::BookDetails.into());
+
+      BookDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::BookDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchEditions.into());
+    }
+
+    #[test]
+    fn test_search_book_history_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      app.push_navigation_stack(ActiveReadarrBlock::BookHistory.into());
+
+      BookDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveReadarrBlock::BookHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::SearchBookHistory.into());
+    }
+
+    #[test]
+    fn test_filter_book_history_key() {
+      let mut app = App::test_default();
+      app.data.readarr_data.book_details_modal = Some(book_details_modal());
+      app.push_navigation_stack(ActiveReadarrBlock::BookHistory.into());
+
+      BookDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveReadarrBlock::BookHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::FilterBookHistory.into());
     }
   }
 
@@ -1057,26 +1118,47 @@ mod tests {
   }
 
   fn book_files_vec() -> Vec<BookFile> {
-    vec![BookFile {
-      id: 11,
-      author_id: 1,
-      book_id: 1,
-      path: "/nfs/books/Test Author/Test Book.epub".to_owned(),
-      size: 1024,
-      quality: QualityWrapper {
-        quality: Quality {
-          name: "EPUB".to_owned(),
+    vec![
+      BookFile {
+        id: 999,
+        author_id: 1,
+        book_id: 1,
+        path: "/nfs/books/Test Author/Decoy Book.epub".to_owned(),
+        size: 2048,
+        quality: QualityWrapper {
+          quality: Quality {
+            name: "MOBI".to_owned(),
+          },
         },
+        ..BookFile::default()
       },
-      ..BookFile::default()
-    }]
+      BookFile {
+        id: 11,
+        author_id: 1,
+        book_id: 1,
+        path: "/nfs/books/Test Author/Test Book.epub".to_owned(),
+        size: 1024,
+        quality: QualityWrapper {
+          quality: Quality {
+            name: "EPUB".to_owned(),
+          },
+        },
+        ..BookFile::default()
+      },
+    ]
   }
 
   fn books_vec() -> Vec<Book> {
-    vec![Book {
-      id: 7,
-      ..Book::default()
-    }]
+    vec![
+      Book {
+        id: 999,
+        ..Book::default()
+      },
+      Book {
+        id: 7,
+        ..Book::default()
+      },
+    ]
   }
 
   fn history_vec() -> Vec<ReadarrHistoryItem> {

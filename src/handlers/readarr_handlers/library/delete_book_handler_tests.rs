@@ -129,7 +129,8 @@ mod tests {
       app.data.readarr_data.prompt_confirm = true;
       app.data.readarr_data.delete_files = false;
       app.data.readarr_data.add_import_list_exclusion = true;
-      app.data.readarr_data.books.set_items(vec![book()]);
+      app.data.readarr_data.books.set_items(books_vec());
+      app.data.readarr_data.books.select_index(Some(1));
       let expected_delete_book_params = DeleteParams {
         id: 42,
         delete_files: false,
@@ -309,7 +310,8 @@ mod tests {
       app.push_navigation_stack(ActiveReadarrBlock::DeleteBookPrompt.into());
       app.data.readarr_data.delete_files = true;
       app.data.readarr_data.add_import_list_exclusion = false;
-      app.data.readarr_data.books.set_items(vec![book()]);
+      app.data.readarr_data.books.set_items(books_vec());
+      app.data.readarr_data.books.select_index(Some(1));
       let expected_delete_book_params = DeleteParams {
         id: 42,
         delete_files: true,
@@ -349,7 +351,8 @@ mod tests {
       app.push_navigation_stack(ActiveReadarrBlock::DeleteBookPrompt.into());
       app.data.readarr_data.delete_files = true;
       app.data.readarr_data.add_import_list_exclusion = false;
-      app.data.readarr_data.books.set_items(vec![book()]);
+      app.data.readarr_data.books.set_items(books_vec());
+      app.data.readarr_data.books.select_index(Some(1));
       app.data.readarr_data.selected_block = BlockSelectionState::new(DELETE_BOOK_SELECTION_BLOCKS);
       app
         .data
@@ -409,7 +412,8 @@ mod tests {
   #[test]
   fn test_build_delete_book_params() {
     let mut app = App::test_default();
-    app.data.readarr_data.books.set_items(vec![book()]);
+    app.data.readarr_data.books.set_items(books_vec());
+    app.data.readarr_data.books.select_index(Some(1));
     app.data.readarr_data.delete_files = true;
     app.data.readarr_data.add_import_list_exclusion = false;
     let expected_delete_book_params = DeleteParams {
@@ -466,5 +470,15 @@ mod tests {
       id: 42,
       ..Book::default()
     }
+  }
+
+  fn books_vec() -> Vec<Book> {
+    vec![
+      Book {
+        id: 999,
+        ..Book::default()
+      },
+      book(),
+    ]
   }
 }

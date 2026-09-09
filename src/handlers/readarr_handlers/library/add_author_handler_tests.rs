@@ -947,10 +947,16 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveReadarrBlock::AddAuthorSearchResults.into());
       let mut add_searched_authors = StatefulTable::default();
-      add_searched_authors.set_items(vec![add_author_search_result()]);
+      let mut decoy_search_result = add_author_search_result();
+      decoy_search_result.foreign_author_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.author_name = "Decoy Author".into();
+      add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+      add_searched_authors.select_index(Some(1));
       app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
-      app.data.readarr_data.quality_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
-      app.data.readarr_data.metadata_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
+      app.data.readarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "eBook".to_owned())]);
+      app.data.readarr_data.metadata_profile_map =
+        BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
 
       AddAuthorHandler::new(
         SUBMIT_KEY,
@@ -1021,7 +1027,11 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveReadarrBlock::AddAuthorSearchResults.into());
       let mut add_searched_authors = StatefulTable::default();
-      add_searched_authors.set_items(vec![add_author_search_result()]);
+      let mut decoy_search_result = add_author_search_result();
+      decoy_search_result.foreign_author_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.author_name = "Decoy Author".into();
+      add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+      add_searched_authors.select_index(Some(1));
       app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
       app
         .data
@@ -1046,7 +1056,11 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveReadarrBlock::AddAuthorSearchResults.into());
       let mut add_searched_authors = StatefulTable::default();
-      add_searched_authors.set_items(vec![add_author_search_result()]);
+      let mut decoy_search_result = add_author_search_result();
+      decoy_search_result.foreign_author_id = OTHER_FOREIGN_AUTHOR_ID.to_owned();
+      decoy_search_result.author_name = "Decoy Author".into();
+      add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+      add_searched_authors.select_index(Some(1));
       app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
       app
         .data
@@ -1107,10 +1121,16 @@ mod tests {
         .set_index(0, ADD_AUTHOR_SELECTION_BLOCKS.len() - 1);
       app.data.readarr_data.prompt_confirm = true;
       let mut add_searched_authors = StatefulTable::default();
-      add_searched_authors.set_items(vec![add_author_search_result()]);
+      let mut decoy_search_result = add_author_search_result();
+      decoy_search_result.foreign_author_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.author_name = "Decoy Author".into();
+      add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+      add_searched_authors.select_index(Some(1));
       app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
-      app.data.readarr_data.quality_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
-      app.data.readarr_data.metadata_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
+      app.data.readarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "eBook".to_owned())]);
+      app.data.readarr_data.metadata_profile_map =
+        BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
       app.data.readarr_data.add_author_modal = Some(AddAuthorModal {
         tags: "usenet, testing".into(),
         ..AddAuthorModal::default()
@@ -1129,6 +1149,15 @@ mod tests {
         .add_author_modal
         .as_mut()
         .unwrap()
+        .monitor_list
+        .state
+        .select(Some(1));
+      app
+        .data
+        .readarr_data
+        .add_author_modal
+        .as_mut()
+        .unwrap()
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
       app
@@ -1137,8 +1166,26 @@ mod tests {
         .add_author_modal
         .as_mut()
         .unwrap()
+        .monitor_new_items_list
+        .state
+        .select(Some(1));
+      app
+        .data
+        .readarr_data
+        .add_author_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "eBook".to_owned()]);
+      app
+        .data
+        .readarr_data
+        .add_author_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .state
+        .select(Some(1));
       app
         .data
         .readarr_data
@@ -1146,7 +1193,16 @@ mod tests {
         .as_mut()
         .unwrap()
         .metadata_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+      app
+        .data
+        .readarr_data
+        .add_author_modal
+        .as_mut()
+        .unwrap()
+        .metadata_profile_list
+        .state
+        .select(Some(1));
       app
         .data
         .readarr_data
@@ -1154,22 +1210,37 @@ mod tests {
         .as_mut()
         .unwrap()
         .root_folder_list
-        .set_items(vec![RootFolder {
-          path: "/books".to_owned(),
-          ..RootFolder::default()
-        }]);
+        .set_items(vec![
+          RootFolder {
+            path: "/decoy".to_owned(),
+            ..RootFolder::default()
+          },
+          RootFolder {
+            path: "/books".to_owned(),
+            ..RootFolder::default()
+          },
+        ]);
+      app
+        .data
+        .readarr_data
+        .add_author_modal
+        .as_mut()
+        .unwrap()
+        .root_folder_list
+        .state
+        .select(Some(1));
       let expected_add_author_body = AddAuthorBody {
         foreign_author_id: SEARCHED_FOREIGN_AUTHOR_ID.to_string(),
         author_name: "Test Author".to_string(),
         monitored: true,
         root_folder_path: "/books".to_string(),
-        quality_profile_id: 1,
-        metadata_profile_id: 1,
+        quality_profile_id: 2222,
+        metadata_profile_id: 4444,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddAuthorOptions {
-          monitor: MonitorType::All,
-          monitor_new_items: NewItemMonitorType::All,
+          monitor: MonitorType::Future,
+          monitor_new_items: NewItemMonitorType::None,
           search_for_missing_books: true,
         },
       };
@@ -1498,10 +1569,16 @@ mod tests {
         .selected_block
         .set_index(0, ADD_AUTHOR_SELECTION_BLOCKS.len() - 1);
       let mut add_searched_authors = StatefulTable::default();
-      add_searched_authors.set_items(vec![add_author_search_result()]);
+      let mut decoy_search_result = add_author_search_result();
+      decoy_search_result.foreign_author_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.author_name = "Decoy Author".into();
+      add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+      add_searched_authors.select_index(Some(1));
       app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
-      app.data.readarr_data.quality_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
-      app.data.readarr_data.metadata_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
+      app.data.readarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "eBook".to_owned())]);
+      app.data.readarr_data.metadata_profile_map =
+        BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
       let mut add_author_modal = AddAuthorModal {
         tags: "usenet, testing".into(),
         ..AddAuthorModal::default()
@@ -1509,15 +1586,22 @@ mod tests {
       add_author_modal
         .monitor_list
         .set_items(Vec::from_iter(MonitorType::iter()));
+      add_author_modal.monitor_list.state.select(Some(1));
       add_author_modal
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
       add_author_modal
+        .monitor_new_items_list
+        .state
+        .select(Some(1));
+      add_author_modal
         .quality_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "eBook".to_owned()]);
+      add_author_modal.quality_profile_list.state.select(Some(1));
       add_author_modal
         .metadata_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+      add_author_modal.metadata_profile_list.state.select(Some(1));
       add_author_modal.root_folder_list.set_items(vec![
         RootFolder {
           id: 1,
@@ -1541,13 +1625,13 @@ mod tests {
         author_name: "Test Author".to_string(),
         monitored: true,
         root_folder_path: "/nfs2".to_string(),
-        quality_profile_id: 1,
-        metadata_profile_id: 1,
+        quality_profile_id: 2222,
+        metadata_profile_id: 4444,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddAuthorOptions {
-          monitor: Default::default(),
-          monitor_new_items: Default::default(),
+          monitor: MonitorType::Future,
+          monitor_new_items: NewItemMonitorType::None,
           search_for_missing_books: true,
         },
       };
@@ -1674,34 +1758,47 @@ mod tests {
     add_author_modal.root_folder_list.state.select(Some(1));
     add_author_modal
       .quality_profile_list
-      .set_items(vec!["Any".to_owned()]);
+      .set_items(vec!["Any".to_owned(), "eBook".to_owned()]);
+    add_author_modal.quality_profile_list.state.select(Some(1));
     add_author_modal
       .metadata_profile_list
-      .set_items(vec!["Standard".to_owned()]);
+      .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+    add_author_modal.metadata_profile_list.state.select(Some(1));
     add_author_modal
       .monitor_list
       .set_items(Vec::from_iter(MonitorType::iter()));
+    add_author_modal.monitor_list.state.select(Some(1));
     add_author_modal
       .monitor_new_items_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_author_modal
+      .monitor_new_items_list
+      .state
+      .select(Some(1));
     app.data.readarr_data.add_author_modal = Some(add_author_modal);
-    app.data.readarr_data.quality_profile_map = BiMap::from_iter([(1, "Any".to_owned())]);
-    app.data.readarr_data.metadata_profile_map = BiMap::from_iter([(1, "Standard".to_owned())]);
+    app.data.readarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "eBook".to_owned())]);
+    app.data.readarr_data.metadata_profile_map =
+      BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
     let mut add_searched_authors = StatefulTable::default();
-    add_searched_authors.set_items(vec![add_author_search_result()]);
+    let mut decoy_search_result = add_author_search_result();
+    decoy_search_result.foreign_author_id = "decoy-foreign-id".to_owned();
+    decoy_search_result.author_name = "Decoy Author".into();
+    add_searched_authors.set_items(vec![decoy_search_result, add_author_search_result()]);
+    add_searched_authors.select_index(Some(1));
     app.data.readarr_data.add_searched_authors = Some(add_searched_authors);
     let expected_add_author_body = AddAuthorBody {
       foreign_author_id: SEARCHED_FOREIGN_AUTHOR_ID.to_string(),
       author_name: "Test Author".into(),
       monitored: true,
       root_folder_path: "/nfs2".to_string(),
-      quality_profile_id: 1,
-      metadata_profile_id: 1,
+      quality_profile_id: 2222,
+      metadata_profile_id: 4444,
       tags: Vec::default(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddAuthorOptions {
-        monitor: Default::default(),
-        monitor_new_items: Default::default(),
+        monitor: MonitorType::Future,
+        monitor_new_items: NewItemMonitorType::None,
         search_for_missing_books: true,
       },
     };

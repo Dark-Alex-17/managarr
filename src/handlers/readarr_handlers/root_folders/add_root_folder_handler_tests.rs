@@ -1649,8 +1649,8 @@ mod tests {
     )
     .build_add_root_folder_body();
 
-    assert_eq!(add_root_folder_body.default_quality_profile_id, 2222);
-    assert_eq!(add_root_folder_body.default_metadata_profile_id, 4444);
+    assert_eq!(add_root_folder_body.default_quality_profile_id, 1111);
+    assert_eq!(add_root_folder_body.default_metadata_profile_id, 3333);
   }
 
   #[test]
@@ -1714,14 +1714,27 @@ mod tests {
       .quality_profile_list
       .set_items(vec!["EPUB".to_owned(), "MOBI".to_owned()]);
     add_root_folder_modal
+      .quality_profile_list
+      .state
+      .select(Some(1));
+    add_root_folder_modal
       .metadata_profile_list
       .set_items(vec!["Standard".to_owned(), "Comprehensive".to_owned()]);
     add_root_folder_modal
+      .metadata_profile_list
+      .state
+      .select(Some(1));
+    add_root_folder_modal
       .monitor_list
       .set_items(Vec::from_iter(MonitorType::iter()));
+    add_root_folder_modal.monitor_list.state.select(Some(1));
     add_root_folder_modal
       .monitor_new_items_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_root_folder_modal
+      .monitor_new_items_list
+      .state
+      .select(Some(1));
 
     add_root_folder_modal
   }
@@ -1739,10 +1752,10 @@ mod tests {
     AddReadarrRootFolderBody {
       name: "Test Name".to_owned(),
       path: "/nfs/Test Path".to_owned(),
-      default_quality_profile_id: 1111,
-      default_metadata_profile_id: 3333,
-      default_monitor_option: MonitorType::All,
-      default_new_item_monitor_option: NewItemMonitorType::All,
+      default_quality_profile_id: 2222,
+      default_metadata_profile_id: 4444,
+      default_monitor_option: MonitorType::Future,
+      default_new_item_monitor_option: NewItemMonitorType::None,
       default_tags: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
     }
