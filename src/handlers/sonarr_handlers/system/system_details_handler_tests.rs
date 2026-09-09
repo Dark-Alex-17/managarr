@@ -984,11 +984,17 @@ mod tests {
   #[test]
   fn test_extract_task_name() {
     let mut app = App::test_default();
-    app
-      .data
-      .sonarr_data
-      .tasks
-      .set_items(vec![SonarrTask::default()]);
+    app.data.sonarr_data.tasks.set_items(vec![
+      SonarrTask {
+        task_name: SonarrTaskName::Backup,
+        ..SonarrTask::default()
+      },
+      SonarrTask {
+        task_name: SonarrTaskName::RefreshSeries,
+        ..SonarrTask::default()
+      },
+    ]);
+    app.data.sonarr_data.tasks.select_index(Some(1));
 
     let task_name = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -998,7 +1004,7 @@ mod tests {
     )
     .extract_task_name();
 
-    assert_eq!(task_name, SonarrTaskName::default());
+    assert_eq!(task_name, SonarrTaskName::RefreshSeries);
   }
 
   #[test]
