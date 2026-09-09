@@ -1,3 +1,4 @@
+use super::artist_overview_handler::ArtistOverviewHandler;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::lidarr_handlers::history::history_sorting_options;
@@ -9,9 +10,10 @@ use crate::models::servarr_data::lidarr::lidarr_data::{
   ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_SELECTION_BLOCKS,
   EDIT_ARTIST_SELECTION_BLOCKS,
 };
+use crate::models::servarr_data::lidarr::modals::ArtistOverviewModal;
 use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, Route};
+use crate::models::{BlockSelectionState, Route, ScrollableText};
 use crate::network::lidarr_network::LidarrEvent;
 use serde_json::Number;
 
@@ -34,10 +36,36 @@ impl ArtistDetailsHandler<'_, '_> {
   fn extract_album_id(&self) -> i64 {
     self.app.data.lidarr_data.albums.current_selection().id
   }
+
+  fn build_artist_overview_modal(&mut self) {
+    let overview = self
+      .app
+      .data
+      .lidarr_data
+      .artists
+      .current_selection()
+      .overview
+      .clone()
+      .unwrap_or_default();
+
+    self.app.data.lidarr_data.artist_overview_modal = Some(ArtistOverviewModal {
+      overview: ScrollableText::with_string(overview),
+    });
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
+    if ArtistOverviewHandler::accepts(self.active_lidarr_block) {
+      return ArtistOverviewHandler::new(
+        self.key,
+        self.app,
+        self.active_lidarr_block,
+        self._context,
+      )
+      .handle();
+    }
+
     let albums_table_handling_config =
       TableHandlingConfig::new(ActiveLidarrBlock::ArtistDetails.into())
         .searching_block(ActiveLidarrBlock::SearchAlbums.into())
@@ -78,7 +106,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    ARTIST_DETAILS_BLOCKS.contains(&active_block)
+    ArtistOverviewHandler::accepts(active_block) || ARTIST_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -291,6 +319,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
           self.app.data.lidarr_data.edit_artist_modal = Some((&self.app.data.lidarr_data).into());
           self.app.data.lidarr_data.selected_block =
             BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
+        }
+        _ if matches_key!(view, key) => {
+          self.build_artist_overview_modal();
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::ArtistOverview.into());
         }
         _ if matches_key!(toggle_monitoring, key)
           && !self.app.data.lidarr_data.albums.is_empty() =>

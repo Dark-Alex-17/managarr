@@ -12,6 +12,7 @@ use crate::models::Route;
 use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
+use crate::ui::lidarr_ui::library::artist_overview_ui::ArtistOverviewUi;
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
@@ -43,6 +44,7 @@ impl DrawUi for ArtistDetailsUi {
     };
     AlbumDetailsUi::accepts(route)
       || DeleteAlbumUi::accepts(route)
+      || ArtistOverviewUi::accepts(route)
       || ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
   }
 
@@ -121,6 +123,10 @@ impl DrawUi for ArtistDetailsUi {
 
       if AlbumDetailsUi::accepts(route) {
         AlbumDetailsUi::draw(f, app, area);
+      }
+
+      if ArtistOverviewUi::accepts(route) {
+        ArtistOverviewUi::draw(f, app, area);
       }
     }
   }

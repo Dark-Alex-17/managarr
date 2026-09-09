@@ -31,6 +31,7 @@ use crate::{
 mod add_artist_ui;
 mod album_details_ui;
 mod artist_details_ui;
+mod artist_overview_ui;
 mod delete_album_ui;
 mod delete_artist_ui;
 mod edit_artist_ui;

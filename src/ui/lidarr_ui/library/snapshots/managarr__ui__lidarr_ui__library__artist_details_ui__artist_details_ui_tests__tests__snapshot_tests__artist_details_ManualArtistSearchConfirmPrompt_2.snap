@@ -7,7 +7,8 @@ expression: output
                                                                                                                                                                      
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
-        │Overview: some interesting description of the artist                                                                                               │        
+        │Overview: some interesting description of the artistShe was born in Madison, Wisconsin: a city she has never really left.Her first album took her  │        
+        │seven years to finish.                                                                                                                             │        
         │Disambiguation: American pianist                                                                                                                   │        
         │Type: Person                                                                                                                                       │        
         │Status: Continuing                                                                                                                                 │        
@@ -16,10 +17,9 @@ expression: output
         │Path: /nfs/music/test-artist                                                                                                                       │        
         │Quality Profile: Lossless                                                                                                                          │        
         │Metadata Profile: Standard                                                                                                                         │        
-        │Monitored: Yes                                                                                                                                     │        
-        │Albums: 1                                ╭─────────────────  Download Rejected Release  ──────────────────╮                                        │        
-        │Tracks: 15/15                            │    Do you really want to download the rejected release: Test   │                                        │        
-        │Size on Disk: 0.00 GB                    │                            Release?                            │                                        │        
+        │Monitored: Yes                           ╭─────────────────  Download Rejected Release  ──────────────────╮                                        │        
+        │Albums: 1                                │    Do you really want to download the rejected release: Test   │                                        │        
+        │Tracks: 15/15                            │                            Release?                            │                                        │        
         │╭  Artist Details  ──────────────────────│                                                                │───────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search       │                                                                │                                       ││        
         ││────────────────────────────────────────│Rejection reasons:                                              │───────────────────────────────────────││        

@@ -7,8 +7,9 @@ expression: output
 => Alex                         Person        Continuing    Lossless             Standard            1          15/15       0.00 GB     🏷          alex              
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
-        │Overview: some interesting description of the artist                                                                                               │        
-        │Disambiguation: Ame╭───────────────────────────────────  Edit - Alex (American pianist)  ────────────────────────────────────╮                     │        
+        │Overview: some interesting description of the artistShe was born in Madison, Wisconsin: a city she has never really left.Her first album took her  │        
+        │seven years to fini╭───────────────────────────────────  Edit - Alex (American pianist)  ────────────────────────────────────╮                     │        
+        │Disambiguation: Ame│                                                                                                         │                     │        
         │Type: Person       │                                                                                                         │                     │        
         │Status: Continuing │                                                                                                         │                     │        
         │Genres: soundtrack │                                                                                                         │                     │        
@@ -16,10 +17,9 @@ expression: output
         │Path: /nfs/music/te│                                                                                                         │                     │        
         │Quality Profile: Lo│                                                                                                         │                     │        
         │Metadata Profile: S│                                                                                                         │                     │        
-        │Monitored: Yes     │                                                                                                         │                     │        
-        │Albums: 1          │                                                  ╭───╮                                                  │                     │        
-        │Tracks: 15/15      │                                       Monitored: │ ✔ │                                                  │                     │        
-        │Size on Disk: 0.00 │                                                  ╰───╯                                                  │                     │        
+        │Monitored: Yes     │                                                  ╭───╮                                                  │                     │        
+        │Albums: 1          │                                       Monitored: │ ✔ │                                                  │                     │        
+        │Tracks: 15/15      │                                                  ╰───╯                                                  │                     │        
         │╭  Artist Details  │                                                  ╭─────────────────────────────────────────────────╮    │────────────────────╮│        
         ││ Albums │ History │                              Monitor New Albums: │All Albums                                     ▼ │    │                    ││        
         ││──────────────────│                                                  ╰─────────────────────────────────────────────────╯    │────────────────────││        

@@ -1,0 +1,52 @@
+---
+source: src/ui/lidarr_ui/library/artist_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+        ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
+        │Artist: Alex                                                                                                                                       │        
+        │Overview: some interesting description of the artistShe was born in Madison, Wisconsin: a city she has never really left.Her first album took her  │        
+        │seven years╭───────────────────────────────────────────────────────  Overview  ───────────────────────────────────────────────────────╮            │        
+        │Disambiguat│some interesting description of the artist                                                                                │            │        
+        │Type: Perso│                                                                                                                          │            │        
+        │Status: Con│She was born in Madison, Wisconsin: a city she has never really left.                                                     │            │        
+        │Genres: sou│                                                                                                                          │            │        
+        │Rating: 84%│Her first album took her seven years to finish.                                                                           │            │        
+        │Path: /nfs/│                                                                                                                          │            │        
+        │Quality Pro│                                                                                                                          │            │        
+        │Metadata Pr│                                                                                                                          │            │        
+        │Monitored: │                                                                                                                          │            │        
+        │Albums: 1  │                                                                                                                          │            │        
+        │Tracks: 15/│                                                                                                                          │            │        
+        │╭  Artist D│                                                                                                                          │───────────╮│        
+        ││ Albums │ │                                                                                                                          │           ││        
+        ││──────────│                                                                                                                          │───────────││        
+        ││   Monitor│                                                                                                                          │           ││        
+        ││=> 🏷      │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          │                                                                                                                          │           ││        
+        ││          ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯           ││        
+        ││                                                                                                                                                 ││        
+        ││                                                                                                                                                 ││        
+        │╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯│        
+        ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -7,7 +7,8 @@ expression: output
                                                                                                                                                                      
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
-        │Overview: some interesting description of the artist                                                                                               │        
+        │Overview: some interesting description of the artistShe was born in Madison, Wisconsin: a city she has never really left.Her first album took her  │        
+        │seven years to finish.                                                                                                                             │        
         │Disambiguation: American pianist                                                                                                                   │        
         │Type: Person                                                                                                                                       │        
         │Status: Continuing                                                                                                                                 │        
@@ -17,9 +18,8 @@ expression: output
         │Quality Profile: Lossless                                                                                                                          │        
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
-        │Albums: 1                                                                                                                                          │        
-        │Tracks: 15/15                             ╭────────────────────  Update and Scan  ────────────────────╮                                            │        
-        │Size on Disk: 0.00 GB                     │  Do you want to trigger an update and disk scan for the   │                                            │        
+        │Albums: 1                                 ╭────────────────────  Update and Scan  ────────────────────╮                                            │        
+        │Tracks: 15/15                             │  Do you want to trigger an update and disk scan for the   │                                            │        
         │╭  Artist Details  ───────────────────────│                       artist: Alex?                       │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        

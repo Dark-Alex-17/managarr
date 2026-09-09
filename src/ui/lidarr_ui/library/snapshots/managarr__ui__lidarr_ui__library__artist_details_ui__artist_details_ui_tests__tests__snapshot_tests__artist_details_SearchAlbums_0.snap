@@ -7,7 +7,8 @@ expression: output
                                                                                                                                                                      
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
-        │Overview: some interesting description of the artist                                                                                               │        
+        │Overview: some interesting description of the artistShe was born in Madison, Wisconsin: a city she has never really left.Her first album took her  │        
+        │seven years to finish.                                                                                                                             │        
         │Disambiguation: American pianist                                                                                                                   │        
         │Type: Person                                                                                                                                       │        
         │Status: Continuing                                                                                                                                 │        
@@ -19,7 +20,6 @@ expression: output
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                                                                                                                          │        
         │Tracks: 15/15                                                                                                                                      │        
-        │Size on Disk: 0.00 GB                                                                                                                              │        
         │╭  Artist Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search                                                                                                                ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        

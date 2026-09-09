@@ -7,7 +7,7 @@ mod tests {
   use crate::models::lidarr_models::{Artist, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
   use crate::models::servarr_data::lidarr::modals::{
-    AddArtistModal, AlbumDetailsModal, EditArtistModal, TrackDetailsModal,
+    AddArtistModal, AlbumDetailsModal, ArtistOverviewModal, EditArtistModal, TrackDetailsModal,
   };
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_models::{Indexer, IndexerField, RootFolder};
@@ -306,5 +306,12 @@ mod tests {
       &TRACK_HISTORY_CONTEXT_CLUES
     );
     assert_eq!(track_details_modal.track_details_tabs.tabs[1].config, None);
+  }
+
+  #[test]
+  fn test_artist_overview_modal_default() {
+    let artist_overview_modal = ArtistOverviewModal::default();
+
+    assert_is_empty!(artist_overview_modal.overview);
   }
 }

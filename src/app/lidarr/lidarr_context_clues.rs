@@ -7,8 +7,8 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ADD_ARTIST_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS,
-  ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS,
-  EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, TRACK_DETAILS_BLOCKS,
+  ARTIST_OVERVIEW_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS,
+  EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, TRACK_DETAILS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -39,7 +39,7 @@ pub static ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
-pub static ARTIST_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
+pub static ARTIST_DETAILS_CONTEXT_CLUES: [ContextClue; 9] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -55,6 +55,15 @@ pub static ARTIST_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
   (
     DEFAULT_KEYBINDINGS.auto_search,
     DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.view, "view overview"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
+pub static ARTIST_OVERVIEW_CONTEXT_CLUES: [ContextClue; 2] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
   ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
@@ -172,6 +181,9 @@ impl ContextClueProvider for LidarrContextClueProvider {
         .lidarr_data
         .artist_info_tabs
         .get_active_route_contextual_help(),
+      _ if ARTIST_OVERVIEW_BLOCKS.contains(&active_lidarr_block) => {
+        Some(&ARTIST_OVERVIEW_CONTEXT_CLUES)
+      }
       _ if ALBUM_DETAILS_BLOCKS.contains(&active_lidarr_block) => app
         .data
         .lidarr_data

@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
-    TRACK_DETAILS_BLOCKS,
+    ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ARTIST_OVERVIEW_BLOCKS, ActiveLidarrBlock,
+    DELETE_ALBUM_BLOCKS, TRACK_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::artist_details_ui::ArtistDetailsUi;
@@ -15,6 +15,7 @@ mod tests {
     blocks.extend(DELETE_ALBUM_BLOCKS);
     blocks.extend(ALBUM_DETAILS_BLOCKS);
     blocks.extend(TRACK_DETAILS_BLOCKS);
+    blocks.extend(ARTIST_OVERVIEW_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
       if blocks.contains(&active_lidarr_block) {
@@ -26,6 +27,7 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use pretty_assertions::assert_str_eq;
     use rstest::rstest;
 
     use crate::app::App;
@@ -136,6 +138,46 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_artist_details_ui_renders_artist_overview_over_artist_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistOverview.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ArtistDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_scrolling_the_artist_overview_does_not_scroll_the_artist_details_background() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+      let before = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ArtistDetailsUi::draw(f, app, f.area());
+      });
+
+      app
+        .data
+        .lidarr_data
+        .artist_overview_modal
+        .as_mut()
+        .unwrap()
+        .overview
+        .offset = 3;
+
+      let after = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ArtistDetailsUi::draw(f, app, f.area());
+      });
+      assert_str_eq!(before, after);
+      assert_contains!(
+        before,
+        "Overview: some interesting description of the artist"
+      );
     }
 
     #[test]

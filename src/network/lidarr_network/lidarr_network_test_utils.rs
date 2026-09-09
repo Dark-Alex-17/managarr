@@ -110,7 +110,14 @@ pub mod test_utils {
       artist_name: "Alex".into(),
       foreign_artist_id: "test-foreign-id".to_owned(),
       status: ArtistStatus::Continuing,
-      overview: Some("some interesting description of the artist".to_owned()),
+      overview: Some(
+        "some interesting description of the artist\r\n\
+         \r\n\
+         She was born in Madison, Wisconsin: a city she has never really left.\r\n\
+         \r\n\
+         Her first album took her seven years to finish.\r\n"
+          .to_owned(),
+      ),
       artist_type: Some("Person".to_owned()),
       disambiguation: Some("American pianist".to_owned()),
       members: Some(vec![member()]),
