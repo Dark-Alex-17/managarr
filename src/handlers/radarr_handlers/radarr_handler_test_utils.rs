@@ -392,8 +392,8 @@ pub(in crate::handlers::radarr_handlers) mod utils {
 
   pub fn add_movie_search_result() -> AddMovieSearchResult {
     AddMovieSearchResult {
-      tmdb_id: 1234,
-      title: HorizontallyScrollableText::from("Test"),
+      tmdb_id: 4321,
+      title: HorizontallyScrollableText::from("Test Search Result"),
       original_language: language(),
       status: "released".to_owned(),
       overview: "New movie blah blah blah".to_owned(),

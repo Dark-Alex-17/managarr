@@ -18,7 +18,7 @@ mod tests {
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
   use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{
-    AddMovieSearchResult, CollectionMovie, MinimumAvailability, MovieMonitor,
+    AddMovieBody, AddMovieSearchResult, CollectionMovie, MinimumAvailability, MovieMonitor,
   };
   use crate::models::servarr_data::radarr::modals::AddMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
@@ -1076,7 +1076,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::AddMovie(add_movie_body())
+        &RadarrEvent::AddMovie(expected_add_movie_body(movie_details_context))
       );
       assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
@@ -1517,7 +1517,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::AddMovie(add_movie_body())
+        &RadarrEvent::AddMovie(expected_add_movie_body(movie_details_context))
       );
       assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
@@ -1609,29 +1609,29 @@ mod tests {
     app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
     app.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    app.data.radarr_data.collection_movies.set_items(vec![
+      CollectionMovie {
+        tmdb_id: 5678,
+        title: HorizontallyScrollableText::from("Some Other Movie"),
+        ..CollectionMovie::default()
+      },
+      collection_movie(),
+    ]);
+    app.data.radarr_data.collection_movies.select_index(Some(1));
+    let mut add_searched_movies = StatefulTable::default();
+    add_searched_movies.set_items(vec![
+      AddMovieSearchResult {
+        tmdb_id: 5678,
+        title: HorizontallyScrollableText::from("Some Other Movie"),
+        ..AddMovieSearchResult::default()
+      },
+      add_movie_search_result(),
+    ]);
+    add_searched_movies.select_index(Some(1));
+    app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
     let context = if movie_details_context {
-      app.data.radarr_data.collection_movies.set_items(vec![
-        CollectionMovie {
-          tmdb_id: 5678,
-          title: HorizontallyScrollableText::from("Some Other Movie"),
-          ..CollectionMovie::default()
-        },
-        collection_movie(),
-      ]);
-      app.data.radarr_data.collection_movies.select_index(Some(1));
       Some(ActiveRadarrBlock::CollectionDetails)
     } else {
-      let mut add_searched_movies = StatefulTable::default();
-      add_searched_movies.set_items(vec![
-        AddMovieSearchResult {
-          tmdb_id: 5678,
-          title: HorizontallyScrollableText::from("Some Other Movie"),
-          ..AddMovieSearchResult::default()
-        },
-        add_movie_search_result(),
-      ]);
-      add_searched_movies.select_index(Some(1));
-      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       None
     };
 
@@ -1643,7 +1643,10 @@ mod tests {
     )
     .build_add_movie_body();
 
-    assert_eq!(actual_add_movie_body, add_movie_body());
+    assert_eq!(
+      actual_add_movie_body,
+      expected_add_movie_body(movie_details_context)
+    );
   }
 
   #[test]
@@ -1674,5 +1677,17 @@ mod tests {
     );
 
     assert!(handler.is_ready());
+  }
+
+  fn expected_add_movie_body(movie_details_context: bool) -> AddMovieBody {
+    if movie_details_context {
+      add_movie_body()
+    } else {
+      AddMovieBody {
+        tmdb_id: 4321,
+        title: "Test Search Result".to_owned(),
+        ..add_movie_body()
+      }
+    }
   }
 }
