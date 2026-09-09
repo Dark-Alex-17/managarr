@@ -11,15 +11,18 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
   use crate::models::radarr_models::CollectionMovie;
+  use crate::models::servarr_data::radarr::modals::MovieOverviewModal;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   };
+  use crate::test_handler_delegation;
 
   mod test_handle_submit {
-    use crate::assert_navigation_pushed;
+    use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
     use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
+    use crate::{assert_modal_present, assert_navigation_pushed};
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
 
@@ -143,12 +146,11 @@ mod tests {
         .data
         .radarr_data
         .collection_movies
-        .set_items(vec![CollectionMovie::default()]);
-      app
-        .data
-        .radarr_data
-        .movies
-        .set_items(vec![Movie::default()]);
+        .set_items(vec![collection_movie()]);
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        tmdb_id: collection_movie().tmdb_id,
+        ..Movie::default()
+      }]);
 
       CollectionDetailsHandler::new(
         SUBMIT_KEY,
@@ -159,6 +161,63 @@ mod tests {
       .handle();
 
       assert_navigation_pushed!(app, ActiveRadarrBlock::ViewMovieOverview.into());
+      assert_modal_present!(app.data.radarr_data.movie_overview_modal);
+      let movie_overview_modal = app.data.radarr_data.movie_overview_modal.as_ref().unwrap();
+      assert_eq!(movie_overview_modal.overview.offset, 0);
+      assert_str_eq!(
+        movie_overview_modal.overview.get_text(),
+        collection_movie().overview
+      );
+    }
+
+    #[test]
+    fn test_collection_details_submit_reopens_the_movie_overview_at_the_top() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .set_items(vec![collection_movie()]);
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        tmdb_id: collection_movie().tmdb_id,
+        ..Movie::default()
+      }]);
+
+      CollectionDetailsHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
+      )
+      .handle();
+      CollectionDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveRadarrBlock::ViewMovieOverview,
+        None,
+      )
+      .handle();
+
+      assert_eq!(overview_offset(&app), 5);
+
+      CollectionDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.esc.key,
+        &mut app,
+        ActiveRadarrBlock::ViewMovieOverview,
+        None,
+      )
+      .handle();
+      CollectionDetailsHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveRadarrBlock::ViewMovieOverview.into());
+      assert_eq!(overview_offset(&app), 0);
     }
   }
 
@@ -198,6 +257,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       app.push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
+      app.data.radarr_data.movie_overview_modal = Some(MovieOverviewModal::default());
 
       CollectionDetailsHandler::new(
         ESC_KEY,
@@ -208,6 +268,7 @@ mod tests {
       .handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::CollectionDetails.into());
+      assert_modal_absent!(app.data.radarr_data.movie_overview_modal);
     }
   }
 
@@ -277,6 +338,15 @@ mod tests {
     });
   }
 
+  #[test]
+  fn test_delegates_view_movie_overview_to_movie_overview_handler() {
+    test_handler_delegation!(
+      CollectionDetailsHandler,
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::ViewMovieOverview
+    );
+  }
+
   #[rstest]
   fn test_collection_details_handler_ignore_special_keys(
     #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
@@ -344,5 +414,16 @@ mod tests {
     );
 
     assert!(handler.is_ready());
+  }
+
+  fn overview_offset(app: &App<'_>) -> u16 {
+    app
+      .data
+      .radarr_data
+      .movie_overview_modal
+      .as_ref()
+      .unwrap()
+      .overview
+      .offset
   }
 }

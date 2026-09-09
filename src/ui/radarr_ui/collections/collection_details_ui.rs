@@ -1,7 +1,7 @@
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::Stylize;
-use ratatui::text::{Line, Text};
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 
 use crate::app::App;
@@ -10,11 +10,12 @@ use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
 };
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{ManagarrStyle, default_style};
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
   title_style,
 };
+use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
 use crate::ui::{DrawUi, draw_popup};
@@ -219,20 +220,35 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .flex(Flex::SpaceBetween)
     .margin(1)
     .areas(area);
-  let overview = Text::from(
-    app
-      .data
-      .radarr_data
-      .collection_movies
-      .current_selection()
-      .clone()
-      .overview,
-  )
-  .default_color();
 
-  let paragraph = Paragraph::new(overview)
-    .block(borderless_block())
-    .wrap(Wrap { trim: false });
+  match app.data.radarr_data.movie_overview_modal.as_ref() {
+    Some(movie_overview_modal) if !app.is_loading => {
+      let overview = &movie_overview_modal.overview;
+      let text = Text::from(
+        overview
+          .items
+          .iter()
+          .map(|line| overview_line(line))
+          .collect::<Vec<Line<'static>>>(),
+      );
 
-  f.render_widget(paragraph, paragraph_area);
+      let paragraph = Paragraph::new(text)
+        .block(borderless_block())
+        .wrap(Wrap { trim: false })
+        .scroll((overview.offset, 0));
+
+      f.render_widget(paragraph, paragraph_area);
+    }
+    _ => f.render_widget(
+      LoadingBlock::new(
+        app.is_loading || app.data.radarr_data.movie_overview_modal.is_none(),
+        borderless_block(),
+      ),
+      paragraph_area,
+    ),
+  }
+}
+
+fn overview_line(line: &str) -> Line<'static> {
+  Line::from(Span::styled(line.trim_end().to_owned(), default_style()))
 }

@@ -79,7 +79,7 @@ pub mod test_utils {
           "movies": [
             {
               "title": "Test",
-              "overview": "Collection blah blah blah",
+              "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
               "year": 2023,
               "runtime": 120,
               "tmdbId": 1234,
@@ -177,7 +177,12 @@ pub mod test_utils {
   pub fn collection_movie() -> CollectionMovie {
     CollectionMovie {
       title: "Test".to_owned().into(),
-      overview: "Collection blah blah blah".to_owned(),
+      overview: "Collection movie blah blah blah\r\n\
+                 \r\n\
+                 It was shot in Madison, Wisconsin: a city the cast never really left.\r\n\
+                 \r\n\
+                 The sequel took seven years to finish.\r\n"
+        .to_owned(),
       year: 2023,
       runtime: 120,
       tmdb_id: 1234,
