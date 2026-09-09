@@ -323,11 +323,15 @@ mod tests {
     #[test]
     fn test_delete_root_folder_prompt_confirm_submit() {
       let mut app = App::test_default();
-      app
-        .data
-        .sonarr_data
-        .root_folders
-        .set_items(vec![root_folder()]);
+      app.data.sonarr_data.root_folders.set_items(vec![
+        RootFolder {
+          id: 999,
+          path: "/decoy".to_owned(),
+          ..root_folder()
+        },
+        root_folder(),
+      ]);
+      app.data.sonarr_data.root_folders.select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
@@ -595,11 +599,15 @@ mod tests {
     #[test]
     fn test_delete_root_folder_prompt_confirm() {
       let mut app = App::test_default();
-      app
-        .data
-        .sonarr_data
-        .root_folders
-        .set_items(vec![root_folder()]);
+      app.data.sonarr_data.root_folders.set_items(vec![
+        RootFolder {
+          id: 999,
+          path: "/decoy".to_owned(),
+          ..root_folder()
+        },
+        root_folder(),
+      ]);
+      app.data.sonarr_data.root_folders.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
 
@@ -653,11 +661,15 @@ mod tests {
   #[test]
   fn test_extract_root_folder_id() {
     let mut app = App::test_default();
-    app
-      .data
-      .sonarr_data
-      .root_folders
-      .set_items(vec![root_folder()]);
+    app.data.sonarr_data.root_folders.set_items(vec![
+      RootFolder {
+        id: 999,
+        path: "/decoy".to_owned(),
+        ..root_folder()
+      },
+      root_folder(),
+    ]);
+    app.data.sonarr_data.root_folders.select_index(Some(1));
 
     let root_folder_id = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

@@ -380,6 +380,14 @@ mod tests {
     fn test_toggle_monitoring_key() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.is_routing = false;
 
@@ -396,7 +404,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleSeriesMonitoring(0)
+        &SonarrEvent::ToggleSeriesMonitoring(1)
       );
     }
 
@@ -506,6 +514,48 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(!app.should_refresh);
+    }
+
+    #[test]
+    fn test_search_series_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .sonarr_data
+        .series
+        .set_items(vec![Series::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SearchSeries.into());
+    }
+
+    #[test]
+    fn test_filter_series_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .sonarr_data
+        .series
+        .set_items(vec![Series::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::FilterSeries.into());
     }
 
     #[test]
@@ -663,7 +713,14 @@ mod tests {
   #[test]
   fn test_extract_series_id() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
 
     let series_id = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

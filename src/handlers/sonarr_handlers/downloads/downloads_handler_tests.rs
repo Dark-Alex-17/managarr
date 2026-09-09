@@ -153,11 +153,14 @@ mod tests {
       #[case] expected_action: SonarrEvent,
     ) {
       let mut app = App::test_default();
-      app
-        .data
-        .sonarr_data
-        .downloads
-        .set_items(vec![download_record()]);
+      app.data.sonarr_data.downloads.set_items(vec![
+        DownloadRecord {
+          id: 999,
+          ..download_record()
+        },
+        download_record(),
+      ]);
+      app.data.sonarr_data.downloads.select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -350,11 +353,14 @@ mod tests {
       #[case] expected_action: SonarrEvent,
     ) {
       let mut app = App::test_default();
-      app
-        .data
-        .sonarr_data
-        .downloads
-        .set_items(vec![download_record()]);
+      app.data.sonarr_data.downloads.set_items(vec![
+        DownloadRecord {
+          id: 999,
+          ..download_record()
+        },
+        download_record(),
+      ]);
+      app.data.sonarr_data.downloads.select_index(Some(1));
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -408,11 +414,14 @@ mod tests {
   #[test]
   fn test_extract_download_id() {
     let mut app = App::test_default();
-    app
-      .data
-      .sonarr_data
-      .downloads
-      .set_items(vec![download_record()]);
+    app.data.sonarr_data.downloads.set_items(vec![
+      DownloadRecord {
+        id: 999,
+        ..download_record()
+      },
+      download_record(),
+    ]);
+    app.data.sonarr_data.downloads.select_index(Some(1));
 
     let download_id = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

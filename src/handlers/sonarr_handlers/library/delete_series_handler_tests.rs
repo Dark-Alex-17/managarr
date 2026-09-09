@@ -11,7 +11,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::delete_series_handler::DeleteSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
-  use crate::models::sonarr_models::DeleteSeriesParams;
+  use crate::models::sonarr_models::{DeleteSeriesParams, Series};
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -133,7 +133,14 @@ mod tests {
       app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       let expected_delete_series_params = DeleteSeriesParams {
         id: 1,
         delete_series_files: true,
@@ -278,7 +285,14 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       let expected_delete_series_params = DeleteSeriesParams {
         id: 1,
         delete_series_files: true,
@@ -345,7 +359,14 @@ mod tests {
   #[test]
   fn test_build_delete_series_params() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
     app.data.sonarr_data.delete_series_files = true;
     app.data.sonarr_data.add_list_exclusion = true;
     let expected_delete_series_params = DeleteSeriesParams {

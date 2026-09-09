@@ -11,7 +11,7 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::SonarrReleaseDownloadBody;
+  use crate::models::sonarr_models::{Episode, SonarrRelease, SonarrReleaseDownloadBody};
   use crate::models::stateful_table::StatefulTable;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -229,7 +229,21 @@ mod tests {
         .as_mut()
         .unwrap()
         .episodes
-        .set_items(vec![episode()]);
+        .set_items(vec![
+          Episode {
+            id: 999,
+            ..episode()
+          },
+          episode(),
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
@@ -248,6 +262,61 @@ mod tests {
     fn test_manual_episode_search_confirm_prompt_confirm_submit() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_releases
+        .set_items(vec![
+          SonarrRelease {
+            guid: "decoy guid".to_owned(),
+            indexer_id: 999,
+            ..SonarrRelease::default()
+          },
+          SonarrRelease {
+            guid: "test guid".to_owned(),
+            indexer_id: 2,
+            ..SonarrRelease::default()
+          },
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_releases
+        .select_index(Some(1));
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![
+          Episode {
+            id: 999,
+            ..episode()
+          },
+          Episode { id: 5, ..episode() },
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt.into());
@@ -265,9 +334,9 @@ mod tests {
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
         &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
-          guid: String::new(),
-          indexer_id: 0,
-          episode_id: Some(0),
+          guid: "test guid".to_owned(),
+          indexer_id: 2,
+          episode_id: Some(5),
           ..SonarrReleaseDownloadBody::default()
         })
       );
@@ -546,7 +615,21 @@ mod tests {
         .as_mut()
         .unwrap()
         .episodes
-        .set_items(vec![episode()]);
+        .set_items(vec![
+          Episode {
+            id: 999,
+            ..episode()
+          },
+          episode(),
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchEpisodePrompt.into());
@@ -571,6 +654,61 @@ mod tests {
     fn test_episode_details_manual_search_confirm_prompt_confirm_confirm_key() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_releases
+        .set_items(vec![
+          SonarrRelease {
+            guid: "decoy guid".to_owned(),
+            indexer_id: 999,
+            ..SonarrRelease::default()
+          },
+          SonarrRelease {
+            guid: "test guid".to_owned(),
+            indexer_id: 2,
+            ..SonarrRelease::default()
+          },
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_details_modal
+        .as_mut()
+        .unwrap()
+        .episode_releases
+        .select_index(Some(1));
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![
+          Episode {
+            id: 999,
+            ..episode()
+          },
+          Episode { id: 5, ..episode() },
+        ]);
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt.into());
@@ -588,9 +726,9 @@ mod tests {
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
         &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
-          guid: String::new(),
-          indexer_id: 0,
-          episode_id: Some(0),
+          guid: "test guid".to_owned(),
+          indexer_id: 2,
+          episode_id: Some(5),
           ..SonarrReleaseDownloadBody::default()
         })
       );
@@ -631,7 +769,14 @@ mod tests {
   fn test_extract_episode_id() {
     let mut app = App::test_default();
     let mut season_details_modal = SeasonDetailsModal::default();
-    season_details_modal.episodes.set_items(vec![episode()]);
+    season_details_modal.episodes.set_items(vec![
+      Episode {
+        id: 999,
+        ..episode()
+      },
+      episode(),
+    ]);
+    season_details_modal.episodes.select_index(Some(1));
     app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
     let episode_id = EpisodeDetailsHandler::new(

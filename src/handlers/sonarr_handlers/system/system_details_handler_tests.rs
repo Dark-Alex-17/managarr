@@ -694,11 +694,17 @@ mod tests {
       let mut app = App::test_default();
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.sonarr_data.prompt_confirm = true;
-      app
-        .data
-        .sonarr_data
-        .tasks
-        .set_items(vec![SonarrTask::default()]);
+      app.data.sonarr_data.tasks.set_items(vec![
+        SonarrTask {
+          task_name: SonarrTaskName::Backup,
+          ..SonarrTask::default()
+        },
+        SonarrTask {
+          task_name: SonarrTaskName::RefreshMonitoredDownloads,
+          ..SonarrTask::default()
+        },
+      ]);
+      app.data.sonarr_data.tasks.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -713,7 +719,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::StartTask(SonarrTaskName::default())
+        &SonarrEvent::StartTask(SonarrTaskName::RefreshMonitoredDownloads)
       );
       assert_navigation_popped!(app, ActiveSonarrBlock::SystemTasks.into());
     }
@@ -912,11 +918,17 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
-      app
-        .data
-        .sonarr_data
-        .tasks
-        .set_items(vec![SonarrTask::default()]);
+      app.data.sonarr_data.tasks.set_items(vec![
+        SonarrTask {
+          task_name: SonarrTaskName::Backup,
+          ..SonarrTask::default()
+        },
+        SonarrTask {
+          task_name: SonarrTaskName::RefreshMonitoredDownloads,
+          ..SonarrTask::default()
+        },
+      ]);
+      app.data.sonarr_data.tasks.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -931,7 +943,9 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::StartTask(SonarrTaskName::default()))
+        Some(SonarrEvent::StartTask(
+          SonarrTaskName::RefreshMonitoredDownloads
+        ))
       );
       assert_navigation_popped!(app, ActiveSonarrBlock::SystemTasks.into());
     }

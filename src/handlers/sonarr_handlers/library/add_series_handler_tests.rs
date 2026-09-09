@@ -1144,22 +1144,35 @@ mod tests {
       add_series_modal.root_folder_list.state.select(Some(1));
       add_series_modal
         .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      add_series_modal.quality_profile_list.state.select(Some(1));
       add_series_modal
         .language_profile_list
-        .set_items(vec!["English".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      add_series_modal.language_profile_list.state.select(Some(1));
       add_series_modal
         .monitor_list
         .set_items(Vec::from_iter(SeriesMonitor::iter()));
+      add_series_modal.monitor_list.state.select(Some(1));
       add_series_modal
         .series_type_list
         .set_items(Vec::from_iter(SeriesType::iter()));
+      add_series_modal.series_type_list.state.select(Some(1));
       app.data.sonarr_data.add_series_modal = Some(add_series_modal);
       app.data.sonarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map =
+        BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
       let mut add_searched_series = StatefulTable::default();
-      add_searched_series.set_items(vec![add_series_search_result()]);
+      add_searched_series.set_items(vec![
+        AddSeriesSearchResult {
+          tvdb_id: 999,
+          title: HorizontallyScrollableText::from("Decoy"),
+          ..add_series_search_result()
+        },
+        add_series_search_result(),
+      ]);
+      add_searched_series.select_index(Some(1));
       app.data.sonarr_data.add_searched_series = Some(add_searched_series);
       let expected_add_series_body = AddSeriesBody {
         tvdb_id: 1234,
@@ -1167,13 +1180,13 @@ mod tests {
         monitored: true,
         root_folder_path: "/nfs2".to_owned(),
         quality_profile_id: 2222,
-        language_profile_id: 2222,
-        series_type: SeriesType::Standard,
+        language_profile_id: 4444,
+        series_type: SeriesType::Daily,
         season_folder: true,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddSeriesOptions {
-          monitor: SeriesMonitor::All,
+          monitor: SeriesMonitor::Unknown,
           search_for_cutoff_unmet_episodes: true,
           search_for_missing_episodes: true,
         },
@@ -1622,22 +1635,35 @@ mod tests {
       add_series_modal.root_folder_list.state.select(Some(1));
       add_series_modal
         .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      add_series_modal.quality_profile_list.state.select(Some(1));
       add_series_modal
         .language_profile_list
-        .set_items(vec!["English".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      add_series_modal.language_profile_list.state.select(Some(1));
       add_series_modal
         .monitor_list
         .set_items(Vec::from_iter(SeriesMonitor::iter()));
+      add_series_modal.monitor_list.state.select(Some(1));
       add_series_modal
         .series_type_list
         .set_items(Vec::from_iter(SeriesType::iter()));
+      add_series_modal.series_type_list.state.select(Some(1));
       app.data.sonarr_data.add_series_modal = Some(add_series_modal);
       app.data.sonarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map =
+        BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
       let mut add_searched_series = StatefulTable::default();
-      add_searched_series.set_items(vec![add_series_search_result()]);
+      add_searched_series.set_items(vec![
+        AddSeriesSearchResult {
+          tvdb_id: 999,
+          title: HorizontallyScrollableText::from("Decoy"),
+          ..add_series_search_result()
+        },
+        add_series_search_result(),
+      ]);
+      add_searched_series.select_index(Some(1));
       app.data.sonarr_data.add_searched_series = Some(add_searched_series);
       let expected_add_series_body = AddSeriesBody {
         tvdb_id: 1234,
@@ -1645,13 +1671,13 @@ mod tests {
         monitored: true,
         root_folder_path: "/nfs2".to_owned(),
         quality_profile_id: 2222,
-        language_profile_id: 2222,
-        series_type: SeriesType::Standard,
+        language_profile_id: 4444,
+        series_type: SeriesType::Daily,
         season_folder: true,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddSeriesOptions {
-          monitor: SeriesMonitor::All,
+          monitor: SeriesMonitor::Unknown,
           search_for_cutoff_unmet_episodes: true,
           search_for_missing_episodes: true,
         },
@@ -1753,21 +1779,35 @@ mod tests {
     add_series_modal.root_folder_list.state.select(Some(1));
     add_series_modal
       .quality_profile_list
-      .set_items(vec!["HD - 1080p".to_owned()]);
+      .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+    add_series_modal.quality_profile_list.state.select(Some(1));
     add_series_modal
       .language_profile_list
-      .set_items(vec!["English".to_owned()]);
+      .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+    add_series_modal.language_profile_list.state.select(Some(1));
     add_series_modal
       .monitor_list
       .set_items(Vec::from_iter(SeriesMonitor::iter()));
+    add_series_modal.monitor_list.state.select(Some(1));
     add_series_modal
       .series_type_list
       .set_items(Vec::from_iter(SeriesType::iter()));
+    add_series_modal.series_type_list.state.select(Some(1));
     app.data.sonarr_data.add_series_modal = Some(add_series_modal);
-    app.data.sonarr_data.quality_profile_map = BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-    app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+    app.data.sonarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    app.data.sonarr_data.language_profiles_map =
+      BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
     let mut add_searched_series = StatefulTable::default();
-    add_searched_series.set_items(vec![add_series_search_result()]);
+    add_searched_series.set_items(vec![
+      AddSeriesSearchResult {
+        tvdb_id: 999,
+        title: HorizontallyScrollableText::from("Decoy"),
+        ..add_series_search_result()
+      },
+      add_series_search_result(),
+    ]);
+    add_searched_series.select_index(Some(1));
     app.data.sonarr_data.add_searched_series = Some(add_searched_series);
     let expected_add_series_body = AddSeriesBody {
       tvdb_id: 1234,
@@ -1775,13 +1815,13 @@ mod tests {
       monitored: true,
       root_folder_path: "/nfs2".to_owned(),
       quality_profile_id: 2222,
-      language_profile_id: 2222,
-      series_type: SeriesType::Standard,
+      language_profile_id: 4444,
+      series_type: SeriesType::Daily,
       season_folder: true,
       tags: Vec::default(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddSeriesOptions {
-        monitor: SeriesMonitor::All,
+        monitor: SeriesMonitor::Unknown,
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },

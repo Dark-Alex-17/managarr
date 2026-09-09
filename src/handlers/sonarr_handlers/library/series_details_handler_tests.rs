@@ -11,8 +11,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SERIES_DETAILS_BLOCKS, SERIES_OVERVIEW_BLOCKS,
   };
-  use crate::models::sonarr_models::Season;
   use crate::models::sonarr_models::SonarrHistoryItem;
+  use crate::models::sonarr_models::{Season, Series};
   use crate::models::stateful_table::StatefulTable;
   use crate::test_handler_delegation;
   use pretty_assertions::assert_eq;
@@ -190,7 +190,14 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.sonarr_data.prompt_confirm = true;
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -516,6 +523,25 @@ mod tests {
     fn test_toggle_monitoring_key() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
+      app.data.sonarr_data.seasons.set_items(vec![
+        Season {
+          season_number: 999,
+          ..season()
+        },
+        Season {
+          season_number: 2,
+          ..season()
+        },
+      ]);
+      app.data.sonarr_data.seasons.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_routing = false;
 
@@ -535,7 +561,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleSeasonMonitoring(0, 0)
+        &SonarrEvent::ToggleSeasonMonitoring(1, 2)
       );
     }
 
@@ -696,6 +722,61 @@ mod tests {
       assert!(!app.is_routing);
     }
 
+    #[test]
+    fn test_search_seasons_key() {
+      let mut app = App::test_default();
+      app.data.sonarr_data.seasons.set_items(vec![season()]);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SearchSeason.into());
+    }
+
+    #[test]
+    fn test_search_series_history_key() {
+      let mut app = App::test_default();
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      app.data.sonarr_data.series_history = Some(series_history);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SearchSeriesHistory.into());
+    }
+
+    #[test]
+    fn test_filter_series_history_key() {
+      let mut app = App::test_default();
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      app.data.sonarr_data.series_history = Some(series_history);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::FilterSeriesHistory.into());
+    }
+
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
@@ -712,7 +793,14 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::test_default();
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -778,8 +866,25 @@ mod tests {
   #[test]
   fn test_extract_series_id_season_number_tuple() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
-    app.data.sonarr_data.seasons.set_items(vec![season()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
+    app.data.sonarr_data.seasons.set_items(vec![
+      Season {
+        season_number: 999,
+        ..season()
+      },
+      Season {
+        season_number: 2,
+        ..season()
+      },
+    ]);
+    app.data.sonarr_data.seasons.select_index(Some(1));
 
     let series_id_season_number_tuple = SeriesDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -789,13 +894,20 @@ mod tests {
     )
     .extract_series_id_season_number_tuple();
 
-    assert_eq!(series_id_season_number_tuple, (1, 1));
+    assert_eq!(series_id_season_number_tuple, (1, 2));
   }
 
   #[test]
   fn test_extract_series_id() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
 
     let series_id = SeriesDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

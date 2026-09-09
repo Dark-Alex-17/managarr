@@ -11,7 +11,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::indexer;
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
-  use crate::models::servarr_models::EditIndexerParams;
+  use crate::models::servarr_models::{EditIndexerParams, Indexer};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
@@ -916,7 +916,14 @@ mod tests {
         priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+      app.data.sonarr_data.indexers.set_items(vec![
+        Indexer {
+          id: 999,
+          ..indexer()
+        },
+        indexer(),
+      ]);
+      app.data.sonarr_data.indexers.select_index(Some(1));
       let expected_edit_indexer_params = EditIndexerParams {
         indexer_id: 1,
         name: Some("Test Update".to_owned()),
@@ -1758,7 +1765,14 @@ mod tests {
         priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+      app.data.sonarr_data.indexers.set_items(vec![
+        Indexer {
+          id: 999,
+          ..indexer()
+        },
+        indexer(),
+      ]);
+      app.data.sonarr_data.indexers.select_index(Some(1));
       let expected_edit_indexer_params = EditIndexerParams {
         indexer_id: 1,
         name: Some("Test Update".to_owned()),
@@ -1836,7 +1850,14 @@ mod tests {
       priority: 0,
     };
     app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-    app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+    app.data.sonarr_data.indexers.set_items(vec![
+      Indexer {
+        id: 999,
+        ..indexer()
+      },
+      indexer(),
+    ]);
+    app.data.sonarr_data.indexers.select_index(Some(1));
     let expected_edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
