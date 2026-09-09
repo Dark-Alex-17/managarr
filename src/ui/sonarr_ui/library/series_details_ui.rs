@@ -14,6 +14,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES
 use crate::models::sonarr_models::{Season, SeasonStatistics, SonarrHistoryItem};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
+use crate::ui::sonarr_ui::library::series_overview_ui::SeriesOverviewUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
@@ -40,6 +41,7 @@ impl DrawUi for SeriesDetailsUi {
     };
     SeasonDetailsUi::accepts(route)
       || EpisodeDetailsUi::accepts(route)
+      || SeriesOverviewUi::accepts(route)
       || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
@@ -106,6 +108,10 @@ impl DrawUi for SeriesDetailsUi {
 
       if SeasonDetailsUi::accepts(route) {
         SeasonDetailsUi::draw(f, app, area);
+      }
+
+      if SeriesOverviewUi::accepts(route) {
+        SeriesOverviewUi::draw(f, app, area);
       }
     }
   }

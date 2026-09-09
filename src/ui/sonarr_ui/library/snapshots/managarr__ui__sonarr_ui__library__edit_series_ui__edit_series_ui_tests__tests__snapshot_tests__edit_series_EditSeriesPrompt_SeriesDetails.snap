@@ -7,13 +7,13 @@ expression: output
                                                                                                                                                                      
         ╭  Test  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Title: Test                                                                                                                                        │        
-        │Overview: Blah blah blah                                                                                                                           │        
+        │Overview: Blah blah blahIt was filmed in Madison, Wisconsin: a city the crew never really left.The first season took seven years to finish.        │        
         │Network: HBO       ╭─────────────────────────────────────────────  Edit - Test  ─────────────────────────────────────────────╮                     │        
         │Status: Continuing │                                             Blah blah blah                                              │                     │        
         │Genres: cool, famil│                                                                                                         │                     │        
-        │Rating: 84%        │                                                                                                         │                     │        
+        │Rating: 84%        │                 It was filmed in Madison, Wisconsin: a city the crew never really left.                 │                     │        
         │Year: 2022         │                                                                                                         │                     │        
-        │Runtime: 63 minutes│                                                                                                         │                     │        
+        │Runtime: 63 minutes│                              The first season took seven years to finish.                               │                     │        
         │Path: /nfs/tv/Test │                                                                                                         │                     │        
         │Quality Profile: Bl│                                                  ╭───╮                                                  │                     │        
         │Language Profile: E│                                       Monitored: │ ✔ │                                                  │                     │        

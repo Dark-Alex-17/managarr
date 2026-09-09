@@ -11,7 +11,7 @@ mod tests {
     SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES,
   };
   use crate::models::servarr_data::sonarr::modals::{
-    EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
+    EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal, SeriesOverviewModal,
   };
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{Indexer, IndexerField};
@@ -427,5 +427,12 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[2].config,
       None
     );
+  }
+
+  #[test]
+  fn test_series_overview_modal_default() {
+    let series_overview_modal = SeriesOverviewModal::default();
+
+    assert_is_empty!(series_overview_modal.overview);
   }
 }

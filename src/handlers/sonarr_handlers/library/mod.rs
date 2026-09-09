@@ -36,6 +36,7 @@ mod episode_details_handler;
 mod library_handler_tests;
 mod season_details_handler;
 mod series_details_handler;
+mod series_overview_handler;
 
 pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,

@@ -19,7 +19,7 @@ pub mod test_utils {
         "title": "Test",
         "status": "continuing",
         "ended": false,
-        "overview": "Blah blah blah",
+        "overview": "Blah blah blah\r\n\r\nIt was filmed in Madison, Wisconsin: a city the crew never really left.\r\n\r\nThe first season took seven years to finish.\r\n",
         "network": "HBO",
         "seasons": [
             {
@@ -319,7 +319,14 @@ pub mod test_utils {
       title: "Test".to_owned().into(),
       status: SeriesStatus::Continuing,
       ended: false,
-      overview: Some("Blah blah blah".to_owned()),
+      overview: Some(
+        "Blah blah blah\r\n\
+         \r\n\
+         It was filmed in Madison, Wisconsin: a city the crew never really left.\r\n\
+         \r\n\
+         The first season took seven years to finish.\r\n"
+          .to_owned(),
+      ),
       network: Some("HBO".to_owned()),
       seasons: Some(vec![season()]),
       year: 2022,

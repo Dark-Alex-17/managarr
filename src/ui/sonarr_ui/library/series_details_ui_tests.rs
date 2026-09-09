@@ -5,6 +5,7 @@ mod tests {
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+    SERIES_OVERVIEW_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::sonarr_ui::library::series_details_ui::SeriesDetailsUi;
@@ -15,6 +16,7 @@ mod tests {
     let mut blocks = SERIES_DETAILS_BLOCKS.clone().to_vec();
     blocks.extend(SEASON_DETAILS_BLOCKS);
     blocks.extend(EPISODE_DETAILS_BLOCKS);
+    blocks.extend(SERIES_OVERVIEW_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
       if blocks.contains(&active_sonarr_block) {
@@ -28,6 +30,7 @@ mod tests {
   mod snapshot_tests {
     use crate::models::stateful_table::StatefulTable;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use pretty_assertions::assert_str_eq;
     use rstest::rstest;
 
     use super::*;
@@ -133,6 +136,44 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_series_details_ui_renders_series_overview_over_series_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesOverview.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SeriesDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_scrolling_the_series_overview_does_not_scroll_the_series_details_background() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      let before = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SeriesDetailsUi::draw(f, app, f.area());
+      });
+
+      app
+        .data
+        .sonarr_data
+        .series_overview_modal
+        .as_mut()
+        .unwrap()
+        .overview
+        .offset = 3;
+
+      let after = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SeriesDetailsUi::draw(f, app, f.area());
+      });
+
+      assert_str_eq!(before, after);
+      assert_contains!(before, "Overview: Blah blah blah");
     }
   }
 }

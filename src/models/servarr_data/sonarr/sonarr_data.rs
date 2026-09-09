@@ -1,4 +1,4 @@
-use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
+use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal, SeriesOverviewModal};
 use crate::{
   app::{
     context_clues::{
@@ -89,6 +89,7 @@ pub struct SonarrData<'a> {
   pub series: StatefulTable<Series>,
   pub series_history: Option<StatefulTable<SonarrHistoryItem>>,
   pub series_info_tabs: TabState,
+  pub series_overview_modal: Option<SeriesOverviewModal>,
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
   pub tasks: StatefulTable<SonarrTask>,
@@ -172,6 +173,7 @@ impl<'a> Default for SonarrData<'a> {
       selected_block: BlockSelectionState::default(),
       series: StatefulTable::default(),
       series_history: None,
+      series_overview_modal: None,
       start_time: DateTime::default(),
       tags_map: BiMap::default(),
       tasks: StatefulTable::default(),
@@ -347,6 +349,10 @@ impl SonarrData<'_> {
     series_history.search = Some("series history search".into());
     series_history.filter = Some("series history filter".into());
 
+    let series_overview_modal = SeriesOverviewModal {
+      overview: ScrollableText::with_string(series().overview.clone().unwrap_or_default()),
+    };
+
     let mut sonarr_data = SonarrData {
       add_list_exclusion: true,
       add_searched_series: Some(add_searched_series),
@@ -364,6 +370,7 @@ impl SonarrData<'_> {
       quality_profile_map: quality_profile_map(),
       season_details_modal: Some(season_details_modal),
       series_history: Some(series_history),
+      series_overview_modal: Some(series_overview_modal),
       start_time: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
       tags_map: tags_map(),
       updates: updates(),
@@ -503,6 +510,7 @@ pub enum ActiveSonarrBlock {
   SeriesHistory,
   SeriesHistoryDetails,
   SeriesHistorySortPrompt,
+  SeriesOverview,
   SeriesSortPrompt,
   System,
   SystemLogs,
@@ -541,6 +549,8 @@ pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 12] = [
   ActiveSonarrBlock::SeriesHistorySortPrompt,
   ActiveSonarrBlock::SeriesHistoryDetails,
 ];
+
+pub static SERIES_OVERVIEW_BLOCKS: [ActiveSonarrBlock; 1] = [ActiveSonarrBlock::SeriesOverview];
 
 pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 15] = [
   ActiveSonarrBlock::SeasonDetails,

@@ -171,6 +171,7 @@ mod tests {
       assert_eq!(sonarr_data.selected_block, BlockSelectionState::default());
       assert_is_empty!(sonarr_data.series);
       assert_none!(sonarr_data.series_history);
+      assert_none!(sonarr_data.series_overview_modal);
       assert_eq!(sonarr_data.start_time, <DateTime<Utc>>::default());
       assert_is_empty!(sonarr_data.tags_map);
       assert_is_empty!(sonarr_data.tasks);
@@ -289,7 +290,8 @@ mod tests {
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
       EDIT_SERIES_SELECTION_BLOCKS, EPISODE_DETAILS_BLOCKS, HISTORY_BLOCKS,
       INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS,
-      ROOT_FOLDERS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
+      ROOT_FOLDERS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SERIES_OVERVIEW_BLOCKS,
+      SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -669,6 +671,17 @@ mod tests {
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesHistoryError));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistorySortPrompt));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistoryDetails));
+    }
+
+    #[test]
+    fn test_series_details_blocks_excludes_series_overview() {
+      assert!(!SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesOverview));
+    }
+
+    #[test]
+    fn test_series_overview_blocks_contents() {
+      assert_eq!(SERIES_OVERVIEW_BLOCKS.len(), 1);
+      assert!(SERIES_OVERVIEW_BLOCKS.contains(&ActiveSonarrBlock::SeriesOverview));
     }
 
     #[test]

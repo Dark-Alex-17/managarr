@@ -38,6 +38,7 @@ mod episode_details_ui;
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
 mod season_details_ui;
+mod series_overview_ui;
 
 pub(super) struct LibraryUi;
 
