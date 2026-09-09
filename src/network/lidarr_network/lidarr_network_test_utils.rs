@@ -337,9 +337,9 @@ pub mod test_utils {
 
   pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      id: 1,
-      minimum_age: 1,
-      retention: 1,
+      id: 5,
+      minimum_age: 11,
+      retention: 29,
       maximum_size: 12345,
       rss_sync_interval: 60,
     }

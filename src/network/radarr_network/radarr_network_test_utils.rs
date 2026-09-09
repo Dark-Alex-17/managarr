@@ -421,10 +421,29 @@ pub mod test_utils {
 
   pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      rss_sync_interval: 60,
       allow_hardcoded_subs: true,
-      id: 1,
-      ..IndexerSettings::default()
+      availability_delay: 19,
+      id: 3,
+      maximum_size: 18400,
+      minimum_age: 27,
+      prefer_indexer_flags: false,
+      retention: 44,
+      rss_sync_interval: 60,
+      whitelisted_hardcoded_subs: "eng".into(),
+    }
+  }
+
+  pub fn stale_indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      allow_hardcoded_subs: false,
+      availability_delay: 31,
+      id: 8,
+      maximum_size: 22750,
+      minimum_age: 52,
+      prefer_indexer_flags: true,
+      retention: 66,
+      rss_sync_interval: 90,
+      whitelisted_hardcoded_subs: "deu".into(),
     }
   }
 
