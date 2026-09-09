@@ -42,10 +42,10 @@ mod tests {
   #[tokio::test]
   async fn test_handle_edit_all_indexer_settings_event() {
     let indexer_settings_json = json!({
-        "id": 1,
-        "minimumAge": 1,
+        "id": 7,
+        "minimumAge": 13,
         "maximumSize": 12345,
-        "retention": 1,
+        "retention": 21,
         "rssSyncInterval": 60
     });
     let (mock, app, _server) = MockServarrApi::put()

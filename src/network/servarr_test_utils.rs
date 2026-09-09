@@ -12,9 +12,9 @@ pub fn diskspace() -> DiskSpace {
 
 pub fn indexer_settings() -> IndexerSettings {
   IndexerSettings {
-    id: 1,
-    minimum_age: 1,
-    retention: 1,
+    id: 7,
+    minimum_age: 13,
+    retention: 21,
     maximum_size: 12345,
     rss_sync_interval: 60,
   }
