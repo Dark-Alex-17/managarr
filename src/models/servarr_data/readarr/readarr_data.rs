@@ -245,8 +245,8 @@ impl<'a> Default for ReadarrData<'a> {
 #[cfg(test)]
 impl ReadarrData<'_> {
   pub fn test_default_fully_populated() -> Self {
-    let quality_profile_map = BiMap::from_iter([(1i64, "Standard".to_owned())]);
-    let metadata_profile_map = BiMap::from_iter([(1i64, "Standard".to_owned())]);
+    let quality_profile_map = BiMap::from_iter([(1111i64, "Standard".to_owned())]);
+    let metadata_profile_map = BiMap::from_iter([(3333i64, "Comprehensive".to_owned())]);
     let tags_map = BiMap::from_iter([(1i64, "alex".to_owned())]);
     let root_folder = RootFolder {
       id: 1,
@@ -275,8 +275,8 @@ impl ReadarrData<'_> {
           .to_owned(),
       ),
       path: "/nfs/books/Test Author".to_owned(),
-      quality_profile_id: 1,
-      metadata_profile_id: 1,
+      quality_profile_id: 1111,
+      metadata_profile_id: 3333,
       monitored: true,
       monitor_new_items: NewItemMonitorType::All,
       genres: vec!["science fiction".to_owned()],
