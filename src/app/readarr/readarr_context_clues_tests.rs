@@ -8,10 +8,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::readarr::readarr_context_clues::{
     ADD_AUTHOR_SEARCH_RESULTS_CONTEXT_CLUES, AUTHOR_DETAILS_CONTEXT_CLUES,
-    AUTHOR_HISTORY_CONTEXT_CLUES, AUTHORS_CONTEXT_CLUES, BOOK_DETAILS_CONTEXT_CLUES,
-    BOOK_FILE_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES, EDITION_DETAILS_CONTEXT_CLUES,
-    MANUAL_AUTHOR_SEARCH_CONTEXT_CLUES, MANUAL_BOOK_SEARCH_CONTEXT_CLUES,
-    ReadarrContextClueProvider,
+    AUTHOR_HISTORY_CONTEXT_CLUES, AUTHOR_OVERVIEW_CONTEXT_CLUES, AUTHORS_CONTEXT_CLUES,
+    BOOK_DETAILS_CONTEXT_CLUES, BOOK_FILE_CONTEXT_CLUES, BOOK_HISTORY_CONTEXT_CLUES,
+    EDITION_DETAILS_CONTEXT_CLUES, MANUAL_AUTHOR_SEARCH_CONTEXT_CLUES,
+    MANUAL_BOOK_SEARCH_CONTEXT_CLUES, ReadarrContextClueProvider,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_data::readarr::modals::BookDetailsModal;
@@ -117,9 +117,31 @@ mod tests {
     );
     assert_some_eq_x!(
       author_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.view, "view overview")
+    );
+    assert_some_eq_x!(
+      author_details_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
     );
     assert_none!(author_details_context_clues_iter.next());
+  }
+
+  #[test]
+  fn test_author_overview_context_clues() {
+    let mut author_overview_context_clues_iter = AUTHOR_OVERVIEW_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      author_overview_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      author_overview_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(author_overview_context_clues_iter.next());
   }
 
   #[test]
@@ -438,6 +460,16 @@ mod tests {
     let context_clues = ReadarrContextClueProvider::get_context_clues(&mut app);
 
     assert_some_eq_x!(context_clues, &EDITION_DETAILS_CONTEXT_CLUES);
+  }
+
+  #[test]
+  fn test_readarr_context_clue_provider_author_overview_block() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::AuthorOverview.into());
+
+    let context_clues = ReadarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &AUTHOR_OVERVIEW_CONTEXT_CLUES);
   }
 
   #[test]

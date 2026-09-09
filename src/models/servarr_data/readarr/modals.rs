@@ -276,3 +276,9 @@ impl Default for BookDetailsModal {
 pub struct EditionDetailsModal {
   pub edition_details: ScrollableText,
 }
+
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct AuthorOverviewModal {
+  pub overview: ScrollableText,
+}

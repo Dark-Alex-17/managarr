@@ -7,8 +7,8 @@ mod tests {
   use crate::models::readarr_models::{Author, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::readarr::modals::{
-    AddAuthorModal, AddReadarrRootFolderModal, BookDetailsModal, EditAuthorModal,
-    EditionDetailsModal,
+    AddAuthorModal, AddReadarrRootFolderModal, AuthorOverviewModal, BookDetailsModal,
+    EditAuthorModal, EditionDetailsModal,
   };
   use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, ReadarrData};
   use crate::models::servarr_models::{Indexer, IndexerField, RootFolder};
@@ -330,5 +330,12 @@ mod tests {
     let edition_details_modal = EditionDetailsModal::default();
 
     assert_is_empty!(edition_details_modal.edition_details);
+  }
+
+  #[test]
+  fn test_author_overview_modal_default() {
+    let author_overview_modal = AuthorOverviewModal::default();
+
+    assert_is_empty!(author_overview_modal.overview);
   }
 }

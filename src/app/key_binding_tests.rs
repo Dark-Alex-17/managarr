@@ -26,6 +26,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.filter, Key::Char('f'), None, "filter")]
   #[case(DEFAULT_KEYBINDINGS.sort, Key::Char('o'), None, "sort")]
   #[case(DEFAULT_KEYBINDINGS.edit, Key::Char('e'), None, "edit")]
+  #[case(DEFAULT_KEYBINDINGS.view, Key::Char('v'), None, "view")]
   #[case(DEFAULT_KEYBINDINGS.events, Key::Char('e'), None, "events")]
   #[case(DEFAULT_KEYBINDINGS.logs, Key::Char('L'), None, "logs")]
   #[case(DEFAULT_KEYBINDINGS.tasks, Key::Char('t'), None, "tasks")]

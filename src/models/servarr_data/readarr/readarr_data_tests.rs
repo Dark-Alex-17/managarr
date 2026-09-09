@@ -11,13 +11,14 @@ mod tests {
   use crate::models::readarr_models::{Book, ReadarrHistoryItem, ReadarrRelease};
   use crate::models::servarr_data::readarr::readarr_data::{
     ADD_AUTHOR_BLOCKS, ADD_AUTHOR_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS,
-    ADD_ROOT_FOLDER_SELECTION_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BLOCKLIST_BLOCKS,
-    BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS, DELETE_AUTHOR_SELECTION_BLOCKS, DELETE_BOOK_BLOCKS,
-    DELETE_BOOK_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_AUTHOR_BLOCKS,
-    EDIT_AUTHOR_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
-    EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDITION_DETAILS_BLOCKS, HISTORY_BLOCKS,
-    INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS,
-    ROOT_FOLDERS_BLOCKS, ReadarrData, SYSTEM_DETAILS_BLOCKS,
+    ADD_ROOT_FOLDER_SELECTION_BLOCKS, AUTHOR_DETAILS_BLOCKS, AUTHOR_OVERVIEW_BLOCKS,
+    ActiveReadarrBlock, BLOCKLIST_BLOCKS, BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS,
+    DELETE_AUTHOR_SELECTION_BLOCKS, DELETE_BOOK_BLOCKS, DELETE_BOOK_SELECTION_BLOCKS,
+    DOWNLOADS_BLOCKS, EDIT_AUTHOR_BLOCKS, EDIT_AUTHOR_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS,
+    EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+    EDITION_DETAILS_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
+    ReadarrData, SYSTEM_DETAILS_BLOCKS,
   };
   use crate::models::{BlockSelectionState, Route};
   use bimap::BiMap;
@@ -152,6 +153,7 @@ mod tests {
     assert_none!(readarr_data.add_root_folder_modal);
     assert_none!(readarr_data.add_searched_authors);
     assert_is_empty!(readarr_data.author_history);
+    assert_none!(readarr_data.author_overview_modal);
     assert_is_empty!(readarr_data.author_releases);
     assert_is_empty!(readarr_data.authors);
     assert_is_empty!(readarr_data.blocklist);
@@ -359,6 +361,17 @@ mod tests {
   fn test_edition_details_blocks_contents() {
     assert_eq!(EDITION_DETAILS_BLOCKS.len(), 1);
     assert!(EDITION_DETAILS_BLOCKS.contains(&ActiveReadarrBlock::BookEditionDetails));
+  }
+
+  #[test]
+  fn test_author_details_blocks_excludes_author_overview() {
+    assert!(!AUTHOR_DETAILS_BLOCKS.contains(&ActiveReadarrBlock::AuthorOverview));
+  }
+
+  #[test]
+  fn test_author_overview_blocks_contents() {
+    assert_eq!(AUTHOR_OVERVIEW_BLOCKS.len(), 1);
+    assert!(AUTHOR_OVERVIEW_BLOCKS.contains(&ActiveReadarrBlock::AuthorOverview));
   }
 
   #[test]

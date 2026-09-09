@@ -14,9 +14,9 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{Author, AuthorStatistics, AuthorStatus};
   use crate::models::servarr_data::readarr::readarr_data::{
-    ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
-    DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS, EDITION_DETAILS_BLOCKS,
-    LIBRARY_BLOCKS,
+    ADD_AUTHOR_BLOCKS, AUTHOR_DETAILS_BLOCKS, AUTHOR_OVERVIEW_BLOCKS, ActiveReadarrBlock,
+    BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS,
+    EDITION_DETAILS_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -931,6 +931,7 @@ mod tests {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(AUTHOR_DETAILS_BLOCKS);
+    library_handler_blocks.extend(AUTHOR_OVERVIEW_BLOCKS);
     library_handler_blocks.extend(BOOK_DETAILS_BLOCKS);
     library_handler_blocks.extend(EDITION_DETAILS_BLOCKS);
     library_handler_blocks.extend(ADD_AUTHOR_BLOCKS);

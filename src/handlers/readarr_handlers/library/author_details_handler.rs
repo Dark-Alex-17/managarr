@@ -1,3 +1,4 @@
+use super::author_overview_handler::AuthorOverviewHandler;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::readarr_handlers::history::history_sorting_options;
@@ -5,13 +6,14 @@ use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
 use crate::models::readarr_models::{Book, ReadarrHistoryItem, ReadarrRelease};
+use crate::models::servarr_data::readarr::modals::AuthorOverviewModal;
 use crate::models::servarr_data::readarr::readarr_data::{
   AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, DELETE_BOOK_SELECTION_BLOCKS,
   EDIT_AUTHOR_SELECTION_BLOCKS,
 };
 use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, Route};
+use crate::models::{BlockSelectionState, Route, ScrollableText};
 use crate::network::readarr_network::ReadarrEvent;
 use serde_json::Number;
 
@@ -34,10 +36,36 @@ impl AuthorDetailsHandler<'_, '_> {
   fn extract_book_id(&self) -> i64 {
     self.app.data.readarr_data.books.current_selection().id
   }
+
+  fn build_author_overview_modal(&mut self) {
+    let overview = self
+      .app
+      .data
+      .readarr_data
+      .authors
+      .current_selection()
+      .overview
+      .clone()
+      .unwrap_or_default();
+
+    self.app.data.readarr_data.author_overview_modal = Some(AuthorOverviewModal {
+      overview: ScrollableText::with_string(overview),
+    });
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for AuthorDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
+    if AuthorOverviewHandler::accepts(self.active_readarr_block) {
+      return AuthorOverviewHandler::new(
+        self.key,
+        self.app,
+        self.active_readarr_block,
+        self._context,
+      )
+      .handle();
+    }
+
     let books_table_handling_config =
       TableHandlingConfig::new(ActiveReadarrBlock::AuthorDetails.into())
         .searching_block(ActiveReadarrBlock::SearchBooks.into())
@@ -78,7 +106,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for AuthorDetailsHandle
   }
 
   fn accepts(active_block: ActiveReadarrBlock) -> bool {
-    AUTHOR_DETAILS_BLOCKS.contains(&active_block)
+    AuthorOverviewHandler::accepts(active_block) || AUTHOR_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -293,6 +321,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveReadarrBlock> for AuthorDetailsHandle
           self.app.data.readarr_data.edit_author_modal = Some((&self.app.data.readarr_data).into());
           self.app.data.readarr_data.selected_block =
             BlockSelectionState::new(EDIT_AUTHOR_SELECTION_BLOCKS);
+        }
+        _ if matches_key!(view, key) => {
+          self.build_author_overview_modal();
+          self
+            .app
+            .push_navigation_stack(ActiveReadarrBlock::AuthorOverview.into());
         }
         _ if matches_key!(toggle_monitoring, key)
           && !self.app.data.readarr_data.books.is_empty() =>

@@ -30,6 +30,7 @@ use crate::{
 
 mod add_author_ui;
 mod author_details_ui;
+mod author_overview_ui;
 mod book_details_ui;
 mod delete_author_ui;
 mod delete_book_ui;

@@ -15,9 +15,10 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{ReadarrHistoryItem, ReadarrRelease};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
+    AUTHOR_DETAILS_BLOCKS, AUTHOR_OVERVIEW_BLOCKS, ActiveReadarrBlock,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper};
+  use crate::test_handler_delegation;
 
   mod test_handle_delete {
     use super::*;
@@ -465,6 +466,7 @@ mod tests {
     use crate::assert_navigation_pushed;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::readarr_handlers::library::author_details_handler::AuthorDetailsHandler;
+    use crate::handlers::readarr_handlers::library::author_overview_handler::AuthorOverviewHandler;
     use crate::models::readarr_models::Author;
     use crate::models::servarr_data::readarr::readarr_data::{
       ActiveReadarrBlock, EDIT_AUTHOR_SELECTION_BLOCKS,
@@ -473,7 +475,7 @@ mod tests {
     use crate::network::readarr_network::ReadarrEvent;
     use crate::network::readarr_network::readarr_network_test_utils::test_utils::torrent_release;
     use crate::{assert_modal_absent, assert_modal_present, assert_navigation_popped};
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
     #[rstest]
@@ -536,6 +538,161 @@ mod tests {
 
       assert_eq!(app.get_current_route(), active_readarr_block.into());
       assert_modal_absent!(app.data.readarr_data.edit_author_modal);
+    }
+
+    #[test]
+    fn test_author_details_view_key_opens_the_author_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.author_overview_modal = None;
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::AuthorOverview.into());
+      assert_modal_present!(app.data.readarr_data.author_overview_modal);
+    }
+
+    #[test]
+    fn test_author_details_view_key_builds_the_overview_from_the_selected_author() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.author_overview_modal = None;
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      let overview = &app
+        .data
+        .readarr_data
+        .author_overview_modal
+        .as_ref()
+        .unwrap()
+        .overview;
+      assert_eq!(overview.offset, 0);
+      assert_eq!(
+        overview.get_text(),
+        app
+          .data
+          .readarr_data
+          .authors
+          .current_selection()
+          .overview
+          .clone()
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_author_details_view_key_for_an_author_with_no_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.author_overview_modal = None;
+      let mut author = app.data.readarr_data.authors.current_selection().clone();
+      author.overview = None;
+      app.data.readarr_data.authors.set_items(vec![author]);
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::AuthorOverview.into());
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .author_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .get_text(),
+        ""
+      );
+    }
+
+    #[test]
+    fn test_author_details_view_key_reopens_the_author_overview_at_the_top() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.author_overview_modal = None;
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+      AuthorOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorOverview,
+        None,
+      )
+      .handle();
+      AuthorOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.esc.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorOverview,
+        None,
+      )
+      .handle();
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::AuthorOverview.into());
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .author_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .offset,
+        0
+      );
+    }
+
+    #[test]
+    fn test_author_details_view_key_no_op_when_not_ready() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.author_overview_modal = None;
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      AuthorDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveReadarrBlock::AuthorDetails,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::AuthorDetails.into()
+      );
+      assert_modal_absent!(app.data.readarr_data.author_overview_modal);
     }
 
     #[test]
@@ -828,8 +985,11 @@ mod tests {
 
   #[test]
   fn test_author_details_handler_accepts() {
+    let mut author_details_blocks = AUTHOR_DETAILS_BLOCKS.to_vec();
+    author_details_blocks.extend(AUTHOR_OVERVIEW_BLOCKS);
+
     ActiveReadarrBlock::iter().for_each(|readarr_block| {
-      if AUTHOR_DETAILS_BLOCKS.contains(&readarr_block) {
+      if author_details_blocks.contains(&readarr_block) {
         assert!(
           AuthorDetailsHandler::accepts(readarr_block),
           "{readarr_block} is not accepted by the AuthorDetailsHandler"
@@ -838,6 +998,15 @@ mod tests {
         assert!(!AuthorDetailsHandler::accepts(readarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_delegates_author_overview_blocks_to_author_overview_handler() {
+    test_handler_delegation!(
+      AuthorDetailsHandler,
+      ActiveReadarrBlock::AuthorDetails,
+      ActiveReadarrBlock::AuthorOverview
+    );
   }
 
   #[test]

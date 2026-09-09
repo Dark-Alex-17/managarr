@@ -1,6 +1,8 @@
 use serde_json::Number;
 
-use super::modals::{AddAuthorModal, AddReadarrRootFolderModal, BookDetailsModal, EditAuthorModal};
+use super::modals::{
+  AddAuthorModal, AddReadarrRootFolderModal, AuthorOverviewModal, BookDetailsModal, EditAuthorModal,
+};
 use crate::app::context_clues::{
   BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
   ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
@@ -55,6 +57,7 @@ pub struct ReadarrData<'a> {
   pub add_searched_authors: Option<StatefulTable<AddAuthorSearchResult>>,
   pub author_history: StatefulTable<ReadarrHistoryItem>,
   pub author_info_tabs: TabState,
+  pub author_overview_modal: Option<AuthorOverviewModal>,
   pub author_releases: StatefulTable<ReadarrRelease>,
   pub authors: StatefulTable<Author>,
   pub blocklist: StatefulTable<BlocklistItem>,
@@ -141,6 +144,7 @@ impl<'a> Default for ReadarrData<'a> {
       add_root_folder_modal: None,
       add_searched_authors: None,
       author_history: StatefulTable::default(),
+      author_overview_modal: None,
       author_releases: StatefulTable::default(),
       authors: StatefulTable::default(),
       blocklist: StatefulTable::default(),
@@ -262,7 +266,14 @@ impl ReadarrData<'_> {
       author_name: "Test Author".into(),
       foreign_author_id: "test-foreign-id".to_owned(),
       status: AuthorStatus::Continuing,
-      overview: Some("some interesting description of the author".to_owned()),
+      overview: Some(
+        "some interesting description of the author\r\n\
+         \r\n\
+         He was born in Madison, Wisconsin: a city he has never really left.\r\n\
+         \r\n\
+         His first novel took him seven years to finish.\r\n"
+          .to_owned(),
+      ),
       path: "/nfs/books/Test Author".to_owned(),
       quality_profile_id: 1,
       metadata_profile_id: 1,
@@ -551,9 +562,14 @@ impl ReadarrData<'_> {
     let mut indexer_test_all_results = StatefulTable::default();
     indexer_test_all_results.set_items(vec![indexer_test_result()]);
 
+    let author_overview_modal = AuthorOverviewModal {
+      overview: ScrollableText::with_string(author.overview.clone().unwrap_or_default()),
+    };
+
     let mut readarr_data = ReadarrData {
       add_author_modal: Some(add_author_modal),
       add_root_folder_modal: Some(add_root_folder_modal),
+      author_overview_modal: Some(author_overview_modal),
       book_details_modal: Some(book_details_modal),
       delete_files: true,
       disk_space_vec: vec![diskspace()],
@@ -647,6 +663,7 @@ pub enum ActiveReadarrBlock {
   AuthorHistory,
   AuthorHistoryDetails,
   AuthorHistorySortPrompt,
+  AuthorOverview,
   AuthorsSortPrompt,
   AutomaticallySearchAuthorPrompt,
   AutomaticallySearchBookPrompt,
@@ -769,6 +786,8 @@ pub static AUTHOR_DETAILS_BLOCKS: [ActiveReadarrBlock; 15] = [
   ActiveReadarrBlock::SearchAuthorHistoryError,
   ActiveReadarrBlock::UpdateAndScanAuthorPrompt,
 ];
+
+pub static AUTHOR_OVERVIEW_BLOCKS: [ActiveReadarrBlock; 1] = [ActiveReadarrBlock::AuthorOverview];
 
 pub static BOOK_DETAILS_BLOCKS: [ActiveReadarrBlock; 16] = [
   ActiveReadarrBlock::BookDetails,

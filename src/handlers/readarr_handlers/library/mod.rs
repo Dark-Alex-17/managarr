@@ -21,6 +21,7 @@ use crate::models::Route;
 
 mod add_author_handler;
 mod author_details_handler;
+mod author_overview_handler;
 mod book_details_handler;
 mod delete_author_handler;
 mod delete_book_handler;

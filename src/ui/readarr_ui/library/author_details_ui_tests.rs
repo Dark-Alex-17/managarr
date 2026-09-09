@@ -7,8 +7,8 @@ mod tests {
 
   use crate::models::readarr_models::{Book, BookStatistics};
   use crate::models::servarr_data::readarr::readarr_data::{
-    AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, DELETE_BOOK_BLOCKS,
-    EDITION_DETAILS_BLOCKS,
+    AUTHOR_DETAILS_BLOCKS, AUTHOR_OVERVIEW_BLOCKS, ActiveReadarrBlock, BOOK_DETAILS_BLOCKS,
+    DELETE_BOOK_BLOCKS, EDITION_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::readarr_ui::library::author_details_ui::{
@@ -22,6 +22,7 @@ mod tests {
     author_details_blocks.extend(BOOK_DETAILS_BLOCKS);
     author_details_blocks.extend(EDITION_DETAILS_BLOCKS);
     author_details_blocks.extend(DELETE_BOOK_BLOCKS);
+    author_details_blocks.extend(AUTHOR_OVERVIEW_BLOCKS);
 
     ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
       if author_details_blocks.contains(&active_readarr_block) {
@@ -149,6 +150,7 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use pretty_assertions::assert_str_eq;
     use rstest::rstest;
 
     use crate::app::App;
@@ -335,6 +337,46 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_author_details_ui_renders_author_overview_over_author_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorOverview.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_scrolling_the_author_overview_does_not_scroll_the_author_details_background() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+      let before = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+
+      app
+        .data
+        .readarr_data
+        .author_overview_modal
+        .as_mut()
+        .unwrap()
+        .overview
+        .offset = 3;
+
+      let after = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+      assert_str_eq!(before, after);
+      assert_contains!(
+        before,
+        "Overview: some interesting description of the author"
+      );
     }
 
     #[test]

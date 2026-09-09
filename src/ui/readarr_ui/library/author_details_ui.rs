@@ -13,6 +13,7 @@ use crate::models::readarr_models::{Book, ReadarrHistoryItem, ReadarrRelease};
 use crate::models::servarr_data::readarr::readarr_data::{
   AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
 };
+use crate::ui::readarr_ui::library::author_overview_ui::AuthorOverviewUi;
 use crate::ui::readarr_ui::library::book_details_ui::BookDetailsUi;
 use crate::ui::readarr_ui::library::delete_book_ui::DeleteBookUi;
 use crate::ui::readarr_ui::readarr_ui_utils::create_history_event_details;
@@ -45,6 +46,7 @@ impl DrawUi for AuthorDetailsUi {
     };
     BookDetailsUi::accepts(route)
       || DeleteBookUi::accepts(route)
+      || AuthorOverviewUi::accepts(route)
       || AUTHOR_DETAILS_BLOCKS.contains(&active_readarr_block)
   }
 
@@ -133,6 +135,10 @@ impl DrawUi for AuthorDetailsUi {
 
       if BookDetailsUi::accepts(route) {
         BookDetailsUi::draw(f, app, _area);
+      }
+
+      if AuthorOverviewUi::accepts(route) {
+        AuthorOverviewUi::draw(f, app, _area);
       }
     }
   }

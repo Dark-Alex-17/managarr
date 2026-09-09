@@ -6,9 +6,9 @@ use crate::app::context_clues::{
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::readarr::readarr_data::{
-  ADD_AUTHOR_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, AUTHOR_DETAILS_BLOCKS, ActiveReadarrBlock,
-  BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS, EDIT_AUTHOR_BLOCKS,
-  EDIT_INDEXER_BLOCKS, EDITION_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+  ADD_AUTHOR_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, AUTHOR_DETAILS_BLOCKS, AUTHOR_OVERVIEW_BLOCKS,
+  ActiveReadarrBlock, BOOK_DETAILS_BLOCKS, DELETE_AUTHOR_BLOCKS, DELETE_BOOK_BLOCKS,
+  EDIT_AUTHOR_BLOCKS, EDIT_INDEXER_BLOCKS, EDITION_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
 };
 
 #[cfg(test)]
@@ -39,7 +39,7 @@ pub static ADD_AUTHOR_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
-pub static AUTHOR_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
+pub static AUTHOR_DETAILS_CONTEXT_CLUES: [ContextClue; 9] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -55,6 +55,15 @@ pub static AUTHOR_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
   (
     DEFAULT_KEYBINDINGS.auto_search,
     DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.view, "view overview"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
+pub static AUTHOR_OVERVIEW_CONTEXT_CLUES: [ContextClue; 2] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
   ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
@@ -168,6 +177,9 @@ impl ContextClueProvider for ReadarrContextClueProvider {
         .readarr_data
         .author_info_tabs
         .get_active_route_contextual_help(),
+      _ if AUTHOR_OVERVIEW_BLOCKS.contains(&active_readarr_block) => {
+        Some(&AUTHOR_OVERVIEW_CONTEXT_CLUES)
+      }
       _ if BOOK_DETAILS_BLOCKS.contains(&active_readarr_block) => app
         .data
         .readarr_data
