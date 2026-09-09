@@ -452,7 +452,7 @@ mod tests {
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
     use crate::handlers::lidarr_handlers::library::artist_overview_handler::ArtistOverviewHandler;
-    use crate::models::lidarr_models::Artist;
+    use crate::models::lidarr_models::{Album, Artist, LidarrHistoryItem};
     use crate::models::servarr_data::lidarr::lidarr_data::{
       ActiveLidarrBlock, EDIT_ARTIST_SELECTION_BLOCKS,
     };
@@ -965,6 +965,69 @@ mod tests {
           indexer_id: release.indexer_id,
         }))
       );
+    }
+
+    #[test]
+    fn test_search_albums_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .albums
+        .set_items(vec![Album::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchAlbums.into());
+    }
+
+    #[test]
+    fn test_search_artist_history_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .set_items(vec![LidarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchArtistHistory.into());
+    }
+
+    #[test]
+    fn test_filter_artist_history_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .set_items(vec![LidarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterArtistHistory.into());
     }
   }
 

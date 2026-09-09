@@ -782,29 +782,41 @@ mod tests {
       edit_artist
         .quality_profile_list
         .set_items(vec!["Lossless".to_owned(), "HD - 1080p".to_owned()]);
+      edit_artist.quality_profile_list.state.select(Some(1));
       edit_artist
         .metadata_profile_list
         .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+      edit_artist.metadata_profile_list.state.select(Some(1));
       edit_artist
         .monitor_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+      edit_artist.monitor_list.state.select(Some(1));
       app.data.lidarr_data.edit_artist_modal = Some(edit_artist);
-      app.data.lidarr_data.artists.set_items(vec![Artist {
-        monitored: false,
-        ..Artist::default()
-      }]);
+      app.data.lidarr_data.artists.set_items(vec![
+        Artist {
+          id: 999,
+          monitored: false,
+          ..Artist::default()
+        },
+        Artist {
+          id: 2,
+          monitored: false,
+          ..Artist::default()
+        },
+      ]);
+      app.data.lidarr_data.artists.select_index(Some(1));
       app.data.lidarr_data.quality_profile_map = BiMap::from_iter([
         (1111, "Lossless".to_owned()),
         (2222, "HD - 1080p".to_owned()),
       ]);
       app.data.lidarr_data.metadata_profile_map =
-        BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+        BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
       let expected_edit_artist_params = EditArtistParams {
-        artist_id: 0,
+        artist_id: 2,
         monitored: Some(false),
-        monitor_new_items: Some(NewItemMonitorType::All),
-        quality_profile_id: Some(1111),
-        metadata_profile_id: Some(1111),
+        monitor_new_items: Some(NewItemMonitorType::None),
+        quality_profile_id: Some(2222),
+        metadata_profile_id: Some(4444),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".to_owned()),
         ..EditArtistParams::default()
@@ -1236,29 +1248,41 @@ mod tests {
       edit_artist
         .quality_profile_list
         .set_items(vec!["Lossless".to_owned(), "HD - 1080p".to_owned()]);
+      edit_artist.quality_profile_list.state.select(Some(1));
       edit_artist
         .metadata_profile_list
         .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+      edit_artist.metadata_profile_list.state.select(Some(1));
       edit_artist
         .monitor_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+      edit_artist.monitor_list.state.select(Some(1));
       app.data.lidarr_data.edit_artist_modal = Some(edit_artist);
-      app.data.lidarr_data.artists.set_items(vec![Artist {
-        monitored: false,
-        ..Artist::default()
-      }]);
+      app.data.lidarr_data.artists.set_items(vec![
+        Artist {
+          id: 999,
+          monitored: false,
+          ..Artist::default()
+        },
+        Artist {
+          id: 2,
+          monitored: false,
+          ..Artist::default()
+        },
+      ]);
+      app.data.lidarr_data.artists.select_index(Some(1));
       app.data.lidarr_data.quality_profile_map = BiMap::from_iter([
         (1111, "Lossless".to_owned()),
         (2222, "HD - 1080p".to_owned()),
       ]);
       app.data.lidarr_data.metadata_profile_map =
-        BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+        BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
       let expected_edit_artist_params = EditArtistParams {
-        artist_id: 0,
+        artist_id: 2,
         monitored: Some(false),
-        monitor_new_items: Some(NewItemMonitorType::All),
-        quality_profile_id: Some(1111),
-        metadata_profile_id: Some(1111),
+        monitor_new_items: Some(NewItemMonitorType::None),
+        quality_profile_id: Some(2222),
+        metadata_profile_id: Some(4444),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".to_owned()),
         ..EditArtistParams::default()
@@ -1332,29 +1356,41 @@ mod tests {
     edit_artist
       .quality_profile_list
       .set_items(vec!["Lossless".to_owned(), "HD - 1080p".to_owned()]);
+    edit_artist.quality_profile_list.state.select(Some(1));
     edit_artist
       .metadata_profile_list
       .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+    edit_artist.metadata_profile_list.state.select(Some(1));
     edit_artist
       .monitor_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    edit_artist.monitor_list.state.select(Some(1));
     app.data.lidarr_data.edit_artist_modal = Some(edit_artist);
-    app.data.lidarr_data.artists.set_items(vec![Artist {
-      monitored: false,
-      ..Artist::default()
-    }]);
+    app.data.lidarr_data.artists.set_items(vec![
+      Artist {
+        id: 999,
+        monitored: false,
+        ..Artist::default()
+      },
+      Artist {
+        id: 2,
+        monitored: false,
+        ..Artist::default()
+      },
+    ]);
+    app.data.lidarr_data.artists.select_index(Some(1));
     app.data.lidarr_data.quality_profile_map = BiMap::from_iter([
       (1111, "Lossless".to_owned()),
       (2222, "HD - 1080p".to_owned()),
     ]);
     app.data.lidarr_data.metadata_profile_map =
-      BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+      BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
     let expected_edit_artist_params = EditArtistParams {
-      artist_id: 0,
+      artist_id: 2,
       monitored: Some(false),
-      monitor_new_items: Some(NewItemMonitorType::All),
-      quality_profile_id: Some(1111),
-      metadata_profile_id: Some(1111),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(2222),
+      metadata_profile_id: Some(4444),
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       tag_input_string: Some("usenet, testing".to_owned()),
       ..EditArtistParams::default()

@@ -660,6 +660,54 @@ mod tests {
         })
       );
     }
+
+    #[test]
+    fn test_search_tracks_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchTracks.into());
+    }
+
+    #[test]
+    fn test_search_album_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumHistory.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchAlbumHistory.into());
+    }
+
+    #[test]
+    fn test_filter_album_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumHistory.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterAlbumHistory.into());
+    }
   }
 
   #[test]
