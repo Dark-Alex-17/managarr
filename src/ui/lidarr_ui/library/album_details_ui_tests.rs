@@ -1,14 +1,20 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
+  use ratatui::widgets::{Cell, Row};
   use strum::IntoEnumIterator;
 
   use crate::app::App;
+  use crate::models::lidarr_models::Track;
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock, TRACK_DETAILS_BLOCKS,
   };
   use crate::models::stateful_table::StatefulTable;
   use crate::ui::DrawUi;
-  use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
+  use crate::ui::lidarr_ui::library::album_details_ui::{
+    AlbumDetailsUi, decorate_track_row_with_style,
+  };
+  use crate::ui::styles::ManagarrStyle;
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
@@ -23,6 +29,32 @@ mod tests {
         assert!(!AlbumDetailsUi::accepts(active_lidarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_downloaded_when_track_has_file() {
+    let track = Track {
+      has_file: true,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&track, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_missing_when_track_has_no_file() {
+    let track = Track {
+      has_file: false,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&track, row.clone());
+
+    assert_eq!(style, row.missing());
   }
 
   mod snapshot_tests {

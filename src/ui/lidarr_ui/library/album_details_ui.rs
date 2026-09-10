@@ -157,7 +157,6 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         title,
         duration,
         track_file_id,
-        has_file,
         ..
       } = track;
 
@@ -187,19 +186,16 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let secs = duration_secs % 60;
       let duration_str = format!("{mins}:{secs:02}");
 
-      let row = Row::new(vec![
-        Cell::from(track_number.clone()),
-        Cell::from(title.clone()),
-        Cell::from(duration_str),
-        Cell::from(audio_info),
-        Cell::from(quality),
-      ]);
-
-      if *has_file {
-        row.downloaded()
-      } else {
-        row.missing()
-      }
+      decorate_track_row_with_style(
+        track,
+        Row::new(vec![
+          Cell::from(track_number.clone()),
+          Cell::from(title.clone()),
+          Cell::from(duration_str),
+          Cell::from(audio_info),
+          Cell::from(quality),
+        ]),
+      )
     };
 
     let is_searching = active_lidarr_block == ActiveLidarrBlock::SearchTracks;
@@ -222,6 +218,14 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
 
     f.render_widget(tracks_table, area);
+  }
+}
+
+fn decorate_track_row_with_style<'a>(track: &Track, row: Row<'a>) -> Row<'a> {
+  if track.has_file {
+    row.downloaded()
+  } else {
+    row.missing()
   }
 }
 
