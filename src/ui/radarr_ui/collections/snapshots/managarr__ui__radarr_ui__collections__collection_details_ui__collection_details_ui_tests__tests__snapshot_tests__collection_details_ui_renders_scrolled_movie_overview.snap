@@ -8,35 +8,35 @@ expression: output
                                                                                                                                                                      
                                                                                                                                                                      
                                                                                                                                                                      
-                    ╭  Test Collection  ───────────────────────────────────────────────────────────────────────────────────────────────────────╮                     
-                    │Overview: Collection blah blah blah                                                                                       │                     
-                    │Root Folder Path: /nfs/movies                                                                                             │                     
-                    │Quality Profile: HD - 1080p                                                                                               │                     
-                    │Minimum Availability: Released                                                                                            │                     
-                    │Monitored: Yes                                                                                                            │                     
-                    │Search on Add: Yes                                                                                                        │                     
+                    ╭  Overview  ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮                     
+                    │It was shot in Madison, Wisconsin: a city the cast never really left.                                                     │                     
+                    │                                                                                                                          │                     
+                    │The sequel took seven years to finish.                                                                                    │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     
-                    │                             ╭  Overview  ────────────────────────────────────────────────────╮                           │                     
-                    │  Movies  ───────────────────│It was shot in Madison, Wisconsin: a city the cast never really │───────────────────────────│                     
-                    │   ✔  Title                  │left.                                                           │                           │                     
-                    │=> ✔  Test                   │                                                                │family, fun                │                     
-                    │                             │The sequel took seven years to finish.                          │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             ╰────────────────────────────────────────────────────────────────╯                           │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     

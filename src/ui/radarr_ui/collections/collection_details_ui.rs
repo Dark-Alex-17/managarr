@@ -46,7 +46,7 @@ impl DrawUi for CollectionDetailsUi {
       draw_popup(f, app, draw_collection_details, Size::Large);
 
       if context_option.unwrap_or(active_radarr_block) == ActiveRadarrBlock::ViewMovieOverview {
-        draw_popup(f, app, draw_movie_overview, Size::Small);
+        draw_popup(f, app, draw_movie_overview, Size::Large);
       }
     }
   }
