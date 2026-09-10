@@ -161,7 +161,7 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   let logs_box = SelectableList::new(&mut app.data.readarr_data.logs, |log| {
     let log_line = log.to_string();
-    let level = extract_log_level(&log_line);
+    let level = extract_log_level(&log.text);
 
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })
