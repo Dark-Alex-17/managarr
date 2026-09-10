@@ -333,10 +333,16 @@ mod test_utils {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
+      let navigation_stack_depth_before_delegation = app.get_navigation_stack_depth();
 
       $handler::new(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
 
       pretty_assertions::assert_eq!(app.get_current_route(), $base.into());
+      pretty_assertions::assert_eq!(
+        app.get_navigation_stack_depth(),
+        navigation_stack_depth_before_delegation - 1,
+        "Expected the delegated handler to pop exactly one route off the navigation stack"
+      );
     };
   }
 

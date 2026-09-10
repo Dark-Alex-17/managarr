@@ -371,6 +371,10 @@ impl App<'_> {
       ..App::default()
     }
   }
+
+  pub fn get_navigation_stack_depth(&self) -> usize {
+    self.navigation_stack.len()
+  }
 }
 
 #[derive(Default)]

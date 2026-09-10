@@ -123,7 +123,6 @@ mod tests {
   #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
-      ActiveRadarrBlock::System,
       ActiveRadarrBlock::SystemLogs,
       ActiveRadarrBlock::SystemQueuedEvents,
       ActiveRadarrBlock::SystemTasks,
@@ -142,7 +141,6 @@ mod tests {
   #[rstest]
   fn test_delegates_library_blocks_to_library_handler(
     #[values(
-      ActiveRadarrBlock::Movies,
       ActiveRadarrBlock::MoviesSortPrompt,
       ActiveRadarrBlock::SearchMovie,
       ActiveRadarrBlock::SearchMovieError,
@@ -186,7 +184,6 @@ mod tests {
   #[rstest]
   fn test_delegates_collections_blocks_to_collections_handler(
     #[values(
-      ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::SearchCollection,
       ActiveRadarrBlock::CollectionsSortPrompt,
       ActiveRadarrBlock::SearchCollectionError,
@@ -213,7 +210,6 @@ mod tests {
   fn test_delegates_indexers_blocks_to_indexers_handler(
     #[values(
       ActiveRadarrBlock::DeleteIndexerPrompt,
-      ActiveRadarrBlock::Indexers,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,
       ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
       ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
@@ -237,7 +233,6 @@ mod tests {
   #[rstest]
   fn test_delegates_downloads_blocks_to_downloads_handler(
     #[values(
-      ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
       ActiveRadarrBlock::UpdateDownloadsPrompt
     )]
@@ -253,7 +248,6 @@ mod tests {
   #[rstest]
   fn test_delegates_root_folders_blocks_to_root_folders_handler(
     #[values(
-      ActiveRadarrBlock::RootFolders,
       ActiveRadarrBlock::AddRootFolderPrompt,
       ActiveRadarrBlock::DeleteRootFolderPrompt
     )]
@@ -269,7 +263,6 @@ mod tests {
   #[rstest]
   fn test_delegates_blocklist_blocks_to_blocklist_handler(
     #[values(
-      ActiveRadarrBlock::Blocklist,
       ActiveRadarrBlock::BlocklistItemDetails,
       ActiveRadarrBlock::DeleteBlocklistItemPrompt,
       ActiveRadarrBlock::BlocklistClearAllItemsPrompt,
@@ -287,7 +280,6 @@ mod tests {
   #[rstest]
   fn test_delegates_history_blocks_to_history_handler(
     #[values(
-      ActiveRadarrBlock::History,
       ActiveRadarrBlock::HistoryItemDetails,
       ActiveRadarrBlock::HistorySortPrompt,
       ActiveRadarrBlock::FilterHistory,

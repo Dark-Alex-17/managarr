@@ -160,7 +160,6 @@ mod tests {
   #[rstest]
   fn test_delegates_library_blocks_to_library_handler(
     #[values(
-      ActiveReadarrBlock::Authors,
       ActiveReadarrBlock::AuthorsSortPrompt,
       ActiveReadarrBlock::FilterAuthors,
       ActiveReadarrBlock::FilterAuthorsError,
@@ -180,7 +179,6 @@ mod tests {
   #[rstest]
   fn test_delegates_blocklist_blocks_to_blocklist_handler(
     #[values(
-      ActiveReadarrBlock::Blocklist,
       ActiveReadarrBlock::BlocklistItemDetails,
       ActiveReadarrBlock::DeleteBlocklistItemPrompt,
       ActiveReadarrBlock::BlocklistClearAllItemsPrompt,
@@ -198,7 +196,6 @@ mod tests {
   #[rstest]
   fn test_delegates_downloads_blocks_to_downloads_handler(
     #[values(
-      ActiveReadarrBlock::Downloads,
       ActiveReadarrBlock::DeleteDownloadPrompt,
       ActiveReadarrBlock::UpdateDownloadsPrompt
     )]
@@ -214,7 +211,6 @@ mod tests {
   #[rstest]
   fn test_delegates_history_blocks_to_history_handler(
     #[values(
-      ActiveReadarrBlock::History,
       ActiveReadarrBlock::HistoryItemDetails,
       ActiveReadarrBlock::HistorySortPrompt,
       ActiveReadarrBlock::SearchHistory,
@@ -234,7 +230,6 @@ mod tests {
   #[rstest]
   fn test_delegates_root_folders_blocks_to_root_folders_handler(
     #[values(
-      ActiveReadarrBlock::RootFolders,
       ActiveReadarrBlock::AddRootFolderPrompt,
       ActiveReadarrBlock::DeleteRootFolderPrompt
     )]
@@ -250,7 +245,6 @@ mod tests {
   #[rstest]
   fn test_delegates_indexers_blocks_to_indexers_handler(
     #[values(
-      ActiveReadarrBlock::Indexers,
       ActiveReadarrBlock::DeleteIndexerPrompt,
       ActiveReadarrBlock::TestIndexer,
       ActiveReadarrBlock::TestAllIndexers,
@@ -274,7 +268,6 @@ mod tests {
   #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
-      ActiveReadarrBlock::System,
       ActiveReadarrBlock::SystemLogs,
       ActiveReadarrBlock::SystemQueuedEvents,
       ActiveReadarrBlock::SystemTasks,

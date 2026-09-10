@@ -165,7 +165,6 @@ mod tests {
       ActiveSonarrBlock::SearchSeriesHistory,
       ActiveSonarrBlock::SearchSeriesHistoryError,
       ActiveSonarrBlock::SeasonDetails,
-      ActiveSonarrBlock::Series,
       ActiveSonarrBlock::SeriesDetails,
       ActiveSonarrBlock::SeriesHistory,
       ActiveSonarrBlock::SeriesHistorySortPrompt,
@@ -186,7 +185,6 @@ mod tests {
   #[rstest]
   fn test_delegates_downloads_blocks_to_downloads_handler(
     #[values(
-      ActiveSonarrBlock::Downloads,
       ActiveSonarrBlock::DeleteDownloadPrompt,
       ActiveSonarrBlock::UpdateDownloadsPrompt
     )]
@@ -202,7 +200,6 @@ mod tests {
   #[rstest]
   fn test_delegates_blocklist_blocks_to_blocklist_handler(
     #[values(
-      ActiveSonarrBlock::Blocklist,
       ActiveSonarrBlock::BlocklistItemDetails,
       ActiveSonarrBlock::DeleteBlocklistItemPrompt,
       ActiveSonarrBlock::BlocklistClearAllItemsPrompt,
@@ -220,7 +217,6 @@ mod tests {
   #[rstest]
   fn test_delegates_history_blocks_to_history_handler(
     #[values(
-      ActiveSonarrBlock::History,
       ActiveSonarrBlock::HistoryItemDetails,
       ActiveSonarrBlock::HistorySortPrompt,
       ActiveSonarrBlock::FilterHistory,
@@ -240,7 +236,6 @@ mod tests {
   #[rstest]
   fn test_delegates_root_folders_blocks_to_root_folders_handler(
     #[values(
-      ActiveSonarrBlock::RootFolders,
       ActiveSonarrBlock::AddRootFolderPrompt,
       ActiveSonarrBlock::DeleteRootFolderPrompt
     )]
@@ -257,7 +252,6 @@ mod tests {
   fn test_delegates_indexers_blocks_to_indexers_handler(
     #[values(
       ActiveSonarrBlock::DeleteIndexerPrompt,
-      ActiveSonarrBlock::Indexers,
       ActiveSonarrBlock::AllIndexerSettingsPrompt,
       ActiveSonarrBlock::IndexerSettingsConfirmPrompt,
       ActiveSonarrBlock::IndexerSettingsMaximumSizeInput,
@@ -277,7 +271,6 @@ mod tests {
   #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
-      ActiveSonarrBlock::System,
       ActiveSonarrBlock::SystemLogs,
       ActiveSonarrBlock::SystemQueuedEvents,
       ActiveSonarrBlock::SystemTasks,
