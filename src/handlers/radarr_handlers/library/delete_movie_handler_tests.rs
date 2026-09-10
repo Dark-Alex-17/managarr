@@ -126,7 +126,7 @@ mod tests {
       let mut app = App::test_default();
       let expected_delete_movie_params = DeleteMovieParams {
         id: 1,
-        delete_movie_files: true,
+        delete_movie_files: false,
         add_list_exclusion: true,
       };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -138,7 +138,7 @@ mod tests {
         .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
       app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.delete_movie_files = true;
+      app.data.radarr_data.delete_movie_files = false;
       app.data.radarr_data.add_list_exclusion = true;
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app
@@ -276,7 +276,7 @@ mod tests {
       let expected_delete_movie_params = DeleteMovieParams {
         id: 1,
         delete_movie_files: true,
-        add_list_exclusion: true,
+        add_list_exclusion: false,
       };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
@@ -287,7 +287,7 @@ mod tests {
         .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
       app.data.radarr_data.movies.select_index(Some(1));
       app.data.radarr_data.delete_movie_files = true;
-      app.data.radarr_data.add_list_exclusion = true;
+      app.data.radarr_data.add_list_exclusion = false;
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app
         .data
@@ -355,11 +355,11 @@ mod tests {
       .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
     app.data.radarr_data.movies.select_index(Some(1));
     app.data.radarr_data.delete_movie_files = true;
-    app.data.radarr_data.add_list_exclusion = true;
+    app.data.radarr_data.add_list_exclusion = false;
     let expected_delete_movie_params = DeleteMovieParams {
       id: 1,
       delete_movie_files: true,
-      add_list_exclusion: true,
+      add_list_exclusion: false,
     };
 
     let delete_movie_params = DeleteMovieHandler::new(

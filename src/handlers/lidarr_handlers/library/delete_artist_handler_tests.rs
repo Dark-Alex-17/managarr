@@ -130,7 +130,7 @@ mod tests {
       app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
       app.push_navigation_stack(ActiveLidarrBlock::DeleteArtistPrompt.into());
       app.data.lidarr_data.prompt_confirm = true;
-      app.data.lidarr_data.delete_files = true;
+      app.data.lidarr_data.delete_files = false;
       app.data.lidarr_data.add_import_list_exclusion = true;
       app
         .data
@@ -139,7 +139,7 @@ mod tests {
         .set_items(vec![Artist::default()]);
       let expected_delete_artist_params = DeleteParams {
         id: 0,
-        delete_files: true,
+        delete_files: false,
         add_import_list_exclusion: true,
       };
       app.data.lidarr_data.selected_block =
@@ -280,7 +280,7 @@ mod tests {
       app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
       app.push_navigation_stack(ActiveLidarrBlock::DeleteArtistPrompt.into());
       app.data.lidarr_data.delete_files = true;
-      app.data.lidarr_data.add_import_list_exclusion = true;
+      app.data.lidarr_data.add_import_list_exclusion = false;
       app
         .data
         .lidarr_data
@@ -289,7 +289,7 @@ mod tests {
       let expected_delete_artist_params = DeleteParams {
         id: 0,
         delete_files: true,
-        add_import_list_exclusion: true,
+        add_import_list_exclusion: false,
       };
       app.data.lidarr_data.selected_block =
         BlockSelectionState::new(DELETE_ARTIST_SELECTION_BLOCKS);
@@ -358,11 +358,11 @@ mod tests {
       .artists
       .set_items(vec![Artist::default()]);
     app.data.lidarr_data.delete_files = true;
-    app.data.lidarr_data.add_import_list_exclusion = true;
+    app.data.lidarr_data.add_import_list_exclusion = false;
     let expected_delete_artist_params = DeleteParams {
       id: 0,
       delete_files: true,
-      add_import_list_exclusion: true,
+      add_import_list_exclusion: false,
     };
 
     let delete_artist_params = DeleteArtistHandler::new(
