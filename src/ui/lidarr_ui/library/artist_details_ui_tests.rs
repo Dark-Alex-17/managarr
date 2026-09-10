@@ -1,13 +1,20 @@
 #[cfg(test)]
 mod tests {
+  use chrono::{Duration, Utc};
+  use pretty_assertions::assert_eq;
+  use ratatui::widgets::{Cell, Row};
   use strum::IntoEnumIterator;
 
+  use crate::models::lidarr_models::{Album, AlbumStatistics};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ARTIST_OVERVIEW_BLOCKS, ActiveLidarrBlock,
     DELETE_ALBUM_BLOCKS, TRACK_DETAILS_BLOCKS,
   };
   use crate::ui::DrawUi;
-  use crate::ui::lidarr_ui::library::artist_details_ui::ArtistDetailsUi;
+  use crate::ui::lidarr_ui::library::artist_details_ui::{
+    ArtistDetailsUi, decorate_album_row_with_style,
+  };
+  use crate::ui::styles::ManagarrStyle;
 
   #[test]
   fn test_artist_details_ui_accepts() {
@@ -24,6 +31,122 @@ mod tests {
         assert!(!ArtistDetailsUi::accepts(active_lidarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_unmonitored() {
+    let album = Album::default();
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.unmonitored());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_downloaded_when_all_tracks_present() {
+    let album = Album {
+      monitored: true,
+      statistics: Some(AlbumStatistics {
+        track_file_count: 3,
+        total_track_count: 3,
+        ..AlbumStatistics::default()
+      }),
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_unreleased_when_tracks_are_missing_and_release_date_is_future()
+   {
+    let album = Album {
+      monitored: true,
+      release_date: Some(Utc::now() + Duration::days(1)),
+      statistics: Some(AlbumStatistics {
+        track_file_count: 0,
+        total_track_count: 3,
+        ..AlbumStatistics::default()
+      }),
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.unreleased());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_missing_when_tracks_are_missing_and_release_date_has_passed()
+   {
+    let album = Album {
+      monitored: true,
+      release_date: Some(Utc::now() - Duration::days(1)),
+      statistics: Some(AlbumStatistics {
+        track_file_count: 1,
+        total_track_count: 3,
+        ..AlbumStatistics::default()
+      }),
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_missing_when_tracks_are_missing_and_no_release_date() {
+    let album = Album {
+      monitored: true,
+      release_date: None,
+      statistics: Some(AlbumStatistics {
+        track_file_count: 1,
+        total_track_count: 3,
+        ..AlbumStatistics::default()
+      }),
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_missing_when_total_track_count_is_zero() {
+    let album = Album {
+      monitored: true,
+      release_date: Some(Utc::now() - Duration::days(1)),
+      statistics: Some(AlbumStatistics::default()),
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_album_row_with_style_indeterminate_when_no_statistics() {
+    let album = Album {
+      monitored: true,
+      statistics: None,
+      ..Album::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_album_row_with_style(&album, row.clone());
+
+    assert_eq!(style, row.indeterminate());
   }
 
   mod snapshot_tests {

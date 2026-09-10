@@ -288,33 +288,18 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .map_or(0f64, |s| convert_to_gb(s.size_on_disk));
       let duration_mins = album.duration / 60000;
 
-      let row = Row::new(vec![
-        Cell::from(monitored.to_owned()),
-        Cell::from(album.title.to_string()),
-        Cell::from(album_type),
-        Cell::from(track_count),
-        Cell::from(format!("{duration_mins} min")),
-        Cell::from(release_date),
-        Cell::from(format!("{size:.2} GB")),
-      ]);
-
-      if !album.monitored {
-        row.unmonitored()
-      } else if let Some(stats) = album.statistics.as_ref() {
-        if stats.track_file_count == stats.total_track_count && stats.total_track_count > 0 {
-          row.downloaded()
-        } else if let Some(release_date) = album.release_date.as_ref() {
-          if release_date > &Utc::now() {
-            row.unreleased()
-          } else {
-            row.missing()
-          }
-        } else {
-          row.missing()
-        }
-      } else {
-        row.indeterminate()
-      }
+      decorate_album_row_with_style(
+        album,
+        Row::new(vec![
+          Cell::from(monitored.to_owned()),
+          Cell::from(album.title.to_string()),
+          Cell::from(album_type),
+          Cell::from(track_count),
+          Cell::from(format!("{duration_mins} min")),
+          Cell::from(release_date),
+          Cell::from(format!("{size:.2} GB")),
+        ]),
+      )
     };
 
     let is_searching = active_lidarr_block == ActiveLidarrBlock::SearchAlbums;
@@ -347,6 +332,26 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
 
     f.render_widget(album_table, area);
+  }
+}
+
+fn decorate_album_row_with_style<'a>(album: &Album, row: Row<'a>) -> Row<'a> {
+  if !album.monitored {
+    row.unmonitored()
+  } else if let Some(stats) = album.statistics.as_ref() {
+    if stats.track_file_count == stats.total_track_count && stats.total_track_count > 0 {
+      row.downloaded()
+    } else if let Some(release_date) = album.release_date.as_ref() {
+      if release_date > &Utc::now() {
+        row.unreleased()
+      } else {
+        row.missing()
+      }
+    } else {
+      row.missing()
+    }
+  } else {
+    row.indeterminate()
   }
 }
 
