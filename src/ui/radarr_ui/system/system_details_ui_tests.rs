@@ -88,6 +88,21 @@ mod tests {
     }
 
     #[test]
+    fn test_system_details_ui_updates_popup_is_loading_when_updates_are_present() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
+
+      assert!(!app.data.radarr_data.updates.get_text().is_empty());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
     fn test_system_details_ui_renders_updates_loading_when_empty() {
       let mut app = App::test_default_fully_populated();
       app.is_loading = true;
