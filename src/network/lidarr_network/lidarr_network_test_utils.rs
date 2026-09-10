@@ -113,7 +113,7 @@ pub mod test_utils {
       overview: Some(
         "some interesting description of the artist\r\n\
          \r\n\
-         She was born in Madison, Wisconsin: a city she has never really left.\r\n\
+         \tShe was born in Madison, Wisconsin: a city she has never really left. \r\n\
          \r\n\
          Her first album took her seven years to finish.\r\n"
           .to_owned(),

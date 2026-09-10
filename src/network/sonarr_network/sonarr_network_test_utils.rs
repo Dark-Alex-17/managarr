@@ -19,7 +19,7 @@ pub mod test_utils {
         "title": "Test",
         "status": "continuing",
         "ended": false,
-        "overview": "Blah blah blah\r\n\r\nIt was filmed in Madison, Wisconsin: a city the crew never really left.\r\n\r\nThe first season took seven years to finish.\r\n",
+        "overview": "Blah blah blah\r\n\r\n\tIt was filmed in Madison, Wisconsin: a city the crew never really left. \r\n\r\nThe first season took seven years to finish.\r\n",
         "network": "HBO",
         "seasons": [
             {
@@ -322,7 +322,7 @@ pub mod test_utils {
       overview: Some(
         "Blah blah blah\r\n\
          \r\n\
-         It was filmed in Madison, Wisconsin: a city the crew never really left.\r\n\
+         \tIt was filmed in Madison, Wisconsin: a city the crew never really left. \r\n\
          \r\n\
          The first season took seven years to finish.\r\n"
           .to_owned(),

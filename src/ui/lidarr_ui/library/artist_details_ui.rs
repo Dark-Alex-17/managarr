@@ -5,7 +5,6 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::Line;
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
@@ -18,7 +17,8 @@ use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::decorate_peer_style;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
+  borderless_block, collapse_whitespace, get_width_from_percentage, layout_block_top_border,
+  title_block,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
@@ -153,18 +153,12 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .get_by_left(&current_selection.metadata_profile_id)
     .cloned()
     .unwrap_or_default();
-  let overview = Regex::new(r"[\r\n\t]")
-    .unwrap()
-    .replace_all(
-      &deunicode(
-        current_selection
-          .overview
-          .as_ref()
-          .unwrap_or(&String::new()),
-      ),
-      "",
-    )
-    .to_string();
+  let overview = collapse_whitespace(&deunicode(
+    current_selection
+      .overview
+      .as_ref()
+      .unwrap_or(&String::new()),
+  ));
 
   let mut artist_description = vec![
     Line::from(vec![

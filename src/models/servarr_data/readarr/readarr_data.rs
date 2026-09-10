@@ -269,7 +269,7 @@ impl ReadarrData<'_> {
       overview: Some(
         "some interesting description of the author\r\n\
          \r\n\
-         He was born in Madison, Wisconsin: a city he has never really left.\r\n\
+         \tHe was born in Madison, Wisconsin: a city he has never really left. \r\n\
          \r\n\
          His first novel took him seven years to finish.\r\n"
           .to_owned(),

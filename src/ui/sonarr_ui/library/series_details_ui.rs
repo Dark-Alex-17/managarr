@@ -6,7 +6,6 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
@@ -18,7 +17,8 @@ use crate::ui::sonarr_ui::library::series_overview_ui::SeriesOverviewUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
+  borderless_block, collapse_whitespace, get_width_from_percentage, layout_block_top_border,
+  title_block,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
@@ -138,18 +138,12 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .get_by_left(&current_selection.language_profile_id)
     .unwrap()
     .to_owned();
-  let overview = Regex::new(r"[\r\n\t]")
-    .unwrap()
-    .replace_all(
-      &deunicode(
-        current_selection
-          .overview
-          .as_ref()
-          .unwrap_or(&String::new()),
-      ),
-      "",
-    )
-    .to_string();
+  let overview = collapse_whitespace(&deunicode(
+    current_selection
+      .overview
+      .as_ref()
+      .unwrap_or(&String::new()),
+  ));
 
   let mut series_description = vec![
     Line::from(vec![
