@@ -230,16 +230,12 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let content = Some(&mut app.data.sonarr_data.seasons);
     let season_row_mapping = |season: &Season| {
       let Season {
-        title,
-        monitored,
-        statistics,
-        ..
+        title, statistics, ..
       } = season;
       let SeasonStatistics {
         episode_file_count,
         episode_count,
         size_on_disk,
-        next_airing,
         ..
       } = if let Some(stats) = statistics {
         stats
@@ -249,25 +245,15 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let season_monitored = if season.monitored { "🏷" } else { "" };
       let size = convert_to_gb(*size_on_disk);
 
-      let row = Row::new(vec![
-        Cell::from(season_monitored.to_owned()),
-        Cell::from(title.clone().unwrap_or_default()),
-        Cell::from(format!("{episode_file_count}/{episode_count}")),
-        Cell::from(format!("{size:.2} GB")),
-      ]);
-      if !monitored {
-        row.unmonitored()
-      } else if episode_file_count == episode_count {
-        row.downloaded()
-      } else if let Some(next_airing_utc) = next_airing.as_ref() {
-        if next_airing_utc > &Utc::now() {
-          row.unreleased()
-        } else {
-          row.missing()
-        }
-      } else {
-        row.missing()
-      }
+      decorate_season_row_with_style(
+        season,
+        Row::new(vec![
+          Cell::from(season_monitored.to_owned()),
+          Cell::from(title.clone().unwrap_or_default()),
+          Cell::from(format!("{episode_file_count}/{episode_count}")),
+          Cell::from(format!("{size:.2} GB")),
+        ]),
+      )
     };
     let is_searching = active_sonarr_block == ActiveSonarrBlock::SearchSeason;
     let season_table = ManagarrTable::new(content, season_row_mapping)
@@ -288,6 +274,33 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
 
     f.render_widget(season_table, area);
+  }
+}
+
+fn decorate_season_row_with_style<'a>(season: &Season, row: Row<'a>) -> Row<'a> {
+  let SeasonStatistics {
+    episode_file_count,
+    episode_count,
+    next_airing,
+    ..
+  } = if let Some(stats) = &season.statistics {
+    stats
+  } else {
+    &SeasonStatistics::default()
+  };
+
+  if !season.monitored {
+    row.unmonitored()
+  } else if episode_file_count == episode_count {
+    row.downloaded()
+  } else if let Some(next_airing_utc) = next_airing.as_ref() {
+    if next_airing_utc > &Utc::now() {
+      row.unreleased()
+    } else {
+      row.missing()
+    }
+  } else {
+    row.missing()
   }
 }
 

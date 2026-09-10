@@ -1,5 +1,8 @@
 #[cfg(test)]
 mod tests {
+  use chrono::{Duration, Utc};
+  use pretty_assertions::assert_eq;
+  use ratatui::widgets::{Cell, Row};
   use strum::IntoEnumIterator;
 
   use crate::app::App;
@@ -7,8 +10,12 @@ mod tests {
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
     SERIES_OVERVIEW_BLOCKS,
   };
+  use crate::models::sonarr_models::{Season, SeasonStatistics};
   use crate::ui::DrawUi;
-  use crate::ui::sonarr_ui::library::series_details_ui::SeriesDetailsUi;
+  use crate::ui::sonarr_ui::library::series_details_ui::{
+    SeriesDetailsUi, decorate_season_row_with_style,
+  };
+  use crate::ui::styles::ManagarrStyle;
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
@@ -25,6 +32,107 @@ mod tests {
         assert!(!SeriesDetailsUi::accepts(active_sonarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_unmonitored() {
+    let season = Season::default();
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.unmonitored());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_downloaded_when_all_episodes_present() {
+    let season = Season {
+      monitored: true,
+      statistics: Some(SeasonStatistics {
+        episode_file_count: 3,
+        episode_count: 3,
+        ..SeasonStatistics::default()
+      }),
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_downloaded_when_no_statistics() {
+    let season = Season {
+      monitored: true,
+      statistics: None,
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_unreleased_when_episodes_are_missing_and_next_airing_is_future()
+   {
+    let season = Season {
+      monitored: true,
+      statistics: Some(SeasonStatistics {
+        episode_file_count: 0,
+        episode_count: 3,
+        next_airing: Some(Utc::now() + Duration::days(1)),
+        ..SeasonStatistics::default()
+      }),
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.unreleased());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_missing_when_episodes_are_missing_and_next_airing_has_passed()
+   {
+    let season = Season {
+      monitored: true,
+      statistics: Some(SeasonStatistics {
+        episode_file_count: 1,
+        episode_count: 3,
+        next_airing: Some(Utc::now() - Duration::days(1)),
+        ..SeasonStatistics::default()
+      }),
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_missing_when_episodes_are_missing_and_no_next_airing() {
+    let season = Season {
+      monitored: true,
+      statistics: Some(SeasonStatistics {
+        episode_file_count: 1,
+        episode_count: 3,
+        next_airing: None,
+        ..SeasonStatistics::default()
+      }),
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.missing());
   }
 
   mod snapshot_tests {
