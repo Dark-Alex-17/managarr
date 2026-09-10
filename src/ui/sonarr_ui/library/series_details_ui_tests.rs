@@ -63,20 +63,6 @@ mod tests {
   }
 
   #[test]
-  fn test_decorate_season_row_with_style_downloaded_when_no_statistics() {
-    let season = Season {
-      monitored: true,
-      statistics: None,
-      ..Season::default()
-    };
-    let row = Row::new(vec![Cell::from("test".to_owned())]);
-
-    let style = decorate_season_row_with_style(&season, row.clone());
-
-    assert_eq!(style, row.downloaded());
-  }
-
-  #[test]
   fn test_decorate_season_row_with_style_unreleased_when_episodes_are_missing_and_next_airing_is_future()
    {
     let season = Season {
@@ -133,6 +119,37 @@ mod tests {
     let style = decorate_season_row_with_style(&season, row.clone());
 
     assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_missing_when_episode_count_is_zero() {
+    let season = Season {
+      monitored: true,
+      statistics: Some(SeasonStatistics {
+        next_airing: Some(Utc::now() - Duration::days(1)),
+        ..SeasonStatistics::default()
+      }),
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_season_row_with_style_indeterminate_when_no_statistics() {
+    let season = Season {
+      monitored: true,
+      statistics: None,
+      ..Season::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_season_row_with_style(&season, row.clone());
+
+    assert_eq!(style, row.indeterminate());
   }
 
   mod snapshot_tests {

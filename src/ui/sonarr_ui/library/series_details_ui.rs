@@ -278,29 +278,22 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn decorate_season_row_with_style<'a>(season: &Season, row: Row<'a>) -> Row<'a> {
-  let SeasonStatistics {
-    episode_file_count,
-    episode_count,
-    next_airing,
-    ..
-  } = if let Some(stats) = &season.statistics {
-    stats
-  } else {
-    &SeasonStatistics::default()
-  };
-
   if !season.monitored {
     row.unmonitored()
-  } else if episode_file_count == episode_count {
-    row.downloaded()
-  } else if let Some(next_airing_utc) = next_airing.as_ref() {
-    if next_airing_utc > &Utc::now() {
-      row.unreleased()
+  } else if let Some(stats) = season.statistics.as_ref() {
+    if stats.episode_file_count == stats.episode_count && stats.episode_count > 0 {
+      row.downloaded()
+    } else if let Some(next_airing) = stats.next_airing.as_ref() {
+      if next_airing > &Utc::now() {
+        row.unreleased()
+      } else {
+        row.missing()
+      }
     } else {
       row.missing()
     }
   } else {
-    row.missing()
+    row.indeterminate()
   }
 }
 
