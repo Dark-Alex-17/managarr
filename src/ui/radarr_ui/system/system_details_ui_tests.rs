@@ -88,7 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn test_system_details_ui_updates_popup_is_loading_when_updates_are_present() {
+    fn test_system_details_ui_renders_updates_loading_when_updates_are_present() {
       let mut app = App::test_default_fully_populated();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
