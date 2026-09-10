@@ -19,7 +19,7 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                 ╭────────────────────  Update and Scan  ────────────────────╮                                            │        
-        │Tracks: 15/15                             │  Do you want to trigger an update and disk scan for the   │                                            │        
+        │Tracks: 12/15                             │  Do you want to trigger an update and disk scan for the   │                                            │        
         │╭  Artist Details  ───────────────────────│                       artist: Alex?                       │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        

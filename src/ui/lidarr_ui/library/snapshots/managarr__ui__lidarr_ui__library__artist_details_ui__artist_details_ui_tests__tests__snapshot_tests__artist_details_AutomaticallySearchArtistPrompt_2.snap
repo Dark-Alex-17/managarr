@@ -19,7 +19,7 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                 ╭────────────────  Automatic Artist Search  ────────────────╮                                            │        
-        │Tracks: 15/15                             │Do you want to trigger an automatic search of your indexers│                                            │        
+        │Tracks: 12/15                             │Do you want to trigger an automatic search of your indexers│                                            │        
         │╭  Artist Details  ───────────────────────│     for all monitored album(s) for the artist: Alex?      │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        

@@ -50,7 +50,7 @@ pub mod test_utils {
     "ratings": { "votes": 15, "value": 8.4 },
     "statistics": {
       "albumCount": 1,
-      "trackFileCount": 15,
+      "trackFileCount": 12,
       "trackCount": 15,
       "totalTrackCount": 15,
       "sizeOnDisk": 12345,
@@ -71,7 +71,7 @@ pub mod test_utils {
 			"ratings": {"votes": 15, "value": 8.4},
 			"releaseDate": "2023-01-01T00:00:00Z",
 			"statistics": {
-				"trackFileCount": 10,
+				"trackFileCount": 8,
 				"trackCount": 10,
 				"totalTrackCount": 10,
 				"sizeOnDisk": 1024,
@@ -96,7 +96,7 @@ pub mod test_utils {
   pub fn artist_statistics() -> ArtistStatistics {
     ArtistStatistics {
       album_count: 1,
-      track_file_count: 15,
+      track_file_count: 12,
       track_count: 15,
       total_track_count: 15,
       size_on_disk: 12345,
@@ -247,7 +247,7 @@ pub mod test_utils {
 
   pub fn album_statistics() -> AlbumStatistics {
     AlbumStatistics {
-      track_file_count: 10,
+      track_file_count: 8,
       track_count: 10,
       total_track_count: 10,
       size_on_disk: 1024,

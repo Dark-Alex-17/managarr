@@ -338,7 +338,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
         DateTime::parse_from_rfc3339("2022-10-24T01:00:00Z").unwrap(),
       )),
       next_airing: None,
-      episode_file_count: 10,
+      episode_file_count: 7,
       episode_count: 10,
       total_episode_count: 10,
       size_on_disk: 36708563419,

@@ -19,7 +19,7 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                           ╭─────────────────  Download Rejected Release  ──────────────────╮                                        │        
         │Albums: 1                                │    Do you really want to download the rejected release: Test   │                                        │        
-        │Tracks: 15/15                            │                            Release?                            │                                        │        
+        │Tracks: 12/15                            │                            Release?                            │                                        │        
         │╭  Artist Details  ──────────────────────│                                                                │───────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search       │                                                                │                                       ││        
         ││────────────────────────────────────────│Rejection reasons:                                              │───────────────────────────────────────││        

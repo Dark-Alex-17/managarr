@@ -112,7 +112,7 @@ mod tests {
           "ratings": { "votes": 15, "value": 8.4 },
           "statistics": {
             "albumCount": 1,
-            "trackFileCount": 15,
+            "trackFileCount": 12,
             "trackCount": 15,
             "totalTrackCount": 15,
             "sizeOnDisk": 12345,
@@ -151,7 +151,7 @@ mod tests {
           "ratings": { "votes": 15, "value": 8.4 },
           "statistics": {
             "albumCount": 1,
-            "trackFileCount": 15,
+            "trackFileCount": 12,
             "trackCount": 15,
             "totalTrackCount": 15,
             "sizeOnDisk": 12345,
@@ -263,7 +263,7 @@ mod tests {
           "ratings": { "votes": 15, "value": 8.4 },
           "statistics": {
             "albumCount": 1,
-            "trackFileCount": 15,
+            "trackFileCount": 12,
             "trackCount": 15,
             "totalTrackCount": 15,
             "sizeOnDisk": 12345,
@@ -301,7 +301,7 @@ mod tests {
           "ratings": { "votes": 15, "value": 8.4 },
           "statistics": {
             "albumCount": 1,
-            "trackFileCount": 15,
+            "trackFileCount": 12,
             "trackCount": 15,
             "totalTrackCount": 15,
             "sizeOnDisk": 12345,

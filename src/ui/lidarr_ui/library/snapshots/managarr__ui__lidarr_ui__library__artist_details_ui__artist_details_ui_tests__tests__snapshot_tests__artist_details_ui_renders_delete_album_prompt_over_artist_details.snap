@@ -19,7 +19,7 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                 ╭─────────────────────  Delete Album  ──────────────────────╮                                            │        
-        │Tracks: 15/15                             │         Do you really want to delete the album:           │                                            │        
+        │Tracks: 12/15                             │         Do you really want to delete the album:           │                                            │        
         │╭  Artist Details  ───────────────────────│                        Test Album?                        │───────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        

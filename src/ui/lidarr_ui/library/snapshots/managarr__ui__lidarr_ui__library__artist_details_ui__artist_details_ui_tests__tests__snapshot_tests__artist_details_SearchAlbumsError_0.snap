@@ -19,12 +19,12 @@ expression: output
         │Metadata Profile: Standard                                                                                                                         │        
         │Monitored: Yes                                                                                                                                     │        
         │Albums: 1                                                                                                                                          │        
-        │Tracks: 15/15                                                                                                                                      │        
+        │Tracks: 12/15                                                                                                                                      │        
         │╭  Artist Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
         ││ Albums │ History │ Manual Search                                                                                                                ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
         ││   Monitored  Title                                        Type           Tracks         Duration       Release Date        Size                 ││        
-        ││=> 🏷          Test Album                                   Album          10/10          0 min          2023-01-01          0.00 GB              ││        
+        ││=> 🏷          Test Album                                   Album          8/10           0 min          2023-01-01          0.00 GB              ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
