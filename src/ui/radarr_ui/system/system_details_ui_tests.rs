@@ -24,6 +24,7 @@ mod tests {
 
   mod snapshot_tests {
     use super::*;
+    use crate::models::ScrollableText;
     use rstest::rstest;
 
     #[rstest]
@@ -78,6 +79,20 @@ mod tests {
       let mut app = App::test_default_fully_populated();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_details_ui_renders_updates_loading_when_empty() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
+      app.data.radarr_data.updates = ScrollableText::with_string("".to_string());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
