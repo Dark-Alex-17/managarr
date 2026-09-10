@@ -29,6 +29,9 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+
     use super::*;
 
     #[test]
@@ -113,6 +116,20 @@ mod tests {
     fn test_indexers_ui_renders_delete_indexer_prompt() {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_indexer_settings_over_indexers() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         IndexersUi::draw(f, app, f.area());
