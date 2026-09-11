@@ -413,6 +413,7 @@ pub struct ReadarrHistoryItem {
   #[serde(default)]
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: ReadarrHistoryEventType,
   #[serde(default)]
   pub data: ReadarrHistoryData,

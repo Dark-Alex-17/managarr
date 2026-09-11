@@ -499,6 +499,7 @@ pub struct SonarrHistoryItem {
   pub quality: QualityWrapper,
   pub languages: Vec<Option<Language>>,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,
 }

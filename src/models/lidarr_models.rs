@@ -404,6 +404,7 @@ pub struct LidarrHistoryItem {
   #[serde(default)]
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: LidarrHistoryEventType,
   #[serde(default)]
   pub data: LidarrHistoryData,

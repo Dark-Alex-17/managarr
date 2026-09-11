@@ -11,7 +11,7 @@ use radarr_models::RadarrSerdeable;
 use readarr_models::ReadarrSerdeable;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
-use serde_json::Number;
+use serde_json::{Number, Value};
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
 
@@ -440,6 +440,15 @@ where
   num.as_f64().ok_or(de::Error::custom(format!(
     "Unable to convert Number to f64: {num:?}"
   )))
+}
+
+pub fn from_json_or_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+  D: Deserializer<'de>,
+  T: Deserialize<'de> + Default,
+{
+  let value: Value = Deserialize::deserialize(deserializer)?;
+  Ok(T::deserialize(value).unwrap_or_default())
 }
 
 pub fn strip_non_search_characters(input: &str) -> String {

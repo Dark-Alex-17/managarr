@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde_json::{Value, json};
 
   use crate::models::radarr_models::{
     RadarrHistoryEventType, RadarrHistoryItem, RadarrHistoryWrapper,
@@ -123,6 +123,102 @@ mod tests {
     assert_str_eq!(
       RadarrHistoryEventType::DownloadIgnored.to_display_str(),
       "Download Ignored"
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      RadarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFolderImported")),
+      RadarrHistoryEventType::DownloadFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      RadarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileDeleted")),
+      RadarrHistoryEventType::MovieFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFolderImported")),
+      RadarrHistoryEventType::MovieFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileRenamed")),
+      RadarrHistoryEventType::MovieFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      RadarrHistoryEventType::DownloadIgnored
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileImportFailed")),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      RadarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadFolderImported),
+      "downloadFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFileDeleted),
+      "movieFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFolderImported),
+      "movieFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFileRenamed),
+      "movieFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
     );
   }
 
@@ -516,5 +612,33 @@ mod tests {
       radarr_serdeable,
       RadarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> RadarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "sourceTitle": "Test Source Title",
+      "movieId": 1,
+      "quality": { "quality": { "name": "HD - 1080p" } },
+      "languages": [],
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type
+    });
+
+    serde_json::from_value::<RadarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: RadarrHistoryEventType) -> String {
+    let history_item = RadarrHistoryItem {
+      event_type,
+      ..RadarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }

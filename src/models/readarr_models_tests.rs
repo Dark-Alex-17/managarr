@@ -2,7 +2,7 @@
 mod tests {
   use chrono::Utc;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde_json::{Value, json};
 
   use crate::models::readarr_models::{
     AddAuthorSearchResult, BlocklistItem, BlocklistResponse, Book, BookFile, DownloadRecord,
@@ -759,6 +759,126 @@ mod tests {
   }
 
   #[test]
+  fn test_readarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      ReadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      ReadarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("authorFolderImported")),
+      ReadarrHistoryEventType::AuthorFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("bookImportIncomplete")),
+      ReadarrHistoryEventType::BookImportIncomplete
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      ReadarrHistoryEventType::DownloadIgnored
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadImported")),
+      ReadarrHistoryEventType::DownloadImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      ReadarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("bookFileDeleted")),
+      ReadarrHistoryEventType::BookFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("bookFileImported")),
+      ReadarrHistoryEventType::BookFileImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("bookFileRenamed")),
+      ReadarrHistoryEventType::BookFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("bookFileRetagged")),
+      ReadarrHistoryEventType::BookFileRetagged
+    );
+  }
+
+  #[test]
+  fn test_readarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("bookImportPartiallyComplete")),
+      ReadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      ReadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      ReadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      ReadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      ReadarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_readarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::AuthorFolderImported),
+      "authorFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::BookImportIncomplete),
+      "bookImportIncomplete"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::DownloadImported),
+      "downloadImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::BookFileDeleted),
+      "bookFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::BookFileImported),
+      "bookFileImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::BookFileRenamed),
+      "bookFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(ReadarrHistoryEventType::BookFileRetagged),
+      "bookFileRetagged"
+    );
+  }
+
+  #[test]
   fn test_readarr_task_name_display() {
     assert_str_eq!(
       ReadarrTaskName::ApplicationUpdateCheck.to_string(),
@@ -1018,5 +1138,32 @@ mod tests {
     assert_none!(&search_result.disambiguation);
     assert!(search_result.genres.is_empty());
     assert_none!(&search_result.ratings);
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> ReadarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "authorId": 1,
+      "bookId": 1,
+      "sourceTitle": "Test Source Title",
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type
+    });
+
+    serde_json::from_value::<ReadarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: ReadarrHistoryEventType) -> String {
+    let history_item = ReadarrHistoryItem {
+      event_type,
+      ..ReadarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }

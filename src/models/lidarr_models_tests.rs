@@ -2,7 +2,7 @@
 mod tests {
   use chrono::Utc;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde_json::{Value, json};
 
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord,
@@ -774,6 +774,126 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      LidarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      LidarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("artistFolderImported")),
+      LidarrHistoryEventType::ArtistFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("albumImportIncomplete")),
+      LidarrHistoryEventType::AlbumImportIncomplete
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      LidarrHistoryEventType::DownloadIgnored
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadImported")),
+      LidarrHistoryEventType::DownloadImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      LidarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("trackFileDeleted")),
+      LidarrHistoryEventType::TrackFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("trackFileImported")),
+      LidarrHistoryEventType::TrackFileImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("trackFileRenamed")),
+      LidarrHistoryEventType::TrackFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("trackFileRetagged")),
+      LidarrHistoryEventType::TrackFileRetagged
+    );
+  }
+
+  #[test]
+  fn test_lidarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("albumImportPartiallyComplete")),
+      LidarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      LidarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      LidarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      LidarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      LidarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_lidarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::ArtistFolderImported),
+      "artistFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::AlbumImportIncomplete),
+      "albumImportIncomplete"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::DownloadImported),
+      "downloadImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::TrackFileDeleted),
+      "trackFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::TrackFileImported),
+      "trackFileImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::TrackFileRenamed),
+      "trackFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(LidarrHistoryEventType::TrackFileRetagged),
+      "trackFileRetagged"
+    );
+  }
+
+  #[test]
   fn test_add_artist_search_result_deserialization() {
     let search_result_json = json!({
       "foreignArtistId": "test-foreign-id",
@@ -824,5 +944,33 @@ mod tests {
     assert_none!(&search_result.disambiguation);
     assert!(search_result.genres.is_empty());
     assert_none!(&search_result.ratings);
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> LidarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "sourceTitle": "Test Source Title",
+      "albumId": 1,
+      "artistId": 1,
+      "trackId": 1,
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type
+    });
+
+    serde_json::from_value::<LidarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: LidarrHistoryEventType) -> String {
+    let history_item = LidarrHistoryItem {
+      event_type,
+      ..LidarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }

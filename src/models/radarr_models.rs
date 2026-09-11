@@ -459,6 +459,7 @@ pub struct RadarrHistoryItem {
   pub quality: QualityWrapper,
   pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: RadarrHistoryEventType,
   #[serde(default)]
   pub data: RadarrHistoryData,

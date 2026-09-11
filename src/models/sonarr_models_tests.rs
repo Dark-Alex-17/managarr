@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde_json::{Value, json};
 
   use crate::models::{
     Serdeable,
@@ -210,6 +210,102 @@ mod tests {
     assert_str_eq!(
       SonarrHistoryEventType::DownloadIgnored.to_display_str(),
       "Download Ignored",
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      SonarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("seriesFolderImported")),
+      SonarrHistoryEventType::SeriesFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFolderImported")),
+      SonarrHistoryEventType::DownloadFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      SonarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileDeleted")),
+      SonarrHistoryEventType::EpisodeFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileRenamed")),
+      SonarrHistoryEventType::EpisodeFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      SonarrHistoryEventType::DownloadIgnored
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileImportFailed")),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      SonarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::SeriesFolderImported),
+      "seriesFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadFolderImported),
+      "downloadFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::EpisodeFileDeleted),
+      "episodeFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::EpisodeFileRenamed),
+      "episodeFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
     );
   }
 
@@ -600,5 +696,34 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> SonarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "sourceTitle": "Test Source Title",
+      "episodeId": 1,
+      "quality": { "quality": { "name": "HDTV - 1080p" } },
+      "languages": [],
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type,
+      "data": {}
+    });
+
+    serde_json::from_value::<SonarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: SonarrHistoryEventType) -> String {
+    let history_item = SonarrHistoryItem {
+      event_type,
+      ..SonarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }
