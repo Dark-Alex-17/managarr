@@ -1020,14 +1020,52 @@ mod tests {
     #[case] initial_monitored: bool,
     #[case] expected_monitored: bool,
   ) {
+    let editions_json = json!([
+      {
+        "id": 2,
+        "bookId": 1,
+        "foreignEditionId": "test-foreign-edition-id-2",
+        "monitored": false,
+        "isEbook": false,
+        "title": "Second Edition",
+        "language": "eng",
+        "overview": "the second edition",
+        "format": "Hardcover",
+        "publisher": "Second Publisher",
+        "pageCount": 128,
+        "releaseDate": "2023-02-01T00:00:00Z",
+        "isbn13": "9780000000002",
+        "asin": "B000000002",
+        "ratings": { "votes": 15, "value": 8.4, "popularity": 1.2 }
+      },
+      serde_json::from_str::<Value>(EDITION_JSON).unwrap()
+    ]);
     let mut book_json: Value = serde_json::from_str(BOOK_JSON).unwrap();
     *book_json.get_mut("monitored").unwrap() = json!(initial_monitored);
     let mut expected_body = book_json.clone();
     *expected_body.get_mut("monitored").unwrap() = json!(expected_monitored);
+    expected_body
+      .as_object_mut()
+      .unwrap()
+      .insert("editions".to_owned(), editions_json.clone());
     let (async_details_server, app, mut server) = MockServarrApi::get()
       .returns(book_json)
       .path("/1")
       .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    let async_editions_server = server
+      .mock(
+        "GET",
+        format!(
+          "/api/v1{}?bookId=1",
+          ReadarrEvent::GetBookEditions(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .with_body(editions_json.to_string())
+      .create_async()
       .await;
     let async_toggle_server = server
       .mock(
@@ -1051,8 +1089,10 @@ mod tests {
       .await;
 
     async_details_server.assert_async().await;
+    async_editions_server.assert_async().await;
     async_toggle_server.assert_async().await;
     assert_ok!(result);
+    assert_none!(app.lock().await.data.readarr_data.book_details_modal);
   }
 
   #[tokio::test]
@@ -1062,6 +1102,20 @@ mod tests {
       .status(404)
       .path("/1")
       .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    let async_editions_server = server
+      .mock(
+        "GET",
+        format!(
+          "/api/v1{}?bookId=1",
+          ReadarrEvent::GetBookEditions(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .expect(0)
+      .create_async()
       .await;
     let async_toggle_server = server
       .mock(
@@ -1085,6 +1139,55 @@ mod tests {
       .await;
 
     async_details_server.assert_async().await;
+    async_editions_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+    assert_err!(result);
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_book_monitoring_event_editions_failure() {
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(BOOK_JSON).unwrap())
+      .path("/1")
+      .build_for(ReadarrEvent::GetBookDetails(1))
+      .await;
+    let async_editions_server = server
+      .mock(
+        "GET",
+        format!(
+          "/api/v1{}?bookId=1",
+          ReadarrEvent::GetBookEditions(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(404)
+      .match_header("X-Api-Key", "test1234")
+      .with_body(json!([serde_json::from_str::<Value>(EDITION_JSON).unwrap()]).to_string())
+      .create_async()
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          ReadarrEvent::ToggleBookMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .expect(0)
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(3);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::ToggleBookMonitoring(1))
+      .await;
+
+    async_details_server.assert_async().await;
+    async_editions_server.assert_async().await;
     async_toggle_server.assert_async().await;
     assert_err!(result);
   }

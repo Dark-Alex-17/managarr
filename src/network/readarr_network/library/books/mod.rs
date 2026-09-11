@@ -275,10 +275,34 @@ impl Network<'_, '_> {
       })
       .await?;
 
+    info!("Fetching book editions for book with ID: {book_id}");
+
+    let editions_event = ReadarrEvent::GetBookEditions(book_id);
+    let request_props = self
+      .request_props_from(
+        editions_event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("bookId={book_id}")),
+      )
+      .await;
+
+    let mut editions_response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |editions_body, _| {
+        editions_response = editions_body.to_string()
+      })
+      .await?;
+
     info!("Constructing toggle book monitoring body");
 
-    match serde_json::from_str::<Value>(&response) {
-      Ok(mut detailed_book_body) => {
+    match (
+      serde_json::from_str::<Value>(&response),
+      serde_json::from_str::<Value>(&editions_response),
+    ) {
+      (Ok(mut detailed_book_body), Ok(editions)) => {
         let monitored = detailed_book_body
           .get("monitored")
           .unwrap()
@@ -286,6 +310,10 @@ impl Network<'_, '_> {
           .unwrap();
 
         *detailed_book_body.get_mut("monitored").unwrap() = json!(!monitored);
+        detailed_book_body
+          .as_object_mut()
+          .unwrap()
+          .insert("editions".to_owned(), editions);
 
         debug!("Toggle book monitoring body: {detailed_book_body:?}");
 
@@ -303,8 +331,8 @@ impl Network<'_, '_> {
           .handle_request::<Value, ()>(request_props, |_, _| ())
           .await
       }
-      Err(_) => {
-        warn!("Request for detailed book body was interrupted");
+      _ => {
+        warn!("Request for detailed book body or book editions was interrupted");
         Ok(())
       }
     }
