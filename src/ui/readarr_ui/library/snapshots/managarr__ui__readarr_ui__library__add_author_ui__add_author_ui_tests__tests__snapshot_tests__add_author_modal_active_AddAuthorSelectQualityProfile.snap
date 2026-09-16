@@ -9,21 +9,19 @@ expression: output
                                                                                                                                                                      
                                                                                                                                                                      
                             ╭────────────────────────────────  Add - Test Author (American novelist)  ────────────────────────────────╮                              
-                     ╭──────│                                                                                                         │───────╮                      
-                     │Test A│                                                                                                         │       │                      
-                     ╰──────│                                                                                                         │───────╯                      
-                     ╭──────│                                                                                                         │───────╮                      
-                     │   ✔  │                                                                                                         │       │                      
-                     │=> ✔  │                                                                                                         │       │                      
-                     │      │                                                                                                         │       │                      
-                     │      │                                                                                                         │       │                      
+                     ╭──────│   Test Author is an American novelist whose science fiction has been translated into more than thirty   │───────╮                      
+                     │Test A│languages. Born in a small river town, the author spent a decade as a marine biologist before turning to │       │                      
+                     ╰──────│  fiction, and the sea remains a constant presence in the work. The debut novel won several awards and   │───────╯                      
+                     ╭──────│ introduced the sprawling shared universe that later books would return to again and again. Critics have │───────╮                      
+                     │   ✔  │  praised the meticulous world building and the quiet, humane attention to ordinary people caught up in  │       │                      
+                     │=> ✔  │extraordinary events. The author also writes essays on the history of science, teaches an annual writing │       │                      
                      │      │                                                  ╭─────────────────────────────────────────────────╮    │       │                      
                      │      │                                     Root Folder: │/nfs                                           ▼ │    │       │                      
                      │      │                                                  ╰─────────────────────────────────────────────────╯    │       │                      
-                     │      │                                     ╭───────────────────────────────╮──────────────────────────────╮    │       │                      
-                     │      │                                     │eBook                          │                            ▼ │    │       │                      
-                     │      │                                     │                               │──────────────────────────────╯    │       │                      
-                     │      │                                     │                               │──────────────────────────────╮    │       │                      
+                     │      │                                                  ╭─────────────────────────────────────────────────╮    │       │                      
+                     │      │                                         Monitor: │All Books                                      ▼ │    │       │                      
+                     │      │                                     ╭───────────────────────────────╮──────────────────────────────╯    │       │                      
+                     │      │                                     │eBook                          │──────────────────────────────╮    │       │                      
                      │      │                               Monito│                               │                            ▼ │    │       │                      
                      │      │                                     │                               │──────────────────────────────╯    │       │                      
                      │      │                                     │                               │──────────────────────────────╮    │       │                      
@@ -34,7 +32,9 @@ expression: output
                      │      │                                     │                               │──────────────────────────────╯    │       │                      
                      │      │                                     │                               │──────────────────────────────╮    │       │                      
                      │      │                                     │                               │                              │    │       │                      
-                     │      │                                     ╰───────────────────────────────╯──────────────────────────────╯    │       │                      
+                     │      │                                     │                               │──────────────────────────────╯    │       │                      
+                     │      │                                     │                               │                                   │       │                      
+                     │      │                                     ╰───────────────────────────────╯                                   │       │                      
                      │      │                                                                                                         │       │                      
                      │      │                                                                                                         │       │                      
                      │      │                                                                                                         │       │                      

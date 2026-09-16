@@ -11,7 +11,9 @@ use crate::models::servarr_data::readarr::modals::AddAuthorModal;
 use crate::models::servarr_data::readarr::readarr_data::{ADD_AUTHOR_BLOCKS, ActiveReadarrBlock};
 use crate::render_selectable_input_box;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{get_width_from_percentage, layout_block, title_block_centered};
+use crate::ui::utils::{
+  get_width_from_percentage, layout_block, layout_paragraph_borderless, title_block_centered,
+};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
@@ -259,6 +261,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let author_disambiguation = searched_author.disambiguation.clone().unwrap_or_default();
 
   let title = build_add_author_prompt_title(author_name, &author_disambiguation);
+  let prompt = searched_author.overview.clone().unwrap_or_default();
   let yes_no_value = app.data.readarr_data.prompt_confirm;
   let selected_block = app.data.readarr_data.selected_block.get_active_block();
   let highlights = add_author_prompt_highlights(selected_block);
@@ -286,7 +289,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   f.render_widget(title_block_centered(&title), area);
 
   let [
-    _,
+    paragraph_area,
     root_folder_area,
     monitor_area,
     monitor_new_items_area,
@@ -296,7 +299,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     _,
     buttons_area,
   ] = Layout::vertical([
-    Constraint::Fill(1),
+    Constraint::Length(6),
     Constraint::Length(3),
     Constraint::Length(3),
     Constraint::Length(3),
@@ -308,6 +311,9 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ])
   .margin(1)
   .areas(area);
+
+  let prompt_paragraph = layout_paragraph_borderless(&prompt);
+  f.render_widget(prompt_paragraph, paragraph_area);
 
   let [add_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])

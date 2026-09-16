@@ -388,7 +388,19 @@ impl ReadarrData<'_> {
       foreign_author_id: "test-foreign-id".to_owned(),
       author_name: "Test Author".into(),
       status: AuthorStatus::Continuing,
-      overview: Some("some interesting description of the author".to_owned()),
+      overview: Some(
+        "Test Author is an American novelist whose science fiction has been translated into more \
+         than thirty languages. Born in a small river town, the author spent a decade as a marine \
+         biologist before turning to fiction, and the sea remains a constant presence in the work. \
+         The debut novel won several awards and introduced the sprawling shared universe that later \
+         books would return to again and again. Critics have praised the meticulous world building \
+         and the quiet, humane attention to ordinary people caught up in extraordinary events. The \
+         author also writes essays on the history of science, teaches an annual writing workshop, \
+         and lives with a large and opinionated cat. A new trilogy is currently in progress and is \
+         expected to conclude the long running saga that began with the first book. The final \
+         volume has already been announced for next year."
+          .to_owned(),
+      ),
       author_type: Some("Person".to_owned()),
       disambiguation: Some("American novelist".to_owned()),
       ratings: Some(Ratings {

@@ -275,6 +275,45 @@ mod tests {
     }
 
     #[test]
+    fn test_add_author_modal_ui_renders_the_selected_author_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AddAuthorPrompt.into());
+      seed_distinct_profile_lists(&mut app);
+      app.data.readarr_data.selected_block = BlockSelectionState::new(ADD_AUTHOR_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AddAuthorUi::draw(f, app, f.area());
+      });
+
+      assert_contains!(output, "Test Author is an American novelist");
+      assert_not_contains!(output, "announced for next year");
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_add_author_modal_ui_renders_an_author_with_no_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveReadarrBlock::AddAuthorPrompt.into());
+      seed_distinct_profile_lists(&mut app);
+      app.data.readarr_data.selected_block = BlockSelectionState::new(ADD_AUTHOR_SELECTION_BLOCKS);
+      app
+        .data
+        .readarr_data
+        .add_searched_authors
+        .as_mut()
+        .expect("add_searched_authors must be populated")
+        .items[0]
+        .overview = None;
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AddAuthorUi::draw(f, app, f.area());
+      });
+
+      assert_not_contains!(output, "Test Author is an American novelist");
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
     fn test_add_author_already_in_library_ui_renders() {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveReadarrBlock::AddAuthorAlreadyInLibrary.into());
