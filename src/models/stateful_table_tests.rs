@@ -240,6 +240,59 @@ mod tests {
   }
 
   #[test]
+  fn test_stateful_table_pagination_on_single_item_table_performs_no_op() {
+    let mut stateful_table: StatefulTable<String> = StatefulTable::default();
+    stateful_table.set_items(vec!["Test 1".to_owned()]);
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+  }
+
+  #[test]
+  fn test_stateful_table_filtered_pagination_on_single_item_table_performs_no_op() {
+    let mut filtered_stateful_table: StatefulTable<String> = StatefulTable::default();
+    filtered_stateful_table.set_filtered_items(vec!["Test 1".to_owned()]);
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+
+    filtered_stateful_table.page_down();
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+
+    filtered_stateful_table.page_up();
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+  }
+
+  #[test]
   fn test_stateful_table_pagination() {
     let mut stateful_table = StatefulTable::default();
     let mut curr = 0;

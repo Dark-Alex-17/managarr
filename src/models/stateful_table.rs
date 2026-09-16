@@ -100,7 +100,7 @@ where
 {
   fn page_down(&mut self) {
     let items_len = self.active_items().len();
-    if items_len == 0 {
+    if items_len <= 1 {
       return;
     }
 
@@ -113,7 +113,7 @@ where
 
   fn page_up(&mut self) {
     let items_len = self.active_items().len();
-    if items_len == 0 {
+    if items_len <= 1 {
       return;
     }
 
