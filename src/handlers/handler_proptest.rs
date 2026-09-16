@@ -3,7 +3,9 @@ mod property_tests {
   use proptest::prelude::*;
 
   use crate::app::App;
-  use crate::handlers::handler_test_utils::test_utils::proptest_helpers::*;
+  use crate::handlers::handler_test_utils::test_utils::proptest_helpers::{
+    list_size, text_input_string,
+  };
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
@@ -16,11 +18,12 @@ mod property_tests {
       index in 0usize..1000
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
 
@@ -39,11 +42,12 @@ mod property_tests {
       scroll_amount in 0usize..20
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
       let initial_id = table.current_selection().id;
@@ -76,7 +80,7 @@ mod property_tests {
       let mut app = App::test_default();
       let initial_route = app.get_current_route();
 
-      let routes = vec![
+      let routes = [
         ActiveRadarrBlock::Movies,
         ActiveRadarrBlock::Collections,
         ActiveRadarrBlock::Downloads,
@@ -111,15 +115,16 @@ mod property_tests {
 
     #[test]
     fn test_table_data_integrity(
-      list_size in 1usize..100
+      list_size in list_size()
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie.title = format!("Movie {}", i).into();
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          title: format!("Movie {i}").into(),
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies.clone());
       let original_count = table.items.len();
@@ -137,11 +142,12 @@ mod property_tests {
       page_ops in 0usize..10
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
 
@@ -164,12 +170,13 @@ mod property_tests {
       filter_term in text_input_string()
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie.title = format!("Test Movie {}", i % 10).into();
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          title: format!("Test Movie {}", i % 10).into(),
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies.clone());
       let original_size = table.items.len();

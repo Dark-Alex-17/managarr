@@ -27,6 +27,9 @@ mod sonarr_handlers;
 mod handlers_tests;
 
 #[cfg(test)]
+mod handler_proptest;
+
+#[cfg(test)]
 #[path = "handler_test_utils.rs"]
 pub mod handler_test_utils;
 mod table_handler;

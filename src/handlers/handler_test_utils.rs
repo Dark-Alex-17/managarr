@@ -1,6 +1,6 @@
 #[cfg(test)]
 #[macro_use]
-mod test_utils {
+pub mod test_utils {
   #[macro_export]
   macro_rules! simple_stateful_iterable_vec {
     ($name:ident) => {
@@ -410,5 +410,17 @@ mod test_utils {
         "Expected route after popping navigation stack"
       );
     };
+  }
+
+  pub mod proptest_helpers {
+    use proptest::prelude::*;
+
+    pub fn list_size() -> impl Strategy<Value = usize> {
+      1usize..100
+    }
+
+    pub fn text_input_string() -> impl Strategy<Value = String> {
+      "\\PC{0,50}"
+    }
   }
 }
