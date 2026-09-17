@@ -1,6 +1,8 @@
 use crate::app::App;
 use crate::models::Route;
-use crate::models::lidarr_models::{LidarrHistoryItem, LidarrRelease, Track};
+use crate::models::lidarr_models::{
+  DownloadRecord, DownloadStatus, LidarrHistoryItem, LidarrRelease, Track,
+};
 use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::track_details_ui::TrackDetailsUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
@@ -150,6 +152,7 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .expect("Album details modal is unpopulated")
         .tracks,
     );
+    let downloads_vec = &app.data.lidarr_data.downloads.items;
 
     let track_row_mapping = |track: &Track| {
       let Track {
@@ -187,6 +190,7 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let duration_str = format!("{mins}:{secs:02}");
 
       decorate_track_row_with_style(
+        downloads_vec,
         track,
         Row::new(vec![
           Cell::from(track_number.clone()),
@@ -221,12 +225,35 @@ fn draw_tracks_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn decorate_track_row_with_style<'a>(track: &Track, row: Row<'a>) -> Row<'a> {
-  if track.has_file {
-    row.downloaded()
-  } else {
-    row.missing()
+fn decorate_track_row_with_style<'a>(
+  downloads_vec: &[DownloadRecord],
+  track: &Track,
+  row: Row<'a>,
+) -> Row<'a> {
+  if !track.has_file {
+    let default_album_id = Number::from(-1i64);
+    if let Some(download) = downloads_vec.iter().find(|&download| {
+      download
+        .album_id
+        .as_ref()
+        .unwrap_or(&default_album_id)
+        .as_i64()
+        .unwrap()
+        == track.album_id
+    }) {
+      if download.status == DownloadStatus::Downloading {
+        return row.downloading();
+      }
+
+      if download.status == DownloadStatus::Completed {
+        return row.awaiting_import();
+      }
+    }
+
+    return row.missing();
   }
+
+  row.downloaded()
 }
 
 fn draw_album_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
