@@ -154,7 +154,8 @@ pub struct DeleteMovieParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
@@ -167,6 +168,36 @@ pub struct DownloadRecord {
   #[serde(default)]
   pub indexer: String,
   pub download_client: String,
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum DownloadStatus {
+  #[default]
+  Unknown,
+  Queued,
+  Paused,
+  Downloading,
+  Completed,
+  Failed,
+  Warning,
+  Delay,
+  #[display_style(name = "Download Client Unavailable")]
+  DownloadClientUnavailable,
+  Fallback,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

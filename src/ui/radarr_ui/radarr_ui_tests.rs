@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::radarr_models::{DownloadRecord, Movie};
+  use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie};
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
   use rstest::rstest;
@@ -50,8 +50,20 @@ mod tests {
   }
 
   #[rstest]
-  #[case(false, Some("downloading"), false, "", RowStyle::Downloading)]
-  #[case(false, Some("completed"), false, "", RowStyle::AwaitingImport)]
+  #[case(
+    false,
+    Some(DownloadStatus::Downloading),
+    false,
+    "",
+    RowStyle::Downloading
+  )]
+  #[case(
+    false,
+    Some(DownloadStatus::Completed),
+    false,
+    "",
+    RowStyle::AwaitingImport
+  )]
   #[case(false, None, false, "", RowStyle::UnmonitoredMissing)]
   #[case(false, None, true, "", RowStyle::Unreleased)]
   #[case(false, None, true, "released", RowStyle::Missing)]
@@ -59,7 +71,7 @@ mod tests {
   #[case(true, None, true, "", RowStyle::Downloaded)]
   fn test_decorate_with_row_style(
     #[case] has_file: bool,
-    #[case] download_status: Option<&str>,
+    #[case] download_status: Option<DownloadStatus>,
     #[case] is_monitored: bool,
     #[case] movie_status: String,
     #[case] expected_style: RowStyle,
@@ -67,7 +79,7 @@ mod tests {
     let downloads_vec = if let Some(download_status) = download_status {
       vec![DownloadRecord {
         movie_id: 1,
-        status: download_status.to_owned(),
+        status: download_status,
         ..DownloadRecord::default()
       }]
     } else {

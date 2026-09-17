@@ -1,6 +1,6 @@
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, Credit, CreditType, DeleteMovieParams, DownloadRecord,
-  EditMovieParams, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
+  DownloadStatus, EditMovieParams, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
   RadarrReleaseDownloadBody,
 };
 use crate::models::servarr_data::Notification;
@@ -664,11 +664,11 @@ pub(in crate::network::radarr_network::library) fn get_movie_status(
       .iter()
       .find(|&download| download.movie_id == movie_id)
     {
-      if download.status == "downloading" {
+      if download.status == DownloadStatus::Downloading {
         return "Downloading".to_owned();
       }
 
-      if download.status == "completed" {
+      if download.status == DownloadStatus::Completed {
         return "Awaiting Import".to_owned();
       }
     }

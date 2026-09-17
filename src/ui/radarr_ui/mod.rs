@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::Route;
-use crate::models::radarr_models::{DownloadRecord, Movie};
+use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie};
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::servarr_models::{DiskSpace, RootFolder};
 use crate::ui::DrawUi;
@@ -230,11 +230,11 @@ fn decorate_with_row_style<'a>(
       .iter()
       .find(|&download| download.movie_id == movie.id)
     {
-      if download.status == "downloading" {
+      if download.status == DownloadStatus::Downloading {
         return row.downloading();
       }
 
-      if download.status == "completed" {
+      if download.status == DownloadStatus::Completed {
         return row.awaiting_import();
       }
     }

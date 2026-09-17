@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::models::radarr_models::{
-    AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, EditMovieParams,
-    MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrReleaseDownloadBody,
+    AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, DownloadStatus,
+    EditMovieParams, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor,
+    RadarrReleaseDownloadBody,
   };
   use crate::models::servarr_data::Notification;
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
@@ -1199,7 +1200,7 @@ mod tests {
         false,
         &[DownloadRecord {
           movie_id: 1,
-          status: "downloading".to_owned(),
+          status: DownloadStatus::Downloading,
           ..DownloadRecord::default()
         }],
         1
@@ -1215,7 +1216,7 @@ mod tests {
         false,
         &[DownloadRecord {
           movie_id: 1,
-          status: "completed".to_owned(),
+          status: DownloadStatus::Completed,
           ..DownloadRecord::default()
         }],
         1

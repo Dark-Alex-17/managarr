@@ -11,16 +11,16 @@ mod tests {
     Serdeable,
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, CreditType,
-      DiskSpace, DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
-      MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
-      RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
+      DiskSpace, DownloadRecord, DownloadStatus, DownloadsResponse, Indexer, IndexerSettings,
+      IndexerTestResult, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor,
+      QualityProfile, RadarrRelease, RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
     },
     servarr_models::{
       HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig, SystemStatus,
     },
   };
   use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
-    MOVIE_JSON, collection, crew_credit, task,
+    MOVIE_JSON, collection, crew_credit, download_record, task,
   };
 
   #[test]
@@ -68,6 +68,40 @@ mod tests {
       "Movie and Collection"
     );
     assert_str_eq!(MovieMonitor::None.to_display_str(), "None");
+  }
+
+  #[test]
+  fn test_download_status_display() {
+    assert_str_eq!(DownloadStatus::Unknown.to_string(), "unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_string(), "queued");
+    assert_str_eq!(DownloadStatus::Paused.to_string(), "paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_string(), "downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_string(), "completed");
+    assert_str_eq!(DownloadStatus::Failed.to_string(), "failed");
+    assert_str_eq!(DownloadStatus::Warning.to_string(), "warning");
+    assert_str_eq!(DownloadStatus::Delay.to_string(), "delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_string(),
+      "downloadClientUnavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_string(), "fallback");
+  }
+
+  #[test]
+  fn test_download_status_to_display_str() {
+    assert_str_eq!(DownloadStatus::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_display_str(), "Queued");
+    assert_str_eq!(DownloadStatus::Paused.to_display_str(), "Paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_display_str(), "Downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_display_str(), "Completed");
+    assert_str_eq!(DownloadStatus::Failed.to_display_str(), "Failed");
+    assert_str_eq!(DownloadStatus::Warning.to_display_str(), "Warning");
+    assert_str_eq!(DownloadStatus::Delay.to_display_str(), "Delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_display_str(),
+      "Download Client Unavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
   }
 
   #[test]
@@ -230,7 +264,7 @@ mod tests {
   fn test_download_record_default_indexer_value() {
     let json = r#"{ 
       "title": "test",
-      "status": "test",
+      "status": "downloading",
       "id": 0,
       "movieId": 0,
       "size": 0,
@@ -239,7 +273,7 @@ mod tests {
     }"#;
     let expected_record = DownloadRecord {
       title: "test".to_owned(),
-      status: "test".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 0,
       movie_id: 0,
       size: 0,
@@ -689,6 +723,24 @@ mod tests {
     );
     assert_eq!(
       deserialize_with_field::<RadarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
       expected
     );
   }

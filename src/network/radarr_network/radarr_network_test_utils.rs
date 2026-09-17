@@ -2,9 +2,10 @@
 pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
-    CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
-    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrHistoryData, RadarrHistoryEventType,
-    RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating, RatingsList,
+    CreditType, DownloadRecord, DownloadStatus, DownloadsResponse, IndexerSettings, MediaInfo,
+    MinimumAvailability, Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrHistoryData,
+    RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating,
+    RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -339,7 +340,7 @@ pub mod test_utils {
   pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
-      status: "downloading".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 1,
       movie_id: 1,
       size: 3543348019,
