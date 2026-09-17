@@ -272,6 +272,19 @@ mod tests {
     }
 
     #[test]
+    fn test_author_details_ui_renders_book_without_statistics() {
+      let mut app = App::test_default_fully_populated();
+      app.data.readarr_data.books.items[0].statistics = None;
+      app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        AuthorDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
     fn test_author_details_ui_renders_update_and_scan_prompt_over_author_details() {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveReadarrBlock::AuthorDetails.into());

@@ -279,13 +279,16 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .release_date
         .map_or_else(|| "N/A".to_owned(), |d| d.format("%Y-%m-%d").to_string());
       let track_count = album.statistics.as_ref().map_or_else(
-        || "0/0".to_owned(),
+        || "N/A".to_owned(),
         |s| format!("{}/{}", s.track_file_count, s.total_track_count),
       );
-      let size = album
-        .statistics
-        .as_ref()
-        .map_or(0f64, |s| convert_to_gb(s.size_on_disk));
+      let size = album.statistics.as_ref().map_or_else(
+        || "N/A".to_owned(),
+        |s| {
+          let size = convert_to_gb(s.size_on_disk);
+          format!("{size:.2} GB")
+        },
+      );
       let duration_mins = album.duration / 60000;
 
       decorate_album_row_with_style(
@@ -297,7 +300,7 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(track_count),
           Cell::from(format!("{duration_mins} min")),
           Cell::from(release_date),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(size),
         ]),
       )
     };

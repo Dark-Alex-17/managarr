@@ -1,28 +1,32 @@
 ---
-source: src/ui/readarr_ui/library/author_details_ui_tests.rs
+source: src/ui/sonarr_ui/library/series_details_ui_tests.rs
 expression: output
 ---
                                                                                                                                                                      
                                                                                                                                                                      
                                                                                                                                                                      
-        ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
-        │Author: Test Author                                                                                                                                │        
+        ╭  Test  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
+        │Title: Test                                                                                                                                        │        
+        │Overview: Blah blah blah It was filmed in Madison, Wisconsin: a city the crew never really left. The first season took seven years to finish.      │        
+        │Network: HBO                                                                                                                                       │        
         │Status: Continuing                                                                                                                                 │        
-        │Genres: science fiction                                                                                                                            │        
-        │Rating: N/A                                                                                                                                        │        
-        │Path: /nfs/books/Test Author                                                                                                                       │        
-        │Quality Profile: Standard                                                                                                                          │        
-        │Metadata Profile: Comprehensive                                                                                                                    │        
+        │Genres: cool, family, fun                                                                                                                          │        
+        │Rating: 84%                                                                                                                                        │        
+        │Year: 2022                                                                                                                                         │        
+        │Runtime: 63 minutes                                                                                                                                │        
+        │Path: /nfs/tv/Test                                                                                                                                 │        
+        │Quality Profile: Bluray-1080p                                                                                                                      │        
+        │Language Profile: English                                                                                                                          │        
         │Monitored: Yes                                                                                                                                     │        
-        │Overview: some interesting description of the author He was born in Madison, Wisconsin: a city he has never really left. His first novel took him  │        
-        │seven years to finish.                                                                                                                             │        
+        │Size on Disk: 59.51 GB                                                                                                                             │        
         │                                                                                                                                                   │        
         │                                                                                                                                                   │        
-        │╭  Author Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
-        ││ Books │ History │ Author Search                                                                                                                 ││        
+        │                                                                                                                                                   │        
+        │╭  Series Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
+        ││ Seasons │ History                                                                                                                               ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
-        ││   Monitored      Title                                                 Files                 Release Date             Size                      ││        
-        ││=> 🏷              Test Book                                             N/A                   2023-05-20               N/A                       ││        
+        ││   Monitored Season                                      Episode Count                                Size on Disk                               ││        
+        ││=> 🏷         Season title                                N/A                                          N/A                                        ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
@@ -32,10 +36,6 @@ expression: output
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
-        ││                                                                                                                                                 ││        
-        ││                                                      ╭────────────  Error  ─────────────╮                                                       ││        
-        ││                                                      │  No items found matching search  │                                                       ││        
-        ││                                                      ╰──────────────────────────────────╯                                                       ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        

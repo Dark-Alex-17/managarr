@@ -22,7 +22,7 @@ expression: output
         ││ Books │ History │ Author Search         │          Do you really want to delete the book:           │                                           ││        
         ││─────────────────────────────────────────│                        Test Book?                         │───────────────────────────────────────────││        
         ││   Monitored      Title                  │                                                           │Date             Size                      ││        
-        ││=> 🏷              Test Book              │                                                           │20               0.00 GB                   ││        
+        ││=> 🏷              Test Book              │                                                           │20               N/A                       ││        
         ││                                         │                            ╭───╮                          │                                           ││        
         ││                                         │         Delete Book Files: │ ✔ │                          │                                           ││        
         ││                                         │                            ╰───╯                          │                                           ││        

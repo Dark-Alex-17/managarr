@@ -250,6 +250,19 @@ mod tests {
     }
 
     #[test]
+    fn test_artist_details_ui_renders_album_without_statistics() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.albums.items[0].statistics = None;
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        ArtistDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
     fn test_artist_details_ui_renders_delete_album_prompt_over_artist_details() {
       let mut app = App::test_default_fully_populated();
       app.data.lidarr_data.selected_block = BlockSelectionState::new(DELETE_ALBUM_SELECTION_BLOCKS);

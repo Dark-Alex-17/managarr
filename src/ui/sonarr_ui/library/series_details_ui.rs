@@ -10,7 +10,7 @@ use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
-use crate::models::sonarr_models::{Season, SeasonStatistics, SonarrHistoryItem};
+use crate::models::sonarr_models::{Season, SonarrHistoryItem};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::library::series_overview_ui::SeriesOverviewUi;
@@ -229,29 +229,26 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
     let content = Some(&mut app.data.sonarr_data.seasons);
     let season_row_mapping = |season: &Season| {
-      let Season {
-        title, statistics, ..
-      } = season;
-      let SeasonStatistics {
-        episode_file_count,
-        episode_count,
-        size_on_disk,
-        ..
-      } = if let Some(stats) = statistics {
-        stats
-      } else {
-        &SeasonStatistics::default()
-      };
       let season_monitored = if season.monitored { "🏷" } else { "" };
-      let size = convert_to_gb(*size_on_disk);
+      let episode_count = season.statistics.as_ref().map_or_else(
+        || "N/A".to_owned(),
+        |s| format!("{}/{}", s.episode_file_count, s.episode_count),
+      );
+      let size = season.statistics.as_ref().map_or_else(
+        || "N/A".to_owned(),
+        |s| {
+          let size = convert_to_gb(s.size_on_disk);
+          format!("{size:.2} GB")
+        },
+      );
 
       decorate_season_row_with_style(
         season,
         Row::new(vec![
           Cell::from(season_monitored.to_owned()),
-          Cell::from(title.clone().unwrap_or_default()),
-          Cell::from(format!("{episode_file_count}/{episode_count}")),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(season.title.clone().unwrap_or_default()),
+          Cell::from(episode_count),
+          Cell::from(size),
         ]),
       )
     };

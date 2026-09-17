@@ -275,13 +275,16 @@ fn draw_books_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .release_date
         .map_or_else(|| "N/A".to_owned(), |d| d.format("%Y-%m-%d").to_string());
       let book_file_count = book.statistics.as_ref().map_or_else(
-        || "0/0".to_owned(),
+        || "N/A".to_owned(),
         |s| format!("{}/{}", s.book_file_count, s.total_book_count),
       );
-      let size = book
-        .statistics
-        .as_ref()
-        .map_or(0f64, |s| convert_to_gb(s.size_on_disk));
+      let size = book.statistics.as_ref().map_or_else(
+        || "N/A".to_owned(),
+        |s| {
+          let size = convert_to_gb(s.size_on_disk);
+          format!("{size:.2} GB")
+        },
+      );
 
       decorate_book_row_with_style(
         book,
@@ -290,7 +293,7 @@ fn draw_books_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(book.title.to_string()),
           Cell::from(book_file_count),
           Cell::from(release_date),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(size),
         ]),
       )
     };

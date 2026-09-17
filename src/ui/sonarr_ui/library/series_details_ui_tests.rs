@@ -240,6 +240,19 @@ mod tests {
     }
 
     #[test]
+    fn test_series_details_ui_renders_season_without_statistics() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.seasons.items[0].statistics = None;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SeriesDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
     fn test_series_details_ui_renders_season_details_over_series_details() {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());

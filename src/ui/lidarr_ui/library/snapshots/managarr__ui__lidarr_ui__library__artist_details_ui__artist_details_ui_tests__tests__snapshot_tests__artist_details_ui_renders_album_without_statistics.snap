@@ -1,28 +1,30 @@
 ---
-source: src/ui/readarr_ui/library/author_details_ui_tests.rs
+source: src/ui/lidarr_ui/library/artist_details_ui_tests.rs
 expression: output
 ---
                                                                                                                                                                      
                                                                                                                                                                      
                                                                                                                                                                      
-        ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
-        │Author: Test Author                                                                                                                                │        
-        │Status: Continuing                                                                                                                                 │        
-        │Genres: science fiction                                                                                                                            │        
-        │Rating: N/A                                                                                                                                        │        
-        │Path: /nfs/books/Test Author                                                                                                                       │        
-        │Quality Profile: Standard                                                                                                                          │        
-        │Metadata Profile: Comprehensive                                                                                                                    │        
-        │Monitored: Yes                                                                                                                                     │        
-        │Overview: some interesting description of the author He was born in Madison, Wisconsin: a city he has never really left. His first novel took him  │        
+        ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
+        │Artist: Alex                                                                                                                                       │        
+        │Overview: some interesting description of the artist She was born in Madison, Wisconsin: a city she has never really left. Her first album took her│        
         │seven years to finish.                                                                                                                             │        
-        │                                                                                                                                                   │        
-        │                                                                                                                                                   │        
-        │╭  Author Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
-        ││ Books │ History │ Author Search                                                                                                                 ││        
+        │Disambiguation: American pianist                                                                                                                   │        
+        │Type: Person                                                                                                                                       │        
+        │Status: Continuing                                                                                                                                 │        
+        │Genres: soundtrack                                                                                                                                 │        
+        │Rating: 84%                                                                                                                                        │        
+        │Path: /nfs/music/test-artist                                                                                                                       │        
+        │Quality Profile: Lossless                                                                                                                          │        
+        │Metadata Profile: Standard                                                                                                                         │        
+        │Monitored: Yes                                                                                                                                     │        
+        │Albums: 1                                                                                                                                          │        
+        │Tracks: 12/15                                                                                                                                      │        
+        │╭  Artist Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮│        
+        ││ Albums │ History │ Manual Search                                                                                                                ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
-        ││   Monitored      Title                                                 Files                 Release Date             Size                      ││        
-        ││=> 🏷              Test Book                                             N/A                   2023-05-20               N/A                       ││        
+        ││   Monitored  Title                                        Type           Tracks         Duration       Release Date        Size                 ││        
+        ││=> 🏷          Test Album                                   Album          N/A            0 min          2023-01-01          N/A                  ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
@@ -33,9 +35,7 @@ expression: output
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
-        ││                                                      ╭────────────  Error  ─────────────╮                                                       ││        
-        ││                                                      │  No items found matching search  │                                                       ││        
-        ││                                                      ╰──────────────────────────────────╯                                                       ││        
+        ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
