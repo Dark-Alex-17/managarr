@@ -261,6 +261,18 @@ mod tests {
   }
 
   #[test]
+  fn test_credit_serializes_credit_type_under_the_type_key() {
+    let credit_json = serde_json::to_value(crew_credit()).unwrap();
+
+    assert_eq!(credit_json["type"], json!("crew"));
+    assert_none!(credit_json.get("creditType"));
+    assert_eq!(
+      serde_json::from_value::<Credit>(credit_json).unwrap(),
+      crew_credit()
+    );
+  }
+
+  #[test]
   fn test_download_record_default_indexer_value() {
     let json = r#"{ 
       "title": "test",

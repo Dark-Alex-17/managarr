@@ -127,10 +127,7 @@ pub struct Credit {
   pub character: Option<String>,
   pub department: Option<String>,
   pub job: Option<String>,
-  #[serde(
-    rename(deserialize = "type"),
-    deserialize_with = "super::from_json_or_default"
-  )]
+  #[serde(rename = "type", deserialize_with = "super::from_json_or_default")]
   pub credit_type: CreditType,
 }
 
