@@ -98,6 +98,7 @@ pub struct Collection {
   pub search_on_add: bool,
   pub monitored: bool,
   pub overview: Option<String>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub minimum_availability: MinimumAvailability,
   #[serde(deserialize_with = "super::from_i64")]
   pub quality_profile_id: i64,
@@ -126,7 +127,10 @@ pub struct Credit {
   pub character: Option<String>,
   pub department: Option<String>,
   pub job: Option<String>,
-  #[serde(rename(deserialize = "type"))]
+  #[serde(
+    rename(deserialize = "type"),
+    deserialize_with = "super::from_json_or_default"
+  )]
   pub credit_type: CreditType,
 }
 
@@ -316,6 +320,7 @@ pub struct Movie {
   pub tmdb_id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub quality_profile_id: i64,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub minimum_availability: MinimumAvailability,
   pub certification: Option<String>,
   pub tags: Vec<Number>,
@@ -469,6 +474,7 @@ pub struct RadarrHistoryItem {
 #[serde(rename_all = "camelCase")]
 pub struct RadarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: RadarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,

@@ -2,6 +2,7 @@
 mod tests {
   use chrono::Utc;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::DeserializeOwned;
   use serde_json::{Value, json};
 
   use crate::models::readarr_models::{
@@ -18,6 +19,9 @@ mod tests {
   use crate::models::{
     Serdeable,
     readarr_models::{Author, AuthorStatistics, AuthorStatus, Ratings, ReadarrSerdeable},
+  };
+  use crate::network::readarr_network::readarr_network_test_utils::test_utils::{
+    ADD_AUTHOR_SEARCH_RESULT_JSON, AUTHOR_JSON, download_record,
   };
 
   #[test]
@@ -1138,6 +1142,113 @@ mod tests {
     assert_none!(&search_result.disambiguation);
     assert!(search_result.genres.is_empty());
     assert_none!(&search_result.ratings);
+  }
+
+  #[test]
+  fn test_author_status_deserialization_falls_back_to_default() {
+    let expected = Author {
+      status: AuthorStatus::default(),
+      ..serde_json::from_str(AUTHOR_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Author>(AUTHOR_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Author>(AUTHOR_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_author_monitor_new_items_deserialization_falls_back_to_default() {
+    let expected = Author {
+      monitor_new_items: NewItemMonitorType::default(),
+      ..serde_json::from_str(AUTHOR_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Author>(AUTHOR_JSON, "monitorNewItems", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Author>(AUTHOR_JSON, "monitorNewItems", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_add_author_search_result_status_deserialization_falls_back_to_default() {
+    let expected = AddAuthorSearchResult {
+      status: AuthorStatus::default(),
+      ..serde_json::from_str(ADD_AUTHOR_SEARCH_RESULT_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<AddAuthorSearchResult>(
+        ADD_AUTHOR_SEARCH_RESULT_JSON,
+        "status",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<AddAuthorSearchResult>(
+        ADD_AUTHOR_SEARCH_RESULT_JSON,
+        "status",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_readarr_task_task_name_deserialization_falls_back_to_default() {
+    let task = ReadarrTask {
+      name: "Backup".to_owned(),
+      task_name: ReadarrTaskName::Backup,
+      ..ReadarrTask::default()
+    };
+    let task_json = serde_json::to_string(&task).unwrap();
+    let expected = ReadarrTask {
+      task_name: ReadarrTaskName::default(),
+      ..task
+    };
+
+    assert_eq!(
+      deserialize_with_field::<ReadarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<ReadarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
   }
 
   fn deserialize_history_event_type(event_type: Value) -> ReadarrHistoryEventType {

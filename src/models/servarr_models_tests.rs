@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::DeserializeOwned;
+  use serde_json::{Value, json};
 
   use crate::models::servarr_models::{
     AuthenticationMethod, AuthenticationRequired, CertificateValidation, Indexer, QualityProfile,
-    Update, UpdateChanges,
+    SecurityConfig, Update, UpdateChanges,
   };
 
   #[test]
@@ -89,5 +91,119 @@ mod tests {
         fixed: None,
       }
     );
+  }
+
+  #[test]
+  fn test_security_config_authentication_method_deserialization_falls_back_to_default() {
+    let security_config_json = serde_json::to_string(&security_config()).unwrap();
+    let expected = SecurityConfig {
+      authentication_method: AuthenticationMethod::default(),
+      ..security_config()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "authenticationMethod",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "authenticationMethod",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_security_config_authentication_required_deserialization_falls_back_to_none() {
+    let security_config_json = serde_json::to_string(&security_config()).unwrap();
+    let expected = SecurityConfig {
+      authentication_required: None,
+      ..security_config()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "authenticationRequired",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "authenticationRequired",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_security_config_deserializes_when_authentication_required_is_absent() {
+    let mut security_config_json = serde_json::to_value(security_config()).unwrap();
+    security_config_json
+      .as_object_mut()
+      .unwrap()
+      .remove("authenticationRequired");
+    let expected = SecurityConfig {
+      authentication_required: None,
+      ..security_config()
+    };
+
+    let deserialized = serde_json::from_value::<SecurityConfig>(security_config_json);
+
+    assert_ok!(&deserialized);
+    assert_eq!(deserialized.unwrap(), expected);
+  }
+
+  #[test]
+  fn test_security_config_certificate_validation_deserialization_falls_back_to_default() {
+    let security_config_json = serde_json::to_string(&security_config()).unwrap();
+    let expected = SecurityConfig {
+      certificate_validation: CertificateValidation::default(),
+      ..security_config()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "certificateValidation",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<SecurityConfig>(
+        &security_config_json,
+        "certificateValidation",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
+  }
+
+  fn security_config() -> SecurityConfig {
+    SecurityConfig {
+      authentication_method: AuthenticationMethod::Forms,
+      authentication_required: Some(AuthenticationRequired::Enabled),
+      username: Some("admin".to_owned()),
+      password: Some("password".to_owned()),
+      api_key: "test-api-key".to_owned(),
+      certificate_validation: CertificateValidation::Disabled,
+    }
   }
 }

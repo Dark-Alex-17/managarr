@@ -27,6 +27,7 @@ pub struct Author {
   pub id: i64,
   pub author_name: HorizontallyScrollableText,
   pub foreign_author_id: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: AuthorStatus,
   pub overview: Option<String>,
   pub author_type: Option<String>,
@@ -38,6 +39,7 @@ pub struct Author {
   #[serde(deserialize_with = "super::from_i64")]
   pub metadata_profile_id: i64,
   pub monitored: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub monitor_new_items: NewItemMonitorType,
   pub genres: Vec<String>,
   pub tags: Vec<Number>,
@@ -152,6 +154,7 @@ pub enum MonitorType {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
@@ -210,6 +213,7 @@ pub struct DownloadsResponse {
 pub struct AddAuthorSearchResult {
   pub foreign_author_id: String,
   pub author_name: HorizontallyScrollableText,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: AuthorStatus,
   #[serde(default)]
   pub ended: bool,
@@ -423,6 +427,7 @@ pub struct ReadarrHistoryItem {
 #[serde(rename_all = "camelCase")]
 pub struct ReadarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: ReadarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,

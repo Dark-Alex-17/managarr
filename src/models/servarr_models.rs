@@ -315,7 +315,9 @@ pub struct RootFolder {
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityConfig {
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub authentication_method: AuthenticationMethod,
+  #[serde(default, deserialize_with = "super::from_json_or_default")]
   #[serde(skip_serializing_if = "Option::is_none")]
   pub authentication_required: Option<AuthenticationRequired>,
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -323,6 +325,7 @@ pub struct SecurityConfig {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub password: Option<String>,
   pub api_key: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub certificate_validation: CertificateValidation,
 }
 

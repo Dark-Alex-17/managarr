@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::DeserializeOwned;
   use serde_json::{Value, json};
 
   use crate::models::{
@@ -16,6 +17,9 @@ mod tests {
       SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
       SonarrTaskName,
     },
+  };
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    SERIES_JSON, download_record, task,
   };
 
   #[test]
@@ -696,6 +700,83 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  #[test]
+  fn test_series_series_type_deserialization_falls_back_to_default() {
+    let expected = Series {
+      series_type: SeriesType::default(),
+      ..serde_json::from_str(SERIES_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "seriesType", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "seriesType", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_series_status_deserialization_falls_back_to_default() {
+    let expected = Series {
+      status: SeriesStatus::default(),
+      ..serde_json::from_str(SERIES_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_sonarr_task_task_name_deserialization_falls_back_to_default() {
+    let task_json = serde_json::to_string(&task()).unwrap();
+    let expected = SonarrTask {
+      task_name: SonarrTaskName::default(),
+      ..task()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<SonarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<SonarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
   }
 
   fn deserialize_history_event_type(event_type: Value) -> SonarrHistoryEventType {

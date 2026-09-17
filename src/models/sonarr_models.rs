@@ -112,6 +112,7 @@ pub struct DeleteSeriesParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
@@ -314,12 +315,14 @@ pub struct Series {
   #[serde(deserialize_with = "super::from_i64")]
   pub year: i64,
   pub monitored: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub series_type: SeriesType,
   pub path: String,
   pub genres: Vec<String>,
   pub tags: Vec<Number>,
   pub ratings: Rating,
   pub ended: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: SeriesStatus,
   pub overview: Option<String>,
   pub network: Option<String>,
@@ -556,6 +559,7 @@ pub struct SonarrReleaseDownloadBody {
 #[serde(rename_all = "camelCase")]
 pub struct SonarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: SonarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,

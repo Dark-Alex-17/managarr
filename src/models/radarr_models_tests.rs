@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::DeserializeOwned;
   use serde_json::{Value, json};
 
   use crate::models::radarr_models::{
@@ -9,14 +10,17 @@ mod tests {
   use crate::models::{
     Serdeable,
     radarr_models::{
-      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
-      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
+      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, CreditType,
+      DiskSpace, DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
       MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
       RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
     },
     servarr_models::{
       HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig, SystemStatus,
     },
+  };
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
+    MOVIE_JSON, collection, crew_credit, task,
   };
 
   #[test]
@@ -612,6 +616,88 @@ mod tests {
       radarr_serdeable,
       RadarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  #[test]
+  fn test_movie_minimum_availability_deserialization_falls_back_to_default() {
+    let expected = Movie {
+      minimum_availability: MinimumAvailability::default(),
+      ..serde_json::from_str(MOVIE_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "minimumAvailability", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "minimumAvailability", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_collection_minimum_availability_deserialization_falls_back_to_default() {
+    let collection_json = serde_json::to_string(&collection()).unwrap();
+    let expected = Collection {
+      minimum_availability: MinimumAvailability::default(),
+      ..collection()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Collection>(&collection_json, "minimumAvailability", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Collection>(
+        &collection_json,
+        "minimumAvailability",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_credit_credit_type_deserialization_falls_back_to_default() {
+    let credit_json = serde_json::to_string(&crew_credit()).unwrap();
+    let expected = Credit {
+      credit_type: CreditType::default(),
+      ..crew_credit()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Credit>(&credit_json, "type", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Credit>(&credit_json, "type", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_radarr_task_task_name_deserialization_falls_back_to_default() {
+    let task_json = serde_json::to_string(&task()).unwrap();
+    let expected = RadarrTask {
+      task_name: RadarrTaskName::default(),
+      ..task()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<RadarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<RadarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
   }
 
   fn deserialize_history_event_type(event_type: Value) -> RadarrHistoryEventType {

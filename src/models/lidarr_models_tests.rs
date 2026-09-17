@@ -2,13 +2,14 @@
 mod tests {
   use chrono::Utc;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::DeserializeOwned;
   use serde_json::{Value, json};
 
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord,
     DownloadStatus, DownloadsResponse, LidarrHistoryEventType, LidarrHistoryItem,
-    LidarrHistoryWrapper, LidarrRelease, LidarrTask, MediaInfo, Member, MonitorType,
-    NewItemMonitorType, Track, TrackFile,
+    LidarrHistoryWrapper, LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member,
+    MonitorType, NewItemMonitorType, Track, TrackFile,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
@@ -18,6 +19,9 @@ mod tests {
   use crate::models::{
     Serdeable,
     lidarr_models::{Artist, ArtistStatistics, ArtistStatus, LidarrSerdeable, Ratings},
+  };
+  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
+    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON, download_record, task,
   };
 
   #[test]
@@ -944,6 +948,108 @@ mod tests {
     assert_none!(&search_result.disambiguation);
     assert!(search_result.genres.is_empty());
     assert_none!(&search_result.ratings);
+  }
+
+  #[test]
+  fn test_artist_status_deserialization_falls_back_to_default() {
+    let expected = Artist {
+      status: ArtistStatus::default(),
+      ..serde_json::from_str(ARTIST_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Artist>(ARTIST_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Artist>(ARTIST_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_artist_monitor_new_items_deserialization_falls_back_to_default() {
+    let expected = Artist {
+      monitor_new_items: NewItemMonitorType::default(),
+      ..serde_json::from_str(ARTIST_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Artist>(ARTIST_JSON, "monitorNewItems", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Artist>(ARTIST_JSON, "monitorNewItems", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_add_artist_search_result_status_deserialization_falls_back_to_default() {
+    let expected = AddArtistSearchResult {
+      status: ArtistStatus::default(),
+      ..serde_json::from_str(ADD_ARTIST_SEARCH_RESULT_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<AddArtistSearchResult>(
+        ADD_ARTIST_SEARCH_RESULT_JSON,
+        "status",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<AddArtistSearchResult>(
+        ADD_ARTIST_SEARCH_RESULT_JSON,
+        "status",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_lidarr_task_task_name_deserialization_falls_back_to_default() {
+    let task_json = serde_json::to_string(&task()).unwrap();
+    let expected = LidarrTask {
+      task_name: LidarrTaskName::default(),
+      ..task()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<LidarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<LidarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
   }
 
   fn deserialize_history_event_type(event_type: Value) -> LidarrHistoryEventType {
