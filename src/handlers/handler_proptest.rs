@@ -3,13 +3,16 @@ mod property_tests {
   use proptest::prelude::*;
 
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::event::Key;
+  use crate::handlers::handle_events;
   use crate::handlers::handler_test_utils::test_utils::proptest_helpers::{
     list_size, text_input_string,
   };
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
-  use crate::models::{Paginated, Scrollable};
+  use crate::models::{Paginated, Scrollable, strip_non_search_characters};
 
   proptest! {
     #[test]
@@ -104,13 +107,29 @@ mod property_tests {
 
     #[test]
     fn test_string_input_safety(input in text_input_string()) {
-      let _lowercase = input.to_lowercase();
-      let _uppercase = input.to_uppercase();
-      let _trimmed = input.trim();
-      let _len = input.len();
-      let _chars: Vec<char> = input.chars().collect();
+      let mut app = App::test_default();
+      app.data.radarr_data.movies.set_items(vec![Movie::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      handle_events(DEFAULT_KEYBINDINGS.filter.key, &mut app);
 
-      prop_assert!(true);
+      for character in input.chars() {
+        handle_events(Key::Char(character), &mut app);
+      }
+
+      prop_assert_eq!(app.get_current_route(), ActiveRadarrBlock::FilterMovies.into());
+      prop_assert_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text.as_str(),
+        input.as_str()
+      );
+
+      for _ in 0..input.chars().count() {
+        handle_events(DEFAULT_KEYBINDINGS.backspace.key, &mut app);
+      }
+
+      prop_assert_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text.as_str(),
+        ""
+      );
     }
 
     #[test]
@@ -177,22 +196,36 @@ mod property_tests {
           ..Movie::default()
         })
         .collect();
-
       table.set_items(movies.clone());
-      let original_size = table.items.len();
+      table.filter = Some(filter_term.clone().into());
+      let scrubbed_filter = strip_non_search_characters(&filter_term);
+      let matches_filter = |movie: &Movie| {
+        strip_non_search_characters(&movie.title.text).contains(&scrubbed_filter)
+      };
 
-      if !filter_term.is_empty() {
-        let filtered: Vec<Movie> = movies.into_iter()
-          .filter(|m| m.title.text.to_lowercase().contains(&filter_term.to_lowercase()))
-          .collect();
-        table.set_items(filtered);
-      }
+      let has_match = table.apply_filter(|movie| &movie.title.text);
 
-      prop_assert!(table.items.len() <= original_size);
+      prop_assert_eq!(&table.items, &movies);
+      prop_assert!(table.filter.is_none());
 
-      if !table.items.is_empty() {
-        let current = table.current_selection();
-        prop_assert!(current.id >= 0);
+      if has_match {
+        let filtered_items = table.filtered_items.as_ref().unwrap();
+
+        prop_assert!(!filtered_items.is_empty());
+        prop_assert!(filtered_items.len() <= movies.len());
+
+        for movie in filtered_items {
+          prop_assert!(matches_filter(movie));
+        }
+
+        for movie in movies.iter().filter(|movie| !filtered_items.contains(movie)) {
+          prop_assert!(!matches_filter(movie));
+        }
+      } else {
+        prop_assert!(table.filtered_items.is_none());
+        prop_assert!(
+          filter_term.is_empty() || movies.iter().all(|movie| !matches_filter(movie))
+        );
       }
     }
   }
