@@ -184,9 +184,9 @@ pub mod test_utils {
     DownloadRecord {
       title: "Test download title".to_owned(),
       status: DownloadStatus::Downloading,
-      id: 1,
+      id: 9,
       album_id: Some(Number::from(1i64)),
-      artist_id: Some(Number::from(1i64)),
+      artist_id: Some(Number::from(3i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from("/nfs/music/alex/album")),
