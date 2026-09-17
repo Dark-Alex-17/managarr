@@ -1,13 +1,20 @@
 #[cfg(test)]
 mod tests {
+  use chrono::{Duration, Utc};
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS,
   };
+  use crate::models::sonarr_models::{DownloadRecord, DownloadStatus, Episode};
   use crate::ui::DrawUi;
-  use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
+  use crate::ui::sonarr_ui::library::episode_details_ui::{EpisodeDetailsUi, style_from_status};
+  use crate::ui::styles::{
+    awaiting_import_style, downloaded_style, downloading_style, missing_style,
+    unmonitored_missing_style, unmonitored_style, unreleased_style,
+  };
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
@@ -19,6 +26,157 @@ mod tests {
         assert!(!EpisodeDetailsUi::accepts(active_sonarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_style_from_status_downloading_when_episode_has_no_file_and_download_is_downloading() {
+    let download = DownloadRecord {
+      status: DownloadStatus::Downloading,
+      ..DownloadRecord::default()
+    };
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(Some(&download), &episode);
+
+    assert_eq!(style, downloading_style());
+  }
+
+  #[test]
+  fn test_style_from_status_awaiting_import_when_episode_has_no_file_and_download_is_completed() {
+    let download = DownloadRecord {
+      status: DownloadStatus::Completed,
+      ..DownloadRecord::default()
+    };
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(Some(&download), &episode);
+
+    assert_eq!(style, awaiting_import_style());
+  }
+
+  #[test]
+  fn test_style_from_status_ignores_download_that_is_neither_downloading_nor_completed() {
+    let download = DownloadRecord {
+      status: DownloadStatus::Queued,
+      ..DownloadRecord::default()
+    };
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      air_date_utc: None,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(Some(&download), &episode);
+
+    assert_eq!(style, missing_style());
+  }
+
+  #[test]
+  fn test_style_from_status_unmonitored_missing_when_episode_has_no_file_and_is_unmonitored() {
+    let episode = Episode {
+      has_file: false,
+      monitored: false,
+      air_date_utc: Some(Utc::now() + Duration::days(1)),
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, unmonitored_missing_style());
+  }
+
+  #[test]
+  fn test_style_from_status_unreleased_when_episode_has_no_file_and_air_date_is_future() {
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      air_date_utc: Some(Utc::now() + Duration::days(1)),
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, unreleased_style());
+  }
+
+  #[test]
+  fn test_style_from_status_missing_when_episode_has_no_file_and_air_date_has_passed() {
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      air_date_utc: Some(Utc::now() - Duration::days(1)),
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, missing_style());
+  }
+
+  #[test]
+  fn test_style_from_status_missing_when_episode_has_no_file_and_no_air_date() {
+    let episode = Episode {
+      has_file: false,
+      monitored: true,
+      air_date_utc: None,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, missing_style());
+  }
+
+  #[test]
+  fn test_style_from_status_unmonitored_when_episode_has_file_and_is_unmonitored() {
+    let episode = Episode {
+      has_file: true,
+      monitored: false,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, unmonitored_style());
+  }
+
+  #[test]
+  fn test_style_from_status_downloaded_when_episode_has_file_and_is_monitored() {
+    let episode = Episode {
+      has_file: true,
+      monitored: true,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(None, &episode);
+
+    assert_eq!(style, downloaded_style());
+  }
+
+  #[test]
+  fn test_style_from_status_ignores_download_when_episode_has_file() {
+    let download = DownloadRecord {
+      status: DownloadStatus::Downloading,
+      ..DownloadRecord::default()
+    };
+    let episode = Episode {
+      has_file: true,
+      monitored: true,
+      ..Episode::default()
+    };
+
+    let style = style_from_status(Some(&download), &episode);
+
+    assert_eq!(style, downloaded_style());
   }
 
   mod snapshot_tests {

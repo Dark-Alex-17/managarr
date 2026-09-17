@@ -1,11 +1,14 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
+  use crate::models::lidarr_models::Track;
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, TRACK_DETAILS_BLOCKS};
   use crate::ui::DrawUi;
-  use crate::ui::lidarr_ui::library::track_details_ui::TrackDetailsUi;
+  use crate::ui::lidarr_ui::library::track_details_ui::{TrackDetailsUi, style_from_status};
+  use crate::ui::styles::{downloaded_style, missing_style};
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
@@ -17,6 +20,30 @@ mod tests {
         assert!(!TrackDetailsUi::accepts(active_lidarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_style_from_status_downloaded_when_track_has_file() {
+    let track = Track {
+      has_file: true,
+      ..Track::default()
+    };
+
+    let style = style_from_status(&track);
+
+    assert_eq!(style, downloaded_style());
+  }
+
+  #[test]
+  fn test_style_from_status_missing_when_track_has_no_file() {
+    let track = Track {
+      has_file: false,
+      ..Track::default()
+    };
+
+    let style = style_from_status(&track);
+
+    assert_eq!(style, missing_style());
   }
 
   mod snapshot_tests {
