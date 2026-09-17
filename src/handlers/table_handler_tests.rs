@@ -606,17 +606,18 @@ mod tests {
       .take(100)
       .collect();
       app.data.radarr_data.movies.set_items(movies_vec);
+      app.data.radarr_data.movies.state.select(Some(50));
       TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       if key == Key::PgUp {
         assert_str_eq!(
           app.data.radarr_data.movies.current_selection().title.text,
-          "Test 79"
+          "Test 30"
         );
       } else {
         assert_str_eq!(
           app.data.radarr_data.movies.current_selection().title.text,
-          "Test 20"
+          "Test 70"
         );
       }
     }

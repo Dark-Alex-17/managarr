@@ -100,29 +100,26 @@ where
 {
   fn page_down(&mut self) {
     let items_len = self.active_items().len();
-    if items_len <= 1 {
+    if items_len == 0 {
       return;
     }
 
     let state = self.active_state_mut();
     match state.selected() {
-      Some(i) => state.select(Some(i.saturating_add(20) % (items_len - 1))),
+      Some(i) => state.select(Some(i.saturating_add(20).min(items_len - 1))),
       None => state.select_first(),
     }
   }
 
   fn page_up(&mut self) {
     let items_len = self.active_items().len();
-    if items_len <= 1 {
+    if items_len == 0 {
       return;
     }
 
     let state = self.active_state_mut();
     match state.selected() {
-      Some(i) => {
-        let len = items_len - 1;
-        state.select(Some((i + len - (20 % len)) % len));
-      }
+      Some(i) => state.select(Some(i.saturating_sub(20))),
       None => state.select_last(),
     }
   }

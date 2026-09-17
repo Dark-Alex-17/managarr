@@ -171,10 +171,19 @@ mod property_tests {
       table.set_items(movies);
 
       for i in 0..page_ops {
+        let previous_index = table.state.selected().unwrap();
+
         if i % 2 == 0 {
           table.page_down();
+
+          prop_assert_eq!(
+            table.state.selected(),
+            Some((previous_index + 20).min(list_size - 1))
+          );
         } else {
           table.page_up();
+
+          prop_assert_eq!(table.state.selected(), Some(previous_index.saturating_sub(20)));
         }
 
         let current = table.current_selection();
