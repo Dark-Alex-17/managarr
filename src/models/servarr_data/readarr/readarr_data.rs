@@ -31,8 +31,8 @@ use strum::EnumIter;
 use {
   super::modals::EditionDetailsModal,
   crate::models::readarr_models::{
-    AuthorStatus, BookFile, DownloadStatus, Edition, MediaInfo, MonitorType, NewItemMonitorType,
-    Ratings, ReadarrHistoryEventType, ReadarrTaskName,
+    AuthorStatus, BookFile, BookStatistics, DownloadStatus, Edition, MediaInfo, MonitorType,
+    NewItemMonitorType, Ratings, ReadarrHistoryEventType, ReadarrTaskName,
   },
   crate::models::servarr_models::{IndexerField, Quality, QualityWrapper},
   crate::models::stateful_table::SortOption,
@@ -292,6 +292,12 @@ impl ReadarrData<'_> {
       any_edition_ok: true,
       page_count: Some(288),
       release_date: Some(date),
+      statistics: Some(BookStatistics {
+        book_file_count: 3,
+        total_book_count: 7,
+        size_on_disk: 2469606195,
+        percent_of_books: 42.86,
+      }),
       ..Book::default()
     };
     let readarr_history_item = ReadarrHistoryItem {
