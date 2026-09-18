@@ -282,11 +282,11 @@ pub mod test_utils {
 
   pub fn lidarr_history_item() -> LidarrHistoryItem {
     LidarrHistoryItem {
-      id: 1,
+      id: 13,
       source_title: "Test source title".into(),
       album_id: 1,
-      artist_id: 1,
-      track_id: 1,
+      artist_id: 3,
+      track_id: 5,
       quality: quality_wrapper(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
       event_type: LidarrHistoryEventType::Grabbed,
@@ -459,7 +459,7 @@ pub mod test_utils {
 
   pub fn track_file() -> TrackFile {
     TrackFile {
-      id: 1,
+      id: 7,
       path: "/music/P!nk/TRUSTFALL/01 - When I Get There.flac".to_string(),
       size: 39216378,
       quality: quality_wrapper(),
@@ -471,10 +471,10 @@ pub mod test_utils {
 
   pub fn track() -> Track {
     Track {
-      id: 1,
-      artist_id: 1,
+      id: 5,
+      artist_id: 3,
       foreign_track_id: "test-foreign-track-id".to_string(),
-      track_file_id: 1,
+      track_file_id: 7,
       album_id: 1,
       explicit: false,
       track_number: "1".to_string(),

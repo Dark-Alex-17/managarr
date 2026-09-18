@@ -255,7 +255,7 @@ mod tests {
     )]
     #[case(
       ActiveLidarrBlock::DeleteTrackFilePrompt,
-      LidarrEvent::DeleteTrackFile(1)
+      LidarrEvent::DeleteTrackFile(7)
     )]
     fn test_album_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveLidarrBlock,
@@ -606,7 +606,7 @@ mod tests {
     )]
     #[case(
       ActiveLidarrBlock::DeleteTrackFilePrompt,
-      LidarrEvent::DeleteTrackFile(1)
+      LidarrEvent::DeleteTrackFile(7)
     )]
     fn test_album_details_prompt_confirm_confirm_key(
       #[case] prompt_block: ActiveLidarrBlock,
@@ -752,7 +752,7 @@ mod tests {
     )
     .extract_track_file_id();
 
-    assert_eq!(track_file_id, 1);
+    assert_eq!(track_file_id, 7);
   }
 
   #[test]
