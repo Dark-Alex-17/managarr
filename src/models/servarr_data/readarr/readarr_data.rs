@@ -31,10 +31,10 @@ use strum::EnumIter;
 use {
   super::modals::EditionDetailsModal,
   crate::models::readarr_models::{
-    AuthorStatus, BookFile, BookStatistics, DownloadStatus, Edition, MediaInfo, MonitorType,
-    NewItemMonitorType, Ratings, ReadarrHistoryEventType, ReadarrTaskName,
+    AuthorStatus, BookFile, BookStatistics, Edition, MediaInfo, MonitorType, NewItemMonitorType,
+    Ratings, ReadarrHistoryEventType, ReadarrTaskName,
   },
-  crate::models::servarr_models::{IndexerField, Quality, QualityWrapper},
+  crate::models::servarr_models::{DownloadStatus, IndexerField, Quality, QualityWrapper},
   crate::models::stateful_table::SortOption,
   crate::network::servarr_test_utils::{
     diskspace, indexer_settings, indexer_test_result, queued_event,

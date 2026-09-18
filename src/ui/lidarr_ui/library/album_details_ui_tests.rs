@@ -6,10 +6,11 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::App;
-  use crate::models::lidarr_models::{DownloadRecord, DownloadStatus, Track};
+  use crate::models::lidarr_models::{DownloadRecord, Track};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock, TRACK_DETAILS_BLOCKS,
   };
+  use crate::models::servarr_models::DownloadStatus;
   use crate::models::stateful_table::StatefulTable;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::download_record;
   use crate::ui::DrawUi;

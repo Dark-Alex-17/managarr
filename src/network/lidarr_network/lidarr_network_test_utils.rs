@@ -3,15 +3,15 @@
 pub mod test_utils {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
-    AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus, DownloadsResponse,
+    AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse,
     EditArtistParams, LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem,
     LidarrHistoryWrapper, LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member,
     NewItemMonitorType, Ratings, Track, TrackFile,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
-    Indexer, IndexerField, MetadataProfile, Quality, QualityProfile, QualityWrapper, RootFolder,
-    SystemStatus, Tag,
+    DownloadStatus, Indexer, IndexerField, MetadataProfile, Quality, QualityProfile,
+    QualityWrapper, RootFolder, SystemStatus, Tag,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;

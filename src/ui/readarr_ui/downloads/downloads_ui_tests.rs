@@ -23,7 +23,8 @@ mod tests {
     use rstest::rstest;
     use serde_json::Number;
 
-    use crate::models::readarr_models::{DownloadRecord, DownloadStatus};
+    use crate::models::readarr_models::DownloadRecord;
+    use crate::models::servarr_models::DownloadStatus;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
 
     use super::*;

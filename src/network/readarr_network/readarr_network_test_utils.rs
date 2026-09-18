@@ -4,13 +4,12 @@ pub mod test_utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::readarr_models::{
     AddAuthorBody, AddAuthorOptions, AddAuthorSearchResult, Author, AuthorStatus, BlocklistItem,
-    Book, BookFile, DownloadRecord, DownloadStatus, DownloadsResponse, Edition, MonitorType,
-    NewItemMonitorType, ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem,
-    ReadarrRelease,
+    Book, BookFile, DownloadRecord, DownloadsResponse, Edition, MonitorType, NewItemMonitorType,
+    ReadarrHistoryData, ReadarrHistoryEventType, ReadarrHistoryItem, ReadarrRelease,
   };
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_models::{
-    Indexer, IndexerField, IndexerSettings, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, IndexerSettings, Quality, QualityWrapper, RootFolder,
   };
   use chrono::DateTime;
   use serde_json::{Number, json};

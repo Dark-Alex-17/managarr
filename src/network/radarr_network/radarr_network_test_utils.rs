@@ -2,13 +2,13 @@
 pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
-    CreditType, DownloadRecord, DownloadStatus, DownloadsResponse, IndexerSettings, MediaInfo,
-    MinimumAvailability, Movie, MovieCollection, MovieFile, MovieHistoryItem, MovieStatus,
-    RadarrHistoryData, RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask,
-    RadarrTaskName, Rating, RatingsList,
+    CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
+    Movie, MovieCollection, MovieFile, MovieHistoryItem, MovieStatus, RadarrHistoryData,
+    RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating,
+    RatingsList,
   };
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;

@@ -2,8 +2,10 @@ use std::fmt::{Display, Formatter, Result};
 
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
+use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
+use strum::{Display, EnumIter};
 
 use super::HorizontallyScrollableText;
 
@@ -88,6 +90,36 @@ pub struct DiskSpace {
   pub free_space: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub total_space: i64,
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum DownloadStatus {
+  #[default]
+  Unknown,
+  Queued,
+  Paused,
+  Downloading,
+  Completed,
+  Failed,
+  Warning,
+  Delay,
+  #[display_style(name = "Download Client Unavailable")]
+  DownloadClientUnavailable,
+  Fallback,
 }
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]

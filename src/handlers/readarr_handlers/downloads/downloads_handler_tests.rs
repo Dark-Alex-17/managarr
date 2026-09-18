@@ -11,8 +11,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::readarr_handlers::downloads::DownloadsHandler;
-  use crate::models::readarr_models::{DownloadRecord, DownloadStatus};
+  use crate::models::readarr_models::DownloadRecord;
   use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, DOWNLOADS_BLOCKS};
+  use crate::models::servarr_models::DownloadStatus;
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;

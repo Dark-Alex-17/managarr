@@ -5,8 +5,8 @@ mod tests {
   use serde_json::{Value, json};
 
   use crate::models::servarr_models::{
-    AuthenticationMethod, AuthenticationRequired, CertificateValidation, Indexer, QualityProfile,
-    SecurityConfig, Update, UpdateChanges,
+    AuthenticationMethod, AuthenticationRequired, CertificateValidation, DownloadStatus, Indexer,
+    QualityProfile, SecurityConfig, Update, UpdateChanges,
   };
 
   #[test]
@@ -54,6 +54,40 @@ mod tests {
       "disabledForLocalAddresses"
     );
     assert_str_eq!(CertificateValidation::Disabled.to_string(), "disabled");
+  }
+
+  #[test]
+  fn test_download_status_display() {
+    assert_str_eq!(DownloadStatus::Unknown.to_string(), "unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_string(), "queued");
+    assert_str_eq!(DownloadStatus::Paused.to_string(), "paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_string(), "downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_string(), "completed");
+    assert_str_eq!(DownloadStatus::Failed.to_string(), "failed");
+    assert_str_eq!(DownloadStatus::Warning.to_string(), "warning");
+    assert_str_eq!(DownloadStatus::Delay.to_string(), "delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_string(),
+      "downloadClientUnavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_string(), "fallback");
+  }
+
+  #[test]
+  fn test_download_status_to_display_str() {
+    assert_str_eq!(DownloadStatus::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_display_str(), "Queued");
+    assert_str_eq!(DownloadStatus::Paused.to_display_str(), "Paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_display_str(), "Downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_display_str(), "Completed");
+    assert_str_eq!(DownloadStatus::Failed.to_display_str(), "Failed");
+    assert_str_eq!(DownloadStatus::Warning.to_display_str(), "Warning");
+    assert_str_eq!(DownloadStatus::Delay.to_display_str(), "Delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_display_str(),
+      "Download Client Unavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
   }
 
   #[test]

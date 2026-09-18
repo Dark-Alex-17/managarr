@@ -10,7 +10,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::{DownloadRecord, DownloadStatus, Episode};
+  use crate::models::servarr_models::DownloadStatus;
+  use crate::models::sonarr_models::{DownloadRecord, Episode};
   use crate::models::stateful_table::StatefulTable;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::download_record;
   use crate::ui::DrawUi;

@@ -1,8 +1,8 @@
 use super::{
   HorizontallyScrollableText, Serdeable,
   servarr_models::{
-    DiskSpace, HostConfig, Indexer, IndexerTestResult, MetadataProfile, QualityProfile,
-    QualityWrapper, RootFolder, SecurityConfig, SystemStatus, Tag,
+    DiskSpace, DownloadStatus, HostConfig, Indexer, IndexerTestResult, MetadataProfile,
+    QualityProfile, QualityWrapper, RootFolder, SecurityConfig, SystemStatus, Tag,
   },
 };
 use crate::models::servarr_models::{IndexerSettings, LogResponse, QueueEvent, Update};
@@ -171,36 +171,6 @@ pub struct DownloadRecord {
 }
 
 impl Eq for DownloadRecord {}
-
-#[derive(
-  Serialize,
-  Deserialize,
-  Default,
-  PartialEq,
-  Eq,
-  Clone,
-  Copy,
-  Debug,
-  EnumIter,
-  Display,
-  EnumDisplayStyle,
-)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum DownloadStatus {
-  #[default]
-  Unknown,
-  Queued,
-  Paused,
-  Downloading,
-  Completed,
-  Failed,
-  Warning,
-  Delay,
-  #[display_style(name = "Download Client Unavailable")]
-  DownloadClientUnavailable,
-  Fallback,
-}
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

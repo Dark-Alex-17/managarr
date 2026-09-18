@@ -4,11 +4,11 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
-    DownloadRecord, DownloadStatus, IndexerSettings, MediaInfo, MinimumAvailability, Movie,
-    MovieCollection, MovieFile, MovieMonitor, MovieStatus, RadarrRelease, Rating, RatingsList,
+    DownloadRecord, IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection,
+    MovieFile, MovieMonitor, MovieStatus, RadarrRelease, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use chrono::DateTime;
   use serde_json::{Number, json};

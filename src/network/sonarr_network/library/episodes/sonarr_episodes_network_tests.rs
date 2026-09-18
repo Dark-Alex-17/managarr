@@ -2,8 +2,9 @@
 mod tests {
   use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_models::DownloadStatus;
   use crate::models::sonarr_models::{
-    DownloadRecord, DownloadStatus, Episode, MonitorEpisodeBody, Season, Series, SonarrHistoryItem,
+    DownloadRecord, Episode, MonitorEpisodeBody, Season, Series, SonarrHistoryItem,
     SonarrHistoryWrapper, SonarrRelease, SonarrSerdeable,
   };
   use crate::models::stateful_table::SortOption;

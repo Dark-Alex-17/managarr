@@ -1,13 +1,13 @@
 #[cfg(test)]
 pub mod test_utils {
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::sonarr_models::{
     AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
-    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, MediaInfo, Rating, Season,
-    SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType, SonarrHistoryData,
-    SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask, SonarrTaskName,
+    DownloadsResponse, Episode, EpisodeFile, MediaInfo, Rating, Season, SeasonStatistics, Series,
+    SeriesStatistics, SeriesStatus, SeriesType, SonarrHistoryData, SonarrHistoryEventType,
+    SonarrHistoryItem, SonarrRelease, SonarrTask, SonarrTaskName,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;

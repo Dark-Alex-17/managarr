@@ -1,9 +1,9 @@
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::Route;
-use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie, MovieStatus};
+use crate::models::radarr_models::{DownloadRecord, Movie, MovieStatus};
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::servarr_models::{DiskSpace, RootFolder};
+use crate::models::servarr_models::{DiskSpace, DownloadStatus, RootFolder};
 use crate::ui::DrawUi;
 use crate::ui::draw_tabs;
 use crate::ui::radarr_ui::blocklist::BlocklistUi;

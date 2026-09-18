@@ -1,10 +1,8 @@
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
-use crate::models::servarr_models::Language;
-use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, SonarrHistoryItem, SonarrRelease,
-};
+use crate::models::servarr_models::{DownloadStatus, Language};
+use crate::models::sonarr_models::{DownloadRecord, Episode, SonarrHistoryItem, SonarrRelease};
 use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::styles::{

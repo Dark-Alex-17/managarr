@@ -12,8 +12,8 @@ use strum_macros::{Display, EnumIter};
 
 use super::Serdeable;
 use super::servarr_models::{
-  DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-  QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
+  DiskSpace, DownloadStatus, HostConfig, Indexer, Language, LogResponse, QualityProfile,
+  QualityWrapper, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
 };
 
 #[cfg(test)]
@@ -166,36 +166,6 @@ pub struct DownloadRecord {
   #[serde(default)]
   pub indexer: String,
   pub download_client: String,
-}
-
-#[derive(
-  Serialize,
-  Deserialize,
-  Default,
-  PartialEq,
-  Eq,
-  Clone,
-  Copy,
-  Debug,
-  EnumIter,
-  Display,
-  EnumDisplayStyle,
-)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum DownloadStatus {
-  #[default]
-  Unknown,
-  Queued,
-  Paused,
-  Downloading,
-  Completed,
-  Failed,
-  Warning,
-  Delay,
-  #[display_style(name = "Download Client Unavailable")]
-  DownloadClientUnavailable,
-  Fallback,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

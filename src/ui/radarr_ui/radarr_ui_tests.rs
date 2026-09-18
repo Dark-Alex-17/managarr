@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie, MovieStatus};
+  use crate::models::radarr_models::{DownloadRecord, Movie, MovieStatus};
+  use crate::models::servarr_models::DownloadStatus;
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
   use rstest::rstest;

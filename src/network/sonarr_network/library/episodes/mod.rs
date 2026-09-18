@@ -1,8 +1,8 @@
 use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-use crate::models::servarr_models::Language;
+use crate::models::servarr_models::{DownloadStatus, Language};
 use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, EpisodeFile, MonitorEpisodeBody, SonarrCommandBody,
+  DownloadRecord, Episode, EpisodeFile, MonitorEpisodeBody, SonarrCommandBody,
   SonarrHistoryWrapper, SonarrRelease,
 };
 use crate::models::{Route, ScrollableText};

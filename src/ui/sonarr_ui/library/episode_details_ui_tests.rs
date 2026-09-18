@@ -8,7 +8,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::{DownloadRecord, DownloadStatus, Episode};
+  use crate::models::servarr_models::DownloadStatus;
+  use crate::models::sonarr_models::{DownloadRecord, Episode};
   use crate::ui::DrawUi;
   use crate::ui::sonarr_ui::library::episode_details_ui::{EpisodeDetailsUi, style_from_status};
   use crate::ui::styles::{

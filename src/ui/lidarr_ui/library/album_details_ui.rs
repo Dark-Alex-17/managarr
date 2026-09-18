@@ -1,9 +1,8 @@
 use crate::app::App;
 use crate::models::Route;
-use crate::models::lidarr_models::{
-  DownloadRecord, DownloadStatus, LidarrHistoryItem, LidarrRelease, Track,
-};
+use crate::models::lidarr_models::{DownloadRecord, LidarrHistoryItem, LidarrRelease, Track};
 use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
+use crate::models::servarr_models::DownloadStatus;
 use crate::ui::lidarr_ui::library::track_details_ui::TrackDetailsUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};

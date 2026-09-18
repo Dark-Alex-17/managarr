@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
   use crate::models::radarr_models::{
-    AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, DownloadStatus,
-    EditMovieParams, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor,
-    RadarrReleaseDownloadBody,
+    AddMovieBody, AddMovieOptions, Credit, DeleteMovieParams, DownloadRecord, EditMovieParams,
+    MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrReleaseDownloadBody,
   };
   use crate::models::servarr_data::Notification;
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_models::DownloadStatus;
   use crate::models::stateful_table::SortOption;
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};

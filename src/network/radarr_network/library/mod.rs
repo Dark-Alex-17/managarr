@@ -1,11 +1,12 @@
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, Credit, CreditType, DeleteMovieParams, DownloadRecord,
-  DownloadStatus, EditMovieParams, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
+  EditMovieParams, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
   RadarrReleaseDownloadBody,
 };
 use crate::models::servarr_data::Notification;
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_models::DownloadStatus;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{Route, ScrollableText};
 use crate::network::radarr_network::RadarrEvent;
