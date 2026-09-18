@@ -264,6 +264,81 @@ mod tests {
     assert_eq!(style, row.downloaded());
   }
 
+  mod test_episode_row_styling {
+    use pretty_assertions::assert_eq;
+    use ratatui::style::Style;
+
+    use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::episode;
+    use crate::ui::styles::{downloading_style, missing_style};
+    use crate::ui::ui_test_utils::test_utils::{TerminalSize, create_test_terminal};
+
+    use super::*;
+
+    #[test]
+    fn test_season_details_ui_renders_downloading_episode_with_downloading_style() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+      set_episodes_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected episode");
+
+      assert_eq!(style.fg, downloading_style().fg);
+    }
+
+    #[test]
+    fn test_season_details_ui_renders_missing_episode_with_missing_style_when_queue_is_empty() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+      app.data.sonarr_data.downloads.set_items(vec![]);
+      set_episodes_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected episode");
+
+      assert_eq!(style.fg, missing_style().fg);
+    }
+
+    fn set_episodes_with_unselected_probe(app: &mut App<'_>) {
+      let season_details_modal = app.data.sonarr_data.season_details_modal.as_mut().unwrap();
+      season_details_modal.season_details_tabs.set_index(0);
+      season_details_modal.episodes.set_items(vec![
+        episode(),
+        Episode {
+          has_file: false,
+          monitored: true,
+          title: "Unselected episode".to_owned(),
+          ..episode()
+        },
+      ]);
+    }
+
+    fn rendered_row_style(app: &mut App<'_>, needle: &str) -> Style {
+      let (width, height) = TerminalSize::Large.to_cartesian();
+      let mut terminal = create_test_terminal(width, height);
+
+      terminal
+        .draw(|f| {
+          SeasonDetailsUi::draw(f, app, f.area());
+        })
+        .unwrap();
+
+      let buffer = terminal.backend().buffer();
+
+      for y in 0..height {
+        let row = (0..width)
+          .map(|x| buffer.cell((x, y)).expect("a rendered cell").symbol())
+          .collect::<String>();
+
+        if let Some(byte_index) = row.find(needle) {
+          let column = row[..byte_index].chars().count() as u16;
+
+          return buffer.cell((column, y)).expect("a rendered cell").style();
+        }
+      }
+
+      panic!("no rendered row contained {needle}");
+    }
+  }
+
   mod snapshot_tests {
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
     use rstest::rstest;

@@ -138,6 +138,80 @@ mod tests {
     assert_eq!(style, row.downloaded());
   }
 
+  mod test_track_row_styling {
+    use pretty_assertions::assert_eq;
+    use ratatui::style::Style;
+
+    use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::track;
+    use crate::ui::styles::{downloading_style, missing_style};
+    use crate::ui::ui_test_utils::test_utils::{TerminalSize, create_test_terminal};
+
+    use super::*;
+
+    #[test]
+    fn test_album_details_ui_renders_downloading_track_with_downloading_style() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+      set_tracks_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected track");
+
+      assert_eq!(style.fg, downloading_style().fg);
+    }
+
+    #[test]
+    fn test_album_details_ui_renders_missing_track_with_missing_style_when_queue_is_empty() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+      app.data.lidarr_data.downloads.set_items(vec![]);
+      set_tracks_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected track");
+
+      assert_eq!(style.fg, missing_style().fg);
+    }
+
+    fn set_tracks_with_unselected_probe(app: &mut App<'_>) {
+      let album_details_modal = app.data.lidarr_data.album_details_modal.as_mut().unwrap();
+      album_details_modal.album_details_tabs.set_index(0);
+      album_details_modal.tracks.set_items(vec![
+        track(),
+        Track {
+          has_file: false,
+          title: "Unselected track".to_owned(),
+          ..track()
+        },
+      ]);
+    }
+
+    fn rendered_row_style(app: &mut App<'_>, needle: &str) -> Style {
+      let (width, height) = TerminalSize::Large.to_cartesian();
+      let mut terminal = create_test_terminal(width, height);
+
+      terminal
+        .draw(|f| {
+          AlbumDetailsUi::draw(f, app, f.area());
+        })
+        .unwrap();
+
+      let buffer = terminal.backend().buffer();
+
+      for y in 0..height {
+        let row = (0..width)
+          .map(|x| buffer.cell((x, y)).expect("a rendered cell").symbol())
+          .collect::<String>();
+
+        if let Some(byte_index) = row.find(needle) {
+          let column = row[..byte_index].chars().count() as u16;
+
+          return buffer.cell((column, y)).expect("a rendered cell").style();
+        }
+      }
+
+      panic!("no rendered row contained {needle}");
+    }
+  }
+
   mod snapshot_tests {
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
     use rstest::rstest;
