@@ -42,7 +42,8 @@ pub struct AddMovieSearchResult {
   pub tmdb_id: i64,
   pub title: HorizontallyScrollableText,
   pub original_language: Language,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: MovieStatus,
   pub overview: String,
   pub genres: Vec<String>,
   #[serde(deserialize_with = "super::from_i64")]
@@ -333,7 +334,8 @@ pub struct Movie {
   pub original_language: Language,
   #[serde(deserialize_with = "super::from_i64")]
   pub size_on_disk: i64,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: MovieStatus,
   pub overview: String,
   pub path: String,
   pub studio: Option<String>,
@@ -355,6 +357,32 @@ pub struct Movie {
   pub ratings: RatingsList,
   pub movie_file: Option<MovieFile>,
   pub collection: Option<MovieCollection>,
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum MovieStatus {
+  #[default]
+  #[display_style(name = "TBA")]
+  Tba,
+  Announced,
+  #[display_style(name = "In Cinemas")]
+  InCinemas,
+  Released,
+  Deleted,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]

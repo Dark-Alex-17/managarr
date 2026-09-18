@@ -13,7 +13,7 @@ use serde_json::Number;
 
 use crate::app::App;
 use crate::models::Route;
-use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
+use crate::models::radarr_models::{Credit, MovieHistoryItem, MovieStatus, RadarrRelease};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::ui::styles::ManagarrStyle;
@@ -179,13 +179,7 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal) if !app.is_loading => {
       let is_monitored = app.data.radarr_data.movies.current_selection().monitored;
-      let status = app
-        .data
-        .radarr_data
-        .movies
-        .current_selection()
-        .status
-        .clone();
+      let status = app.data.radarr_data.movies.current_selection().status;
       let movie_details = &movie_details_modal.movie_details;
       let download_status = movie_details
         .items
@@ -201,7 +195,7 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
           .map(|line| {
             let split = line.split(':').collect::<Vec<&str>>();
             let title = format!("{}:", split[0]);
-            let style = style_from_download_status(download_status, is_monitored, status.clone());
+            let style = style_from_download_status(download_status, is_monitored, status);
 
             Line::from(vec![
               Span::styled(title, style.bold()),
@@ -531,13 +525,17 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
   }
 }
 
-fn style_from_download_status(download_status: &str, is_monitored: bool, status: String) -> Style {
+fn style_from_download_status(
+  download_status: &str,
+  is_monitored: bool,
+  status: MovieStatus,
+) -> Style {
   match download_status {
     "Downloaded" => downloaded_style(),
     "Awaiting Import" => awaiting_import_style(),
     "Downloading" => downloading_style(),
     _ if !is_monitored && download_status == "Missing" => unmonitored_missing_style(),
-    _ if status != "released" && download_status == "Missing" => unreleased_style(),
+    _ if status != MovieStatus::Released && download_status == "Missing" => unreleased_style(),
     "Missing" => missing_style(),
     _ => downloaded_style(),
   }

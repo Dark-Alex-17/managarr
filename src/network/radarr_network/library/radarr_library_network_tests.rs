@@ -701,7 +701,7 @@ mod tests {
         "name": "English"
       },
       "sizeOnDisk": 0,
-      "status": "Downloaded",
+      "status": "released",
       "overview": "Blah blah blah",
       "path": "/nfs/movies",
       "studio": "21st Century Alex",

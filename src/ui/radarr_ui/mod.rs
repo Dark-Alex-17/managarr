@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::Route;
-use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie};
+use crate::models::radarr_models::{DownloadRecord, DownloadStatus, Movie, MovieStatus};
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::servarr_models::{DiskSpace, RootFolder};
 use crate::ui::DrawUi;
@@ -243,7 +243,7 @@ fn decorate_with_row_style<'a>(
       return row.unmonitored_missing();
     }
 
-    if movie.status != "released" {
+    if movie.status != MovieStatus::Released {
       return row.unreleased();
     }
 

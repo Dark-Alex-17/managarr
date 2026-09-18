@@ -12,7 +12,7 @@ mod tests {
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, CreditType,
       DiskSpace, DownloadRecord, DownloadStatus, DownloadsResponse, Indexer, IndexerSettings,
-      IndexerTestResult, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor,
+      IndexerTestResult, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, MovieStatus,
       QualityProfile, RadarrRelease, RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
     },
     servarr_models::{
@@ -20,7 +20,7 @@ mod tests {
     },
   };
   use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
-    MOVIE_JSON, collection, crew_credit, download_record, task,
+    MOVIE_JSON, add_movie_search_result, collection, crew_credit, download_record, task,
   };
 
   #[test]
@@ -48,6 +48,24 @@ mod tests {
       "In Cinemas"
     );
     assert_str_eq!(MinimumAvailability::Released.to_display_str(), "Released");
+  }
+
+  #[test]
+  fn test_movie_status_display() {
+    assert_str_eq!(MovieStatus::Tba.to_string(), "tba");
+    assert_str_eq!(MovieStatus::Announced.to_string(), "announced");
+    assert_str_eq!(MovieStatus::InCinemas.to_string(), "inCinemas");
+    assert_str_eq!(MovieStatus::Released.to_string(), "released");
+    assert_str_eq!(MovieStatus::Deleted.to_string(), "deleted");
+  }
+
+  #[test]
+  fn test_movie_status_to_display_str() {
+    assert_str_eq!(MovieStatus::Tba.to_display_str(), "TBA");
+    assert_str_eq!(MovieStatus::Announced.to_display_str(), "Announced");
+    assert_str_eq!(MovieStatus::InCinemas.to_display_str(), "In Cinemas");
+    assert_str_eq!(MovieStatus::Released.to_display_str(), "Released");
+    assert_str_eq!(MovieStatus::Deleted.to_display_str(), "Deleted");
   }
 
   #[test]
@@ -677,6 +695,49 @@ mod tests {
     );
     assert_eq!(
       deserialize_with_field::<Movie>(MOVIE_JSON, "minimumAvailability", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_movie_status_deserialization_falls_back_to_default() {
+    let expected = Movie {
+      status: MovieStatus::default(),
+      ..serde_json::from_str(MOVIE_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_add_movie_search_result_status_deserialization_falls_back_to_default() {
+    let add_movie_search_result_json = serde_json::to_string(&add_movie_search_result()).unwrap();
+    let expected = AddMovieSearchResult {
+      status: MovieStatus::default(),
+      ..add_movie_search_result()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<AddMovieSearchResult>(
+        &add_movie_search_result_json,
+        "status",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<AddMovieSearchResult>(
+        &add_movie_search_result_json,
+        "status",
+        json!("notAThing")
+      ),
       expected
     );
   }

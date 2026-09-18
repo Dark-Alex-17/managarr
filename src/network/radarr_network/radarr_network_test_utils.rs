@@ -3,9 +3,9 @@ pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
     CreditType, DownloadRecord, DownloadStatus, DownloadsResponse, IndexerSettings, MediaInfo,
-    MinimumAvailability, Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrHistoryData,
-    RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating,
-    RatingsList,
+    MinimumAvailability, Movie, MovieCollection, MovieFile, MovieHistoryItem, MovieStatus,
+    RadarrHistoryData, RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask,
+    RadarrTaskName, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -25,7 +25,7 @@ pub mod test_utils {
           "name": "English"
         },
         "sizeOnDisk": 3543348019,
-        "status": "Downloaded",
+        "status": "released",
         "overview": "Blah blah blah",
         "path": "/nfs/movies",
         "studio": "21st Century Alex",
@@ -234,7 +234,7 @@ pub mod test_utils {
       title: "Test".to_owned().into(),
       original_language: language(),
       size_on_disk: 3543348019,
-      status: "Downloaded".to_owned(),
+      status: MovieStatus::Released,
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
       studio: Some("21st Century Alex".to_owned()),
@@ -300,7 +300,7 @@ pub mod test_utils {
       tmdb_id: 1234,
       title: HorizontallyScrollableText::from("Test"),
       original_language: language(),
-      status: "released".to_owned(),
+      status: MovieStatus::Released,
       overview: "New movie blah blah blah".to_owned(),
       genres: genres(),
       year: 2023,

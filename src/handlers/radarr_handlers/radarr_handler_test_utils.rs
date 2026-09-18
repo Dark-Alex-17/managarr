@@ -5,7 +5,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
     DownloadRecord, DownloadStatus, IndexerSettings, MediaInfo, MinimumAvailability, Movie,
-    MovieCollection, MovieFile, MovieMonitor, RadarrRelease, Rating, RatingsList,
+    MovieCollection, MovieFile, MovieMonitor, MovieStatus, RadarrRelease, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -329,7 +329,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       title: "Test".to_owned().into(),
       original_language: language(),
       size_on_disk: 3543348019,
-      status: "Downloaded".to_owned(),
+      status: MovieStatus::Released,
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
       studio: Some("21st Century Alex".to_owned()),
@@ -395,7 +395,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       tmdb_id: 4321,
       title: HorizontallyScrollableText::from("Test Search Result"),
       original_language: language(),
-      status: "released".to_owned(),
+      status: MovieStatus::Released,
       overview: "New movie blah blah blah".to_owned(),
       genres: genres(),
       year: 2023,
