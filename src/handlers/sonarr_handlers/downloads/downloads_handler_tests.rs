@@ -140,7 +140,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Downloads,
       ActiveSonarrBlock::DeleteDownloadPrompt,
-      SonarrEvent::DeleteDownload(1)
+      SonarrEvent::DeleteDownload(9)
     )]
     #[case(
       ActiveSonarrBlock::Downloads,
@@ -340,7 +340,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Downloads,
       ActiveSonarrBlock::DeleteDownloadPrompt,
-      SonarrEvent::DeleteDownload(1)
+      SonarrEvent::DeleteDownload(9)
     )]
     #[case(
       ActiveSonarrBlock::Downloads,
@@ -431,7 +431,7 @@ mod tests {
     )
     .extract_download_id();
 
-    assert_eq!(download_id, 1);
+    assert_eq!(download_id, 9);
   }
 
   #[test]

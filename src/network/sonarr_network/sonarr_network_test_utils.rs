@@ -64,14 +64,14 @@ pub mod test_utils {
   pub const EPISODE_JSON: &str = r#"{
     "seriesId": 1,
     "tvdbId": 1234,
-    "episodeFileId": 1,
+    "episodeFileId": 7,
     "seasonNumber": 1,
     "episodeNumber": 1,
     "title": "Something cool",
     "airDateUtc": "2024-02-10T07:28:45Z",
     "overview": "Okay so this one time at band camp...",
     "episodeFile": {
-        "id": 1,
+        "id": 7,
         "relativePath": "/season 1/episode 1.mkv",
         "path": "/nfs/tv/series/season 1/episode 1.mkv",
         "size": 3543348019,
@@ -96,7 +96,7 @@ pub mod test_utils {
     },
     "hasFile": true,
     "monitored": true,
-    "id": 1
+    "id": 11
   }"#;
 
   pub fn add_series_search_result() -> AddSeriesSearchResult {
@@ -139,8 +139,8 @@ pub mod test_utils {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: DownloadStatus::Downloading,
-      id: 1,
-      episode_id: Some(Number::from(1i64)),
+      id: 9,
+      episode_id: Some(Number::from(11i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from(
@@ -159,10 +159,10 @@ pub mod test_utils {
 
   pub fn episode() -> Episode {
     Episode {
-      id: 1,
+      id: 11,
       series_id: 1,
       tvdb_id: 1234,
-      episode_file_id: 1,
+      episode_file_id: 7,
       season_number: 1,
       episode_number: 1,
       title: "Something cool".to_owned(),
@@ -178,7 +178,7 @@ pub mod test_utils {
 
   pub fn episode_file() -> EpisodeFile {
     EpisodeFile {
-      id: 1,
+      id: 7,
       relative_path: "/season 1/episode 1.mkv".to_owned(),
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,

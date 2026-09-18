@@ -41,8 +41,8 @@ mod tests {
       "records": [{
         "title": "Test Download Title",
         "status": "downloading",
-        "id": 1,
-        "episodeId": 1,
+        "id": 9,
+        "episodeId": 11,
         "size": 3543348019f64,
         "sizeleft": 1771674009f64,
         "outputPath": "/nfs/tv/Test show/season 1/",

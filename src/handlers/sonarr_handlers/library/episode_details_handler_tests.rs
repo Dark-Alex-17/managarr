@@ -207,7 +207,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchEpisodePrompt,
-      SonarrEvent::TriggerAutomaticEpisodeSearch(1)
+      SonarrEvent::TriggerAutomaticEpisodeSearch(11)
     )]
     fn test_episode_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -646,7 +646,7 @@ mod tests {
       assert_navigation_popped!(app, active_sonarr_block.into());
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::TriggerAutomaticEpisodeSearch(1)
+        &SonarrEvent::TriggerAutomaticEpisodeSearch(11)
       );
     }
 
@@ -787,7 +787,7 @@ mod tests {
     )
     .extract_episode_id();
 
-    assert_eq!(episode_id, 1);
+    assert_eq!(episode_id, 11);
   }
 
   #[test]

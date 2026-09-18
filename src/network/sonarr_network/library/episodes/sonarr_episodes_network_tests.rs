@@ -69,7 +69,7 @@ mod tests {
       ..episode()
     };
     let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
-    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_3.clone()];
+    let mut expected_sorted_episodes = vec![episode_3.clone(), episode_1.clone()];
     let (mock, app, _server) = MockServarrApi::get()
       .query("seriesId=1")
       .returns(json!([episode_1, episode_2, episode_3]))
@@ -175,6 +175,7 @@ mod tests {
       ..episode()
     };
     let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
+    let expected_sorted_episodes = vec![episode_2.clone(), episode_3.clone(), episode_1.clone()];
     let (mock, app, _server) = MockServarrApi::get()
       .query("seriesId=1")
       .returns(json!([episode_1, episode_2, episode_3]))
@@ -216,7 +217,7 @@ mod tests {
         .unwrap()
         .episodes
         .items,
-      expected_episodes
+      expected_sorted_episodes
     );
     assert!(
       app
@@ -294,10 +295,10 @@ mod tests {
           "monitored": true
       },
       {
-          "id": 1,
+          "id": 11,
           "seriesId": 1,
           "tvdbId": 1234,
-          "episodeFileId": 1,
+          "episodeFileId": 7,
           "seasonNumber": 1,
           "episodeNumber": 1,
           "title": "Something cool",

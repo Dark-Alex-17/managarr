@@ -673,7 +673,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleEpisodeMonitoring(1)
+        &SonarrEvent::ToggleEpisodeMonitoring(11)
       );
     }
 
@@ -1129,7 +1129,7 @@ mod tests {
     )
     .extract_episode_id();
 
-    assert_eq!(episode_id, 1);
+    assert_eq!(episode_id, 11);
   }
 
   #[test]
