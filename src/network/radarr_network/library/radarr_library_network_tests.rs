@@ -759,7 +759,7 @@ mod tests {
           IMDB: 
           Rotten Tomatoes: 
           Quality Profile: HD - 1080p
-          Size: 0.00 GB
+          Size: 0.00 MB
           Path: /nfs/movies
           Studio: 21st Century Alex
           Genres: cool, family, fun"

@@ -22,7 +22,7 @@ expression: output
         ││ Books │ History │ Author Search         │Do you want to trigger an automatic search of your indexers│                                           ││        
         ││─────────────────────────────────────────│  for all monitored book(s) for the author: Test Author?   │───────────────────────────────────────────││        
         ││   Monitored      Title                  │                                                           │Date             Size                      ││        
-        ││=> 🏷              Test Book              │                                                           │20               2.30 GB                   ││        
+        ││=> 🏷              Test Book              │                                                           │20               2.34 MB                   ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        

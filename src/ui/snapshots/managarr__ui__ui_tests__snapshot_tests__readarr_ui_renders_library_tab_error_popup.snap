@@ -19,7 +19,7 @@ expression: output
 │ Library │ Downloads │ Blocklist │ │   u                                                         update all                  │                                     │
 │───────────────────────────────────│   enter                                                     details                     │─────────────────────────────────────│
 │   Name ▼                          │   esc                                                       cancel filter               │e        Monitored Tags              │
-│=> Test Author                     │   ↑                            k                            scroll up                   │0 GB     🏷         alex              │
+│=> Test Author                     │   ↑                            k                            scroll up                   │0 MB     🏷         alex              │
 │                                   │   ↓                            j                            scroll down                 │                                     │
 │                                   │   ←                            h                            previous tab                │                                     │
 │                                   │   →                            l                            next tab                    │                                     │

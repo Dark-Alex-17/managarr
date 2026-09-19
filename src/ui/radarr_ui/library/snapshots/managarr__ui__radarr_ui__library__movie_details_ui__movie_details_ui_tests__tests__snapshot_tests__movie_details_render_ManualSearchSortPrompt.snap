@@ -12,8 +12,8 @@ expression: output
                     │ Details │ History │ File │ Cast │ Crew │ Manual Search                                                                   │                     
                     │──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│                     
                     │   Source    Age        ⛔     Title                 Indexer                Size         Peers        Language Quality     │                     
-                    │=> torrent   12 days    ⛔     Some movie release    The Pirate Bay         0.0 GB       25 / 3       English  HD - 1080p  │                     
-                    │   usenet    22 days    ⛔     Some Other movie rele The Pirate Bay         0.0 GB                    English  HD - 1080p  │                     
+                    │=> torrent   12 days    ⛔     Some movie release    The Pirate Bay         0.0 MB       25 / 3       English  HD - 1080p  │                     
+                    │   usenet    22 days    ⛔     Some Other movie rele The Pirate Bay         0.0 MB                    English  HD - 1080p  │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     

@@ -15,7 +15,7 @@ use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 
 mod add_root_folder_ui;
 
@@ -69,11 +69,11 @@ fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ..
     } = root_folders;
 
-    let space: f64 = convert_to_gb(*free_space);
+    let space = format_size(*free_space, 2);
 
     Row::new(vec![
       Cell::from(path.to_owned()),
-      Cell::from(format!("{space:.2} GB")),
+      Cell::from(space),
       Cell::from(
         unmapped_folders
           .as_ref()

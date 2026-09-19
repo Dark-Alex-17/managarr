@@ -22,8 +22,8 @@ expression: output
         ││ Books │ History │ Author Search         │  Do you want to trigger an update and disk scan for the   │                                           ││        
         ││─────────────────────────────────────────│                   author: Test Author?                    │───────────────────────────────────────────││        
         ││   Source ▼  Age        ⛔     Title      │                                                           │ Size         Peers        Quality         ││        
-        ││=> torrent   1 days     ⛔     Test Torren│                                                           │ 0.0 GB       2 / 1        EPUB            ││        
-        ││   usenet    1 days     ⛔     Test Usenet│                                                           │ 0.0 GB                    EPUB            ││        
+        ││=> torrent   1 days     ⛔     Test Torren│                                                           │ 0.0 MB       2 / 1        EPUB            ││        
+        ││   usenet    1 days     ⛔     Test Usenet│                                                           │ 0.0 MB                    EPUB            ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        

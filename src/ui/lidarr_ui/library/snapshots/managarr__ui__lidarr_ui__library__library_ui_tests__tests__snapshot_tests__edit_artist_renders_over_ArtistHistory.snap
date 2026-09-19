@@ -4,7 +4,7 @@ expression: output
 ---
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    Name ▼                       Type          Status        Quality Profile      Metadata Profile    Albums     Tracks      Size        Monitored  Tags              
-=> Alex                         Person        Continuing    Lossless             Standard            1          12/15       0.00 GB     🏷          alex              
+=> Alex                         Person        Continuing    Lossless             Standard            1          12/15       0.01 MB     🏷          alex              
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
         │Overview: some interesting description of the artist She was born in Madison, Wisconsin: a city she has never really left. Her first album took her│        

@@ -12,7 +12,7 @@ use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 
 #[cfg(test)]
 #[path = "downloads_ui_tests.rs"]
@@ -96,12 +96,12 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     } else {
       1f64 - (*sizeleft as f64 / *size as f64)
     };
-    let file_size: f64 = convert_to_gb(*size);
+    let file_size = format_size(*size, 2);
 
     Row::new(vec![
       Cell::from(title.to_owned()),
       Cell::from(format!("{:.0}%", percent * 100.0)),
-      Cell::from(format!("{file_size:.2} GB")),
+      Cell::from(file_size),
       Cell::from(
         output_path
           .as_ref()

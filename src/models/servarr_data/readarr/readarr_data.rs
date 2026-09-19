@@ -295,7 +295,7 @@ impl ReadarrData<'_> {
       statistics: Some(BookStatistics {
         book_file_count: 3,
         total_book_count: 7,
-        size_on_disk: 2469606195,
+        size_on_disk: 2457600,
         percent_of_books: 42.86,
       }),
       ..Book::default()
@@ -538,7 +538,7 @@ impl ReadarrData<'_> {
       author_id: 1,
       book_id: 1,
       path: "/nfs/books/Test Author/Test Book.epub".to_owned(),
-      size: 3543348019,
+      size: 3355443,
       date_added: date,
       quality: quality.clone(),
       media_info: Some(MediaInfo {

@@ -24,8 +24,8 @@ expression: output
         ││ Albums │ History │ Manual Search       │                                                                │                                       ││        
         ││────────────────────────────────────────│Rejection reasons:                                              │───────────────────────────────────────││        
         ││   Source ▼  Age        ⛔     Title     │• Unknown quality profile                                       │e         Peers        Quality         ││        
-        ││=> torrent   1 days     ⛔     Test Relea│• Release is already mapped                                     │ GB       2 / 1        Lossless        ││        
-        ││   usenet    1 days     ⛔     Test Relea│                                                                │ GB                    Lossless        ││        
+        ││=> torrent   1 days     ⛔     Test Relea│• Release is already mapped                                     │ MB       2 / 1        Lossless        ││        
+        ││   usenet    1 days     ⛔     Test Relea│                                                                │ MB                    Lossless        ││        
         ││                                        │                                                                │                                       ││        
         ││                                        │                                                                │                                       ││        
         ││                                        │                                                                │                                       ││        

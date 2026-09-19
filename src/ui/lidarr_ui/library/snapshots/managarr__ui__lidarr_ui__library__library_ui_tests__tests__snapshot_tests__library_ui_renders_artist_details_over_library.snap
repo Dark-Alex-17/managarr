@@ -4,7 +4,7 @@ expression: output
 ---
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    Name ▼                       Type          Status        Quality Profile      Metadata Profile    Albums     Tracks      Size        Monitored  Tags              
-=> Alex                         Person        Continuing    Lossless             Standard            1          12/15       0.00 GB     🏷          alex              
+=> Alex                         Person        Continuing    Lossless             Standard            1          12/15       0.01 MB     🏷          alex              
         ╭  Alex  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Artist: Alex                                                                                                                                       │        
         │Overview: some interesting description of the artist She was born in Madison, Wisconsin: a city she has never really left. Her first album took her│        
@@ -24,7 +24,7 @@ expression: output
         ││ Albums │ History │ Manual Search                                                                                                                ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
         ││   Monitored  Title                                        Type           Tracks         Duration       Release Date        Size                 ││        
-        ││=> 🏷          Test Album                                   Album          8/10           0 min          2023-01-01          0.00 GB              ││        
+        ││=> 🏷          Test Album                                   Album          8/10           0 min          2023-01-01          302.47 MB            ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        

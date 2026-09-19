@@ -22,7 +22,7 @@ use crate::ui::utils::{
   line_gauge_with_label, line_gauge_with_title, title_block,
 };
 use crate::ui::widgets::loading_block::LoadingBlock;
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use chrono::Duration;
 #[cfg(not(test))]
 use chrono::Utc;
@@ -170,8 +170,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let RootFolder {
         path, free_space, ..
       } = &monitored_root_folders[i];
-      let space: f64 = convert_to_gb(*free_space);
-      let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
+      let space = format_size(*free_space, 2);
+      let root_folder_space = Paragraph::new(format!("{path}: {space} free"))
         .block(borderless_block())
         .default_color();
 

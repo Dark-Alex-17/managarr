@@ -11,7 +11,7 @@ use crate::models::stateful_table::StatefulTable;
 use crate::models::{Route, ScrollableText};
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::{Network, RequestMethod};
-use crate::utils::{convert_runtime, convert_to_gb};
+use crate::utils::{convert_runtime, format_size};
 use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
@@ -319,7 +319,7 @@ impl Network<'_, '_> {
           ..
         } = movie_response;
         let (hours, minutes) = convert_runtime(runtime);
-        let size = convert_to_gb(size_on_disk);
+        let size = format_size(size_on_disk, 2);
         let studio = studio.clone().unwrap_or_default();
         let quality_profile = app
           .data
@@ -374,7 +374,7 @@ impl Network<'_, '_> {
             IMDB: {imdb_rating}
             Rotten Tomatoes: {rotten_tomatoes_rating}
             Quality Profile: {quality_profile}
-            Size: {size:.2} GB
+            Size: {size}
             Path: {path}
             Studio: {studio}
             Genres: {}",
@@ -393,7 +393,7 @@ impl Network<'_, '_> {
           movie_details_modal.file_details = formatdoc!(
             "Relative Path: {}
               Absolute Path: {}
-              Size: {size:.2} GB
+              Size: {size}
               Date Added: {}",
             file.relative_path,
             file.path,

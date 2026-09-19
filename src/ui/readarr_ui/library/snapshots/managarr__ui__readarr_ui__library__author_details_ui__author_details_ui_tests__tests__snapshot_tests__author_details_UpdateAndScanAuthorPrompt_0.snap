@@ -22,7 +22,7 @@ expression: output
         ││ Books │ History │ Author Search         │  Do you want to trigger an update and disk scan for the   │                                           ││        
         ││─────────────────────────────────────────│                   author: Test Author?                    │───────────────────────────────────────────││        
         ││   Monitored      Title                  │                                                           │Date             Size                      ││        
-        ││=> 🏷              Test Book              │                                                           │20               2.30 GB                   ││        
+        ││=> 🏷              Test Book              │                                                           │20               2.34 MB                   ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        
         ││                                         │                                                           │                                           ││        

@@ -16,7 +16,7 @@ use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::utils::{convert_runtime, convert_to_gb};
+use crate::utils::{convert_runtime, format_size};
 
 mod add_movie_ui;
 mod delete_movie_ui;
@@ -95,7 +95,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let monitored = if movie.monitored { "🏷" } else { "" };
       let studio = movie.studio.clone().unwrap_or_default();
       let (hours, minutes) = convert_runtime(movie.runtime);
-      let file_size: f64 = convert_to_gb(movie.size_on_disk);
+      let file_size = format_size(movie.size_on_disk, 2);
       let certification = movie.certification.clone().unwrap_or_default();
       let quality_profile = quality_profile_map
         .get_by_left(&movie.quality_profile_id)
@@ -121,7 +121,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(format!("{hours}h {minutes}m")),
           Cell::from(certification),
           Cell::from(movie.original_language.name.to_owned()),
-          Cell::from(format!("{file_size:.2} GB")),
+          Cell::from(file_size),
           Cell::from(quality_profile),
           Cell::from(monitored.to_owned()),
           Cell::from(tags),

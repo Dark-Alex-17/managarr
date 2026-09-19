@@ -19,7 +19,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use chrono::Utc;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
@@ -414,7 +414,7 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
                 && active_sonarr_block != ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt,
               app.should_text_scroll,
             );
-            let size = convert_to_gb(*size);
+            let size = format_size(*size, 1);
             let rejected_str = if *rejected { "⛔" } else { "" };
             let peers = if seeders.is_none() || leechers.is_none() {
               Text::from("")
@@ -454,7 +454,7 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
               Cell::from(rejected_str),
               Cell::from(title.to_string()),
               Cell::from(indexer.clone()),
-              Cell::from(format!("{size:.1} GB")),
+              Cell::from(size),
               Cell::from(peers),
               Cell::from(language),
               Cell::from(quality),

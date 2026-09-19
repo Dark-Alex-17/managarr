@@ -14,7 +14,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::prelude::{Line, Stylize, Text};
@@ -234,7 +234,7 @@ fn draw_book_file_info(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ..
         } = book_file;
 
-        let size = convert_to_gb(*size);
+        let size = format_size(*size, 2);
         let audio_info = media_info
           .as_ref()
           .map(|media_info| {
@@ -249,7 +249,7 @@ fn draw_book_file_info(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
         Row::new(vec![
           Cell::from(path.clone()),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(size),
           Cell::from(quality.quality.name.clone()),
           Cell::from(audio_info),
         ])
@@ -395,7 +395,7 @@ fn draw_book_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
               && active_readarr_block != ActiveReadarrBlock::ManualBookSearchConfirmPrompt,
             app.should_text_scroll,
           );
-          let size = convert_to_gb(*size);
+          let size = format_size(*size, 1);
           let rejected_str = if *rejected { "⛔" } else { "" };
           let peers = if seeders.is_none() || leechers.is_none() {
             Text::from("")
@@ -426,7 +426,7 @@ fn draw_book_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             Cell::from(rejected_str),
             Cell::from(title.to_string()),
             Cell::from(indexer.clone()),
-            Cell::from(format!("{size:.1} GB")),
+            Cell::from(size),
             Cell::from(peers),
             Cell::from(quality_name),
           ])

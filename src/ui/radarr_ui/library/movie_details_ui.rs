@@ -26,7 +26,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 
 #[cfg(test)]
 #[path = "movie_details_ui_tests.rs"]
@@ -398,7 +398,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
         app.should_text_scroll,
       );
-      let size = convert_to_gb(*size);
+      let size = format_size(*size, 1);
       let rejected_str = if *rejected { "⛔" } else { "" };
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::from("")
@@ -434,7 +434,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(rejected_str),
         Cell::from(title.to_string()),
         Cell::from(indexer.clone()),
-        Cell::from(format!("{size:.1} GB")),
+        Cell::from(size),
         Cell::from(peers),
         Cell::from(language),
         Cell::from(quality),

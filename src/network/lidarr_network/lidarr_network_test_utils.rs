@@ -74,7 +74,7 @@ pub mod test_utils {
 				"trackFileCount": 8,
 				"trackCount": 10,
 				"totalTrackCount": 10,
-				"sizeOnDisk": 1024,
+				"sizeOnDisk": 317162578,
 				"percentOfTracks": 99.9
 			}
     }"#;
@@ -250,7 +250,7 @@ pub mod test_utils {
       track_file_count: 8,
       track_count: 10,
       total_track_count: 10,
-      size_on_disk: 1024,
+      size_on_disk: 317162578,
       percent_of_tracks: 99.9,
     }
   }

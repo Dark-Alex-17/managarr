@@ -26,7 +26,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use ratatui::layout::Alignment;
 use ratatui::text::Text;
 use serde_json::Number;
@@ -223,7 +223,7 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ];
 
   if let Some(stats) = current_selection.statistics.as_ref() {
-    let size = convert_to_gb(stats.size_on_disk);
+    let size = format_size(stats.size_on_disk, 2);
     artist_description.extend(vec![
       Line::from(vec![
         "Albums: ".primary().bold(),
@@ -235,7 +235,7 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ]),
       Line::from(vec![
         "Size on Disk: ".primary().bold(),
-        format!("{size:.2} GB").default_color(),
+        size.default_color(),
       ]),
     ]);
   }
@@ -282,13 +282,10 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         || "N/A".to_owned(),
         |s| format!("{}/{}", s.track_file_count, s.total_track_count),
       );
-      let size = album.statistics.as_ref().map_or_else(
-        || "N/A".to_owned(),
-        |s| {
-          let size = convert_to_gb(s.size_on_disk);
-          format!("{size:.2} GB")
-        },
-      );
+      let size = album
+        .statistics
+        .as_ref()
+        .map_or_else(|| "N/A".to_owned(), |s| format_size(s.size_on_disk, 2));
       let duration_mins = album.duration / 60000;
 
       decorate_album_row_with_style(
@@ -500,7 +497,7 @@ fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           && active_lidarr_block != ActiveLidarrBlock::ManualArtistSearchConfirmPrompt,
         app.should_text_scroll,
       );
-      let size = convert_to_gb(*size);
+      let size = format_size(*size, 1);
       let rejected_str = if *rejected { "⛔" } else { "" };
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::from("")
@@ -531,7 +528,7 @@ fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(rejected_str),
         Cell::from(title.to_string()),
         Cell::from(indexer.clone()),
-        Cell::from(format!("{size:.1} GB")),
+        Cell::from(size),
         Cell::from(peers),
         Cell::from(quality_name),
       ])

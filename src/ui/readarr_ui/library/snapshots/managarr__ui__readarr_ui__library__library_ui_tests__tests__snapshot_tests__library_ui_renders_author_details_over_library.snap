@@ -4,7 +4,7 @@ expression: output
 ---
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    Name ▼                                             Status        Quality Profile       Metadata Profile      Books       Size        Monitored  Tags              
-=> Test Author                                        Continuing    Standard              Comprehensive         0           0.00 GB     🏷          alex              
+=> Test Author                                        Continuing    Standard              Comprehensive         0           0.00 MB     🏷          alex              
         ╭  Test Author  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮        
         │Author: Test Author                                                                                                                                │        
         │Status: Continuing                                                                                                                                 │        
@@ -22,7 +22,7 @@ expression: output
         ││ Books │ History │ Author Search                                                                                                                 ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
         ││   Monitored      Title                                                 Files                 Release Date             Size                      ││        
-        ││=> 🏷              Test Book                                             3/7                   2023-05-20               2.30 GB                   ││        
+        ││=> 🏷              Test Book                                             3/7                   2023-05-20               2.34 MB                   ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        

@@ -22,8 +22,8 @@ expression: output
         ││ Books │ History │ Author Search        │                        Torrent Release?                        │                                       ││        
         ││────────────────────────────────────────│                                                                │───────────────────────────────────────││        
         ││   Source ▼  Age        ⛔     Title     │                                                                │e         Peers        Quality         ││        
-        ││=> torrent   1 days     ⛔     Test Torre│Rejection reasons:                                              │ GB       2 / 1        EPUB            ││        
-        ││   usenet    1 days     ⛔     Test Usene│• Unknown quality profile                                       │ GB                    EPUB            ││        
+        ││=> torrent   1 days     ⛔     Test Torre│Rejection reasons:                                              │ MB       2 / 1        EPUB            ││        
+        ││   usenet    1 days     ⛔     Test Usene│• Unknown quality profile                                       │ MB                    EPUB            ││        
         ││                                        │                                                                │                                       ││        
         ││                                        │                                                                │                                       ││        
         ││                                        │                                                                │                                       ││        

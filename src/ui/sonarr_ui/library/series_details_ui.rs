@@ -26,7 +26,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 
 #[cfg(test)]
 #[path = "series_details_ui_tests.rs"]
@@ -200,10 +200,10 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     ]),
   ];
   if let Some(stats) = current_selection.statistics.as_ref() {
-    let size = convert_to_gb(stats.size_on_disk);
+    let size = format_size(stats.size_on_disk, 2);
     series_description.extend(vec![Line::from(vec![
       "Size on Disk: ".primary().bold(),
-      format!("{size:.2} GB").default_color(),
+      size.default_color(),
     ])]);
   }
 
@@ -234,13 +234,10 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         || "N/A".to_owned(),
         |s| format!("{}/{}", s.episode_file_count, s.episode_count),
       );
-      let size = season.statistics.as_ref().map_or_else(
-        || "N/A".to_owned(),
-        |s| {
-          let size = convert_to_gb(s.size_on_disk);
-          format!("{size:.2} GB")
-        },
-      );
+      let size = season
+        .statistics
+        .as_ref()
+        .map_or_else(|| "N/A".to_owned(), |s| format_size(s.size_on_disk, 2));
 
       decorate_season_row_with_style(
         season,

@@ -34,7 +34,7 @@ mod tests {
         "trackFileCount": 8,
         "trackCount": 10,
         "totalTrackCount": 10,
-        "sizeOnDisk": 1024,
+        "sizeOnDisk": 317162578,
         "percentOfTracks": 99.9
       }
     }]);

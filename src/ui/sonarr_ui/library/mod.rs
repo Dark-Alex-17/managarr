@@ -12,7 +12,7 @@ use crate::ui::widgets::{
   confirmation_prompt::ConfirmationPrompt,
   popup::{Popup, Size},
 };
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use crate::{
   app::App,
   models::{
@@ -104,7 +104,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let size = series
         .statistics
         .as_ref()
-        .map_or(0f64, |stats| convert_to_gb(stats.size_on_disk));
+        .map_or(0, |stats| stats.size_on_disk);
       let quality_profile = quality_profile_map
         .get_by_left(&series.quality_profile_id)
         .expect("Quality profile ID must exist in quality_profile_map")
@@ -134,7 +134,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(series.series_type.to_display_str()),
           Cell::from(quality_profile),
           Cell::from(language_profile),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(format_size(size, 2)),
           Cell::from(monitored.to_owned()),
           Cell::from(tags),
         ]),

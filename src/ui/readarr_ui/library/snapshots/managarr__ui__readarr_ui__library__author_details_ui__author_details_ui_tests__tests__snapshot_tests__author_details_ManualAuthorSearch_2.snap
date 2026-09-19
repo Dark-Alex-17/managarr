@@ -22,8 +22,8 @@ expression: output
         ││ Books │ History │ Author Search                                                                                                                 ││        
         ││─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││        
         ││   Source ▼  Age        ⛔     Title                                              Indexer               Size         Peers        Quality         ││        
-        ││=> torrent   1 days     ⛔     Test Torrent Release                               kickass torrents      0.0 GB       2 / 1        EPUB            ││        
-        ││   usenet    1 days     ⛔     Test Usenet Release                                DrunkenSlug           0.0 GB                    EPUB            ││        
+        ││=> torrent   1 days     ⛔     Test Torrent Release                               kickass torrents      0.0 MB       2 / 1        EPUB            ││        
+        ││   usenet    1 days     ⛔     Test Usenet Release                                DrunkenSlug           0.0 MB                    EPUB            ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        
         ││                                                                                                                                                 ││        

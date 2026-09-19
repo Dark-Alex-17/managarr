@@ -24,7 +24,7 @@ expression: output
         ││ Albums │ History │ Manual Search        │                                                           │                                           ││        
         ││─────────────────────────────────────────│                                                           │───────────────────────────────────────────││        
         ││   Monitored  Title                      │                            ╭───╮                          │  Release Date        Size                 ││        
-        ││=> 🏷          Test Album                 │        Delete Album Files: │ ✔ │                          │  2023-01-01          0.00 GB              ││        
+        ││=> 🏷          Test Album                 │        Delete Album Files: │ ✔ │                          │  2023-01-01          302.47 MB            ││        
         ││                                         │                            ╰───╯                          │                                           ││        
         ││                                         │                            ╭───╮                          │                                           ││        
         ││                                         │        Add List Exclusion: │   │                          │                                           ││        
