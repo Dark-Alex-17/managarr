@@ -202,7 +202,23 @@ Key:
 
 ### Readarr
 
-- [ ] Support for Readarr
+| TUI | CLI | Feature                                                                                                        |
+|-----|-----|----------------------------------------------------------------------------------------------------------------|
+| ✅   | ✅   | View your library, downloads, blocklist, editions                                                              |
+| ✅   | ✅   | View details of a specific author, book, or edition including description, history, downloaded file info       |
+| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅   | ✅   | Search your library                                                                                            |
+| ✅   | ✅   | Add authors to your library                                                                                    |
+| ✅   | ✅   | Delete authors, books, downloads, indexers, root folders, and book files                                       |
+| ✅   | ✅   | Trigger automatic searches for authors or books                                                                |
+| ✅   | ✅   | Trigger refresh and disk scan for authors and downloads                                                        |
+| ✅   | ✅   | Manually search for author releases or books                                                                   |
+| ✅   | ✅   | Edit your authors and indexers                                                                                 |
+| ✅   | ✅   | Manage your tags                                                                                               |
+| ✅   | ✅   | Manage your root folders                                                                                       |
+| ✅   | ✅   | Manage your blocklist                                                                                          |
+| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
 
 ### Whisparr
 
