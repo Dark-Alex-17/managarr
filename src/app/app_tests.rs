@@ -15,6 +15,7 @@ mod tests {
   use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::NetworkEvent;
   use crate::network::radarr_network::RadarrEvent;
+  use crate::network::sonarr_network::SonarrEvent;
   use tokio_util::sync::CancellationToken;
 
   #[test]
@@ -143,6 +144,36 @@ mod tests {
 
     assert_eq!(app.get_current_route(), default_route);
     assert!(app.is_routing);
+  }
+
+  #[tokio::test]
+  async fn test_named_tab_uses_selected_servarr_route_and_network_events() {
+    let (network_tx, mut network_rx) = mpsc::channel(500);
+    let mut app = App::new(
+      network_tx,
+      AppConfig {
+        radarr: Some(vec![ServarrConfig {
+          name: Some("Movies".to_owned()),
+          ..ServarrConfig::default()
+        }]),
+        sonarr: Some(vec![ServarrConfig {
+          name: Some("Shows".to_owned()),
+          ..ServarrConfig::default()
+        }]),
+        ..AppConfig::default()
+      },
+      CancellationToken::new(),
+    );
+
+    assert!(app.server_tabs.select_tab_by_title("Shows"));
+    assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+
+    app.on_tick().await;
+
+    assert_eq!(
+      network_rx.recv().await.unwrap(),
+      SonarrEvent::GetQualityProfiles.into()
+    );
   }
 
   #[test]

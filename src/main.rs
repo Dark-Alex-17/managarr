@@ -171,13 +171,40 @@ async fn main() -> Result<()> {
     cancellation_token.clone(),
   )));
 
+  if args.command.is_none() {
+    if let Some(name) = args.global.servarr_name.as_deref() {
+      let mut app = app.lock().await;
+      anyhow::ensure!(
+        app.server_tabs.select_tab_by_title(name.trim()),
+        "A Servarr titled '{}' was not found in your configuration file",
+        name.trim()
+      );
+    }
+  }
+
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) | Command::Lidarr(_) => {
         if spinner_disabled {
-          start_cli_no_spinner(config, reqwest_client, cancellation_token, app, command).await;
+          start_cli_no_spinner(
+            config,
+            reqwest_client,
+            cancellation_token,
+            app,
+            command,
+            args.global.servarr_name.as_deref(),
+          )
+          .await;
         } else {
-          start_cli_with_spinner(config, reqwest_client, cancellation_token, app, command).await;
+          start_cli_with_spinner(
+            config,
+            reqwest_client,
+            cancellation_token,
+            app,
+            command,
+            args.global.servarr_name.as_deref(),
+          )
+          .await;
         }
       }
       Command::Completions { shell } => {

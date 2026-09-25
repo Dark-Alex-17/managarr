@@ -23,6 +23,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::app::{App, AppConfig, log_and_print_error};
 use crate::cli::{self, Command};
+use crate::models::Route;
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
 
@@ -285,12 +286,16 @@ pub(super) async fn start_cli_with_spinner(
   cancellation_token: CancellationToken,
   app: Arc<Mutex<App<'_>>>,
   command: Command,
+  servarr_name: Option<&str>,
 ) {
   config.verify_config_present_for_cli(&command);
   {
     let mut app = app.lock().await;
     app.cli_mode = true;
-    select_cli_configuration(&mut app, &config, &command, None);
+    select_cli_configuration(&mut app, &config, &command, servarr_name).unwrap_or_else(|error| {
+      log_and_print_error(error.to_string());
+      process::exit(1);
+    });
   }
   let pb = render_spinner();
   let app_nw = Arc::clone(&app);
@@ -314,12 +319,16 @@ pub(super) async fn start_cli_no_spinner(
   cancellation_token: CancellationToken,
   app: Arc<Mutex<App<'_>>>,
   command: Command,
+  servarr_name: Option<&str>,
 ) {
   config.verify_config_present_for_cli(&command);
   {
     let mut app = app.lock().await;
     app.cli_mode = true;
-    select_cli_configuration(&mut app, &config, &command, None);
+    select_cli_configuration(&mut app, &config, &command, servarr_name).unwrap_or_else(|error| {
+      log_and_print_error(error.to_string());
+      process::exit(1);
+    });
   }
   let app_nw = Arc::clone(&app);
   let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
@@ -338,16 +347,22 @@ pub fn select_cli_configuration(
   app: &mut App<'_>,
   config: &AppConfig,
   command: &Command,
-  servarr_name_arg: Option<String>,
-) {
+  servarr_name_arg: Option<&str>,
+) -> Result<()> {
   if let Some(servarr_name) = servarr_name_arg {
     let trimmed_name = servarr_name.trim();
-    if !app.server_tabs.select_tab_by_title(trimmed_name) {
-      log_and_print_error(format!(
-        "A Servarr titled '{trimmed_name}' was not found in your configuration file"
-      ));
-      process::exit(1);
-    }
+    let selected_index = app.server_tabs.tabs.iter().position(|tab| {
+      tab.title == trimmed_name
+        && matches!(
+          (&tab.route, command),
+          (Route::Radarr(..), Command::Radarr(_))
+            | (Route::Sonarr(..), Command::Sonarr(_))
+            | (Route::Lidarr(..), Command::Lidarr(_))
+        )
+    });
+    app.server_tabs.index = selected_index.ok_or_else(|| {
+      anyhow!("A Servarr titled '{trimmed_name}' matching this command was not found in your configuration file")
+    })?;
   } else {
     match command {
       Command::Radarr(_) => {
@@ -368,4 +383,5 @@ pub fn select_cli_configuration(
       _ => (),
     }
   }
+  Ok(())
 }
