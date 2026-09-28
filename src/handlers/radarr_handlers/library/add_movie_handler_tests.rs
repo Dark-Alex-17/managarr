@@ -768,7 +768,7 @@ mod tests {
   mod test_handle_submit {
     use crate::assert_navigation_popped;
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{
-      add_movie_body, add_movie_search_result, collection_movie,
+      add_movie_search_result, collection_movie,
     };
     use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
@@ -1336,7 +1336,7 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       handlers::radarr_handlers::radarr_handler_test_utils::utils::{
-        add_movie_body, add_movie_search_result, collection_movie,
+        add_movie_search_result, collection_movie,
       },
       models::{
         BlockSelectionState,
