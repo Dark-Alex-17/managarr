@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -46,7 +46,7 @@ jobs:
         toolchain: [stable, beta]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -54,7 +54,7 @@ jobs:
           components: clippy
 
       - name: Run clippy action
-        uses: clechasseur/rs-clippy-check@v3
+        uses: clechasseur/rs-clippy-check@v5
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
@@ -65,7 +65,7 @@ jobs:
     name: nightly / doc
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -79,7 +79,7 @@ jobs:
     name: 1.95.0 / check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install 1.95.0
         uses: dtolnay/rust-toolchain@master
