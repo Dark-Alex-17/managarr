@@ -247,12 +247,7 @@ fn no_servarr_name_uses_first_configured_instance() {
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
-    .args([
-      "--disable-spinner",
-      "radarr",
-      "get",
-      "system-status",
-    ])
+    .args(["--disable-spinner", "radarr", "get", "system-status"])
     .assert()
     .success();
   let stdout = str::from_utf8(&assertion.get_output().stdout).unwrap();

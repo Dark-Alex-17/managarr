@@ -171,15 +171,15 @@ async fn main() -> Result<()> {
     cancellation_token.clone(),
   )));
 
-  if args.command.is_none() {
-    if let Some(name) = args.global.servarr_name.as_deref() {
-      let mut app = app.lock().await;
-      anyhow::ensure!(
-        app.server_tabs.select_tab_by_title(name.trim()),
-        "A Servarr titled '{}' was not found in your configuration file",
-        name.trim()
-      );
-    }
+  if args.command.is_none()
+    && let Some(name) = args.global.servarr_name.as_deref()
+  {
+    let mut app = app.lock().await;
+    anyhow::ensure!(
+      app.server_tabs.select_tab_by_title(name.trim()),
+      "A Servarr titled '{}' was not found in your configuration file",
+      name.trim()
+    );
   }
 
   match args.command {
