@@ -172,7 +172,47 @@ fn unknown_servarr_name_fails() {
 
   assert!(
     stderr.contains("A Servarr titled 'Unknown'"),
-    "CLI properly flagged unknown instance: {stderr}"
+    "CLI error did not identify the unknown instance: {stderr}"
   );
-  radarr_mock.assert()
+  radarr_mock.assert();
+}
+
+#[test]
+fn whitespace_servarr_name_trimmed() {
+  let mut radarr_server = Server::new();
+  let radarr_mock = radarr_server
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"radarr-whitespace","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(1)
+    .create();
+
+  let config = TemporaryConfig::new(&format!(
+    "radarr:\n  - name: Movies\n    uri: {}\n    api_token: test-token\n",
+    radarr_server.url()
+  ));
+  let mut command = cargo_bin_cmd!("managarr");
+  let assertion = command
+    .arg("--config-file")
+    .arg(config.path())
+    .args([
+      "--disable-spinner",
+      "--servarr-name",
+      "  Movies  ",
+      "radarr",
+      "get",
+      "system-status",
+    ])
+    .assert()
+    .success();
+
+  let stdout = str::from_utf8(&assertion.get_output().stdout).unwrap();
+
+  assert!(
+    stdout.contains("\"version\": \"radarr-whitespace\""),
+    "unexpected CLI output: {stdout}"
+  );
+  radarr_mock.assert();
 }
