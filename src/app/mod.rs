@@ -240,14 +240,11 @@ impl App<'_> {
   }
 
   pub fn get_current_route(&self) -> Route {
-    *self.navigation_stack.last().unwrap_or(
-      &self
-        .server_tabs
-        .tabs
-        .first()
-        .expect("At least one server tab must exist")
-        .route,
-    )
+    self
+      .navigation_stack
+      .last()
+      .copied()
+      .unwrap_or_else(|| self.server_tabs.get_active_route())
   }
 }
 
