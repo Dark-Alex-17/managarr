@@ -136,3 +136,43 @@ fn same_named_servarrs_select_command_matching_instance() {
   sonarr_mock.assert();
   radarr_mock.assert();
 }
+
+#[test]
+fn unknown_servarr_name_fails() {
+  let mut radarr_server = Server::new();
+  let radarr_mock = radarr_server
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"radarr","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(0)
+    .create();
+
+  let config = TemporaryConfig::new(&format!(
+    "radarr:\n  - name: Movies\n    uri: {}\n    api_token: test-token\n",
+    radarr_server.url()
+  ));
+  let mut command = cargo_bin_cmd!("managarr");
+  let assertion = command
+    .arg("--config-file")
+    .arg(config.path())
+    .args([
+      "--disable-spinner",
+      "--servarr-name",
+      "Unknown",
+      "radarr",
+      "get",
+      "system-status",
+    ])
+    .assert()
+    .failure();
+
+  let stderr = str::from_utf8(&assertion.get_output().stderr).unwrap();
+
+  assert!(
+    stderr.contains("A Servarr titled 'Unknown'"),
+    "CLI properly flagged unknown instance: {stderr}"
+  );
+  radarr_mock.assert()
+}
