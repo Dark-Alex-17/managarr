@@ -1,12 +1,52 @@
 #[cfg(test)]
 mod tests {
+  use clap::Parser;
   use std::fs::{self, File};
   use std::io::{BufRead, BufReader, Seek, SeekFrom, Write};
 
   use pretty_assertions::assert_eq;
+  use tokio::sync::mpsc;
+  use tokio_util::sync::CancellationToken;
 
-  use crate::utils::{convert_f64_to_gb, convert_runtime, convert_to_gb, was_log_rotated};
+  use crate::{
+    Cli,
+    app::{App, AppConfig, ServarrConfig},
+    utils::{
+      convert_f64_to_gb, convert_runtime, convert_to_gb, select_cli_configuration, was_log_rotated,
+    },
+  };
 
+  #[test]
+  fn test_select_cli_configuration_selects_valid_named_instance() {
+    let selected_config = ServarrConfig {
+      name: Some("4K Movies".to_owned()),
+      ..ServarrConfig::default()
+    };
+    let config = AppConfig {
+      radarr: Some(vec![ServarrConfig::default(), selected_config.clone()]),
+      ..AppConfig::default()
+    };
+    let (network_tx, _network_rx) = mpsc::channel(1);
+    let mut app = App::new(network_tx, config.clone(), CancellationToken::new());
+    let args = Cli::try_parse_from([
+      "managarr",
+      "radarr",
+      "clear-blocklist",
+      "--servarr-name",
+      "4K Movies",
+    ])
+    .unwrap();
+
+    select_cli_configuration(
+      &mut app,
+      &config,
+      args.command.as_ref().unwrap(),
+      args.global.servarr_name.as_deref(),
+    )
+    .unwrap();
+
+    assert_eq!(app.server_tabs.get_active_config(), &Some(selected_config));
+  }
   #[test]
   fn test_convert_to_gb() {
     assert_eq!(convert_to_gb(2147483648), 2f64);
