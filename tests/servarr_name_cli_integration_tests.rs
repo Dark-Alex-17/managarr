@@ -216,3 +216,52 @@ fn whitespace_servarr_name_trimmed() {
   );
   radarr_mock.assert();
 }
+
+#[test]
+fn no_servarr_name_uses_first_configured_instance() {
+  let mut radarr_server = Server::new();
+  let radarr_mock = radarr_server
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"expected-instance","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(1)
+    .create();
+  let mut radarr_server2 = Server::new();
+  let radarr_mock2 = radarr_server2
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"wrong-instance","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(0)
+    .create();
+  let config = TemporaryConfig::new(&format!(
+    "radarr:\n  - name: Movies\n    uri: {}\n    api_token: test-token\n    weight: 2\n  - name: 4K-Movies\n    uri: {}\n    api_token: test-token\n    weight: 1\n",
+    radarr_server.url(),
+    radarr_server2.url()
+  ));
+
+  let mut command = cargo_bin_cmd!("managarr");
+  let assertion = command
+    .arg("--config-file")
+    .arg(config.path())
+    .args([
+      "--disable-spinner",
+      "radarr",
+      "get",
+      "system-status",
+    ])
+    .assert()
+    .success();
+  let stdout = str::from_utf8(&assertion.get_output().stdout).unwrap();
+
+  assert!(
+    stdout.contains("\"version\": \"expected-instance\""),
+    "unexpected CLI output: {stdout}"
+  );
+  assert!(!stdout.contains("wrong-instance"));
+  radarr_mock.assert();
+  radarr_mock2.assert();
+}
