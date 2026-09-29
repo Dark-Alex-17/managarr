@@ -47,6 +47,7 @@ mod tests {
 
     assert_eq!(app.server_tabs.get_active_config(), &Some(selected_config));
   }
+
   #[test]
   fn test_convert_to_gb() {
     assert_eq!(convert_to_gb(2147483648), 2f64);
