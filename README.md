@@ -134,8 +134,8 @@ Key:
 
 | Symbol | Status    |
 |--------|-----------|
-| ✅      | Supported |
-| ❌      | Missing   |
+| ✅     | Supported |
+| ❌     | Missing   |
 | 🕒     | Planned   |
 | 🚫     | Won't Add |
 
@@ -143,82 +143,82 @@ Key:
 
 | TUI | CLI | Feature                                                                                                        |
 |-----|-----|----------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, collections, and blocklist                                                       |
-| ✅   | ✅   | View details of a specific movie including description, history, downloaded file info, or the credits          |
-| ✅   | ✅   | View details of any collection and the movies in them                                                          |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| ✅   | ✅   | Search your library or collections                                                                             |
-| ✅   | ✅   | Add movies to your library                                                                                     |
-| ✅   | ✅   | Delete movies, downloads, and indexers                                                                         |
-| ✅   | ✅   | Trigger automatic searches for movies                                                                          |
-| ✅   | ✅   | Trigger refresh and disk scan for movies, downloads, and collections                                           |
-| ✅   | ✅   | Manually search for movies                                                                                     |
-| ✅   | ✅   | Edit your movies, collections, and indexers                                                                    |
-| ✅   | ✅   | Manage your tags                                                                                               |
-| ✅   | ✅   | Manage your root folders                                                                                       |
-| ✅   | ✅   | Manage your blocklist                                                                                          |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+| ✅  | ✅  | View your library, downloads, collections, and blocklist                                                       |
+| ✅  | ✅  | View details of a specific movie including description, history, downloaded file info, or the credits          |
+| ✅  | ✅  | View details of any collection and the movies in them                                                          |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library or collections                                                                             |
+| ✅  | ✅  | Add movies to your library                                                                                     |
+| ✅  | ✅  | Delete movies, downloads, and indexers                                                                         |
+| ✅  | ✅  | Trigger automatic searches for movies                                                                          |
+| ✅  | ✅  | Trigger refresh and disk scan for movies, downloads, and collections                                           |
+| ✅  | ✅  | Manually search for movies                                                                                     |
+| ✅  | ✅  | Edit your movies, collections, and indexers                                                                    |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Sonarr
 
 | TUI | CLI | Feature                                                                                                            |
 |-----|-----|--------------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, blocklist, episodes                                                                  |
-| ✅   | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| ✅   | ✅   | Search your library                                                                                                |
-| ✅   | ✅   | Add series to your library                                                                                         |
-| ✅   | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| ✅   | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
-| ✅   | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
-| ✅   | ✅   | Manually search for series, seasons, or episodes                                                                   |
-| ✅   | ✅   | Edit your series and indexers                                                                                      |
-| ✅   | ✅   | Manage your tags                                                                                                   |
-| ✅   | ✅   | Manage your root folders                                                                                           |
-| ✅   | ✅   | Manage your blocklist                                                                                              |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                                   |
+| ✅  | ✅  | View your library, downloads, blocklist, episodes                                                                  |
+| ✅  | ✅  | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
+| ✅  | ✅  | Search your library                                                                                                |
+| ✅  | ✅  | Add series to your library                                                                                         |
+| ✅  | ✅  | Delete series, downloads, indexers, root folders, and episode files                                                |
+| ✅  | ✅  | Trigger automatic searches for series, seasons, or episodes                                                        |
+| ✅  | ✅  | Trigger refresh and disk scan for series and downloads                                                             |
+| ✅  | ✅  | Manually search for series, seasons, or episodes                                                                   |
+| ✅  | ✅  | Edit your series and indexers                                                                                      |
+| ✅  | ✅  | Manage your tags                                                                                                   |
+| ✅  | ✅  | Manage your root folders                                                                                           |
+| ✅  | ✅  | Manage your blocklist                                                                                              |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                            |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                                   |
 
 ### Lidarr
 
 | TUI | CLI | Feature                                                                                                        |
 |-----|-----|----------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, blocklist, tracks                                                                |
-| ✅   | ✅   | View details of a specific artists, albums, or tracks including description, history, downloaded file info     |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| ✅   | ✅   | Search your library                                                                                            |
-| ✅   | ✅   | Add artists to your library                                                                                    |
-| ✅   | ✅   | Delete artists, downloads, indexers, root folders, and track files                                             |
-| ✅   | ✅   | Trigger automatic searches for artists or albums                                                               |
-| ✅   | ✅   | Trigger refresh and disk scan for artists and downloads                                                        |
-| ✅   | ✅   | Manually search for  full artist discographies or albums                                                       |
-| ✅   | ✅   | Edit your artists and indexers                                                                                 |
-| ✅   | ✅   | Manage your tags                                                                                               |
-| ✅   | ✅   | Manage your root folders                                                                                       |
-| ✅   | ✅   | Manage your blocklist                                                                                          |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+| ✅  | ✅  | View your library, downloads, blocklist, tracks                                                                |
+| ✅  | ✅  | View details of a specific artists, albums, or tracks including description, history, downloaded file info     |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library                                                                                            |
+| ✅  | ✅  | Add artists to your library                                                                                    |
+| ✅  | ✅  | Delete artists, downloads, indexers, root folders, and track files                                             |
+| ✅  | ✅  | Trigger automatic searches for artists or albums                                                               |
+| ✅  | ✅  | Trigger refresh and disk scan for artists and downloads                                                        |
+| ✅  | ✅  | Manually search for  full artist discographies or albums                                                       |
+| ✅  | ✅  | Edit your artists and indexers                                                                                 |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Readarr
 
 | TUI | CLI | Feature                                                                                                        |
 |-----|-----|----------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, blocklist, editions                                                              |
-| ✅   | ✅   | View details of a specific author, book, or edition including description, history, downloaded file info       |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| ✅   | ✅   | Search your library                                                                                            |
-| ✅   | ✅   | Add authors to your library                                                                                    |
-| ✅   | ✅   | Delete authors, books, downloads, indexers, root folders, and book files                                       |
-| ✅   | ✅   | Trigger automatic searches for authors or books                                                                |
-| ✅   | ✅   | Trigger refresh and disk scan for authors and downloads                                                        |
-| ✅   | ✅   | Manually search for author releases or books                                                                   |
-| ✅   | ✅   | Edit your authors and indexers                                                                                 |
-| ✅   | ✅   | Manage your tags                                                                                               |
-| ✅   | ✅   | Manage your root folders                                                                                       |
-| ✅   | ✅   | Manage your blocklist                                                                                          |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+| ✅  | ✅  | View your library, downloads, blocklist, editions                                                              |
+| ✅  | ✅  | View details of a specific author, book, or edition including description, history, downloaded file info       |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library                                                                                            |
+| ✅  | ✅  | Add authors to your library                                                                                    |
+| ✅  | ✅  | Delete authors, books, downloads, indexers, root folders, and book files                                       |
+| ✅  | ✅  | Trigger automatic searches for authors or books                                                                |
+| ✅  | ✅  | Trigger refresh and disk scan for authors and downloads                                                        |
+| ✅  | ✅  | Manually search for author releases or books                                                                   |
+| ✅  | ✅  | Edit your authors and indexers                                                                                 |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Whisparr
 
