@@ -1,5 +1,20 @@
 #[cfg(test)]
 mod tests {
+  use crate::cli::{
+    Command,
+    readarr::{ReadarrCommand, list_command_handler::ReadarrListCommand},
+  };
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_readarr_command_from() {
+    let command = ReadarrCommand::List(ReadarrListCommand::Authors);
+
+    let result = Command::from(command.clone());
+
+    assert_eq!(result, Command::Readarr(command));
+  }
+
   mod cli {
     use clap::CommandFactory;
     use clap::error::ErrorKind;
@@ -243,19 +258,245 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
+    use crate::cli::readarr::add_command_handler::ReadarrAddCommand;
+    use crate::cli::readarr::edit_command_handler::ReadarrEditCommand;
+    use crate::cli::readarr::get_command_handler::ReadarrGetCommand;
+    use crate::cli::readarr::refresh_command_handler::ReadarrRefreshCommand;
+    use crate::cli::readarr::trigger_automatic_search_command_handler::ReadarrTriggerAutomaticSearchCommand;
     use crate::models::readarr_models::{
-      BlocklistItem, BlocklistResponse, ReadarrSerdeable, ReadarrTaskName,
+      Author, BlocklistItem, BlocklistResponse, DeleteParams, ReadarrSerdeable, ReadarrTaskName,
     };
-    use crate::models::servarr_models::ReleaseDownloadBody;
+    use crate::models::servarr_models::{IndexerSettings, ReleaseDownloadBody};
     use crate::{
       app::App,
       cli::{
         CliCommandHandler,
-        readarr::{ReadarrCliHandler, ReadarrCommand},
+        readarr::{
+          ReadarrCliHandler, ReadarrCommand, delete_command_handler::ReadarrDeleteCommand,
+          list_command_handler::ReadarrListCommand,
+        },
       },
       models::Serdeable,
       network::{MockNetworkTrait, NetworkEvent, readarr_network::ReadarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_add_commands_to_the_add_command_handler() {
+      let expected_tag_name = "test".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::AddTag(expected_tag_name.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let add_tag_command = ReadarrCommand::Add(ReadarrAddCommand::Tag {
+        name: expected_tag_name,
+      });
+
+      let result = ReadarrCliHandler::with(&app_arc, add_tag_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_get_commands_to_the_get_command_handler() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::GetStatus.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_system_status_command = ReadarrCommand::Get(ReadarrGetCommand::SystemStatus);
+
+      let result = ReadarrCliHandler::with(&app_arc, get_system_status_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_delete_commands_to_the_delete_command_handler() {
+      let expected_delete_author_params = DeleteParams {
+        id: 7,
+        delete_files: true,
+        add_import_list_exclusion: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::DeleteAuthor(expected_delete_author_params).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_author_command = ReadarrCommand::Delete(ReadarrDeleteCommand::Author {
+        author_id: 7,
+        delete_files_from_disk: true,
+        add_list_exclusion: false,
+      });
+
+      let result = ReadarrCliHandler::with(&app_arc, delete_author_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_edit_commands_to_the_edit_command_handler() {
+      let expected_edit_all_indexer_settings = IndexerSettings {
+        id: 1,
+        maximum_size: 26500,
+        minimum_age: 17,
+        retention: 43,
+        rss_sync_interval: 35,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::IndexerSettings(
+            IndexerSettings {
+              id: 9,
+              maximum_size: 31200,
+              minimum_age: 22,
+              retention: 58,
+              rss_sync_interval: 90,
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let edit_all_indexer_settings_command =
+        ReadarrCommand::Edit(ReadarrEditCommand::AllIndexerSettings {
+          maximum_size: Some(26500),
+          minimum_age: Some(17),
+          retention: Some(43),
+          rss_sync_interval: Some(35),
+        });
+
+      let result = ReadarrCliHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_list_commands_to_the_list_command_handler() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::ListAuthors.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Authors(vec![
+            Author::default(),
+          ])))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_authors_command = ReadarrCommand::List(ReadarrListCommand::Authors);
+
+      let result = ReadarrCliHandler::with(&app_arc, list_authors_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_refresh_commands_to_the_refresh_command_handler() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(ReadarrEvent::UpdateAllAuthors.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let refresh_all_authors_command = ReadarrCommand::Refresh(ReadarrRefreshCommand::AllAuthors);
+
+      let result =
+        ReadarrCliHandler::with(&app_arc, refresh_all_authors_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_readarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
+     {
+      let expected_author_id = 7;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          ReadarrEvent::TriggerAutomaticAuthorSearch(expected_author_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let trigger_automatic_search_command =
+        ReadarrCommand::TriggerAutomaticSearch(ReadarrTriggerAutomaticSearchCommand::Author {
+          author_id: expected_author_id,
+        });
+
+      let result = ReadarrCliHandler::with(
+        &app_arc,
+        trigger_automatic_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_mark_history_item_as_failed_command() {
