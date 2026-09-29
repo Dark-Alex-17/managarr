@@ -158,7 +158,6 @@ fn unknown_servarr_name_fails() {
     .arg("--config-file")
     .arg(config.path())
     .args([
-      "--disable-spinner",
       "--servarr-name",
       "Unknown",
       "radarr",
