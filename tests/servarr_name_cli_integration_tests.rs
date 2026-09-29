@@ -85,3 +85,54 @@ fn named_instance_of_different_servarr_type_rejects_command() {
   radarr_mock.assert();
   sonarr_mock.assert();
 }
+
+#[test]
+fn same_named_servarrs_select_command_matching_instance() {
+  let mut radarr_server = Server::new();
+  let radarr_mock = radarr_server
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"wrong-instance","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(0)
+    .create();
+  let mut sonarr_server = Server::new();
+  let sonarr_mock = sonarr_server
+    .mock("GET", "/api/v3/system/status")
+    .match_header("X-Api-Key", "test-token")
+    .with_status(200)
+    .with_header("content-type", "application/json")
+    .with_body(r#"{"version":"expected-instance","startTime":"2024-01-01T00:00:00Z"}"#)
+    .expect(1)
+    .create();
+  let config = TemporaryConfig::new(&format!(
+    "radarr:\n  - name: Servarr\n    uri: {}\n    api_token: test-token\nsonarr:\n  - name: Servarr\n    uri: {}\n    api_token: test-token\n",
+    radarr_server.url(),
+    sonarr_server.url()
+  ));
+
+  let mut command = cargo_bin_cmd!("managarr");
+  let assertion = command
+    .arg("--config-file")
+    .arg(config.path())
+    .args([
+      "--disable-spinner",
+      "--servarr-name",
+      "Servarr",
+      "sonarr",
+      "get",
+      "system-status",
+    ])
+    .assert()
+    .success();
+  let stdout = str::from_utf8(&assertion.get_output().stdout).unwrap();
+
+  assert!(
+    stdout.contains("\"version\": \"expected-instance\""),
+    "unexpected CLI output: {stdout}"
+  );
+  assert!(!stdout.contains("wrong-instance"));
+  sonarr_mock.assert();
+  radarr_mock.assert();
+}
