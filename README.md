@@ -261,7 +261,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.7.0
+managarr 0.8.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -589,6 +589,13 @@ Managarr supports using environment variables on startup so you don't have to al
 ![album_details](screenshots/lidarr/album_details.png)
 ![artist_discography_search](screenshots/lidarr/artist_discography_search.png)
 ![manual_album_search](screenshots/lidarr/manual_album_search.png)
+
+### Readarr
+![readarr_library](screenshots/readarr/readarr_library.png)
+![author_details](screenshots/readarr/author_details.png)
+![book_details](screenshots/readarr/book_details.png)
+![manual_author_search](screenshots/readarr/manual_author_search.png)
+![manual_album_search](screenshots/readarr/manual_book_search.png)
 
 ### General
 ![logs](screenshots/radarr/logs.png)
