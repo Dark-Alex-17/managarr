@@ -26,6 +26,11 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - [ ] ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
+> [!NOTE]
+> The official Readarr repository has been archived, but Managarr's Readarr support is compatible with any Readarr forks
+> that maintain compatibility with the official Readarr v1 API. See [Tested Readarr Forks](#tested-readarr-forks) below
+> for forks that have been explicitly tested with Managarr.
+
 ## Try Out the Demo
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
 Simply run the following command to start a demo:
@@ -567,6 +572,14 @@ Managarr supports using environment variables on startup so you don't have to al
 |-----------------------------------------|--------------------------------------------------------------------------------|----------------------------------|
 | `MANAGARR_CONFIG_FILE`                  | Set the path to the config file                                                | `--config`                       |
 | `MANAGARR_DISABLE_SPINNER`              | Disable the CLI spinner (this can be useful when scripting and parsing output) | `--disable-spinner`              |
+
+## Tested Readarr Forks
+
+The following Readarr forks have been explicitly tested with Managarr:
+
+* [Bookshelf](https://github.com/pennydreadful/bookshelf)
+* [Readarr-Resurrected](https://github.com/ricetim/readarr-rresurrected)
+* [Librarr](https://github.com/Rorqualx/Librarr)
 
 ## Screenshots
 
