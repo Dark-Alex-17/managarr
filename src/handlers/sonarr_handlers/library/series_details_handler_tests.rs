@@ -9,11 +9,12 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::{season, series};
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, SERIES_DETAILS_BLOCKS,
+    ActiveSonarrBlock, SERIES_DETAILS_BLOCKS, SERIES_OVERVIEW_BLOCKS,
   };
-  use crate::models::sonarr_models::Season;
   use crate::models::sonarr_models::SonarrHistoryItem;
+  use crate::models::sonarr_models::{Season, Series};
   use crate::models::stateful_table::StatefulTable;
+  use crate::test_handler_delegation;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
@@ -189,7 +190,14 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.sonarr_data.prompt_confirm = true;
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -313,11 +321,12 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
+    use crate::handlers::sonarr_handlers::library::series_overview_handler::SeriesOverviewHandler;
     use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::sonarr_models::{Series, SeriesType};
     use crate::network::sonarr_network::SonarrEvent;
-    use crate::{assert_navigation_popped, test_edit_series_key};
+    use crate::{assert_modal_present, assert_navigation_popped, test_edit_series_key};
     use pretty_assertions::{assert_eq, assert_str_eq};
     use serde_json::Number;
     use strum::IntoEnumIterator;
@@ -356,9 +365,183 @@ mod tests {
     }
 
     #[test]
+    fn test_series_details_view_key_opens_the_series_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.series_overview_modal = None;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeriesOverview.into());
+      assert_modal_present!(app.data.sonarr_data.series_overview_modal);
+    }
+
+    #[test]
+    fn test_series_details_view_key_builds_the_overview_from_the_selected_series() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.series_overview_modal = None;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      let overview = &app
+        .data
+        .sonarr_data
+        .series_overview_modal
+        .as_ref()
+        .unwrap()
+        .overview;
+      assert_eq!(overview.offset, 0);
+      assert_eq!(
+        overview.get_text(),
+        app
+          .data
+          .sonarr_data
+          .series
+          .current_selection()
+          .overview
+          .clone()
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_series_details_view_key_for_a_series_with_no_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.series_overview_modal = None;
+      let mut series = app.data.sonarr_data.series.current_selection().clone();
+      series.overview = None;
+      app.data.sonarr_data.series.set_items(vec![series]);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeriesOverview.into());
+      assert_str_eq!(
+        app
+          .data
+          .sonarr_data
+          .series_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .get_text(),
+        ""
+      );
+    }
+
+    #[test]
+    fn test_series_details_view_key_reopens_the_series_overview_at_the_top() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.series_overview_modal = None;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+      SeriesOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesOverview,
+        None,
+      )
+      .handle();
+      SeriesOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.esc.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesOverview,
+        None,
+      )
+      .handle();
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeriesOverview.into());
+      assert_eq!(
+        app
+          .data
+          .sonarr_data
+          .series_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .offset,
+        0
+      );
+    }
+
+    #[test]
+    fn test_series_details_view_key_no_op_when_not_ready() {
+      let mut app = App::test_default_fully_populated();
+      app.data.sonarr_data.series_overview_modal = None;
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeriesDetails.into()
+      );
+      assert_modal_absent!(app.data.sonarr_data.series_overview_modal);
+    }
+
+    #[test]
     fn test_toggle_monitoring_key() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
+      app.data.sonarr_data.seasons.set_items(vec![
+        Season {
+          season_number: 999,
+          ..season()
+        },
+        Season {
+          season_number: 2,
+          ..season()
+        },
+      ]);
+      app.data.sonarr_data.seasons.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_routing = false;
 
@@ -378,7 +561,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.sonarr_data.prompt_confirm_action,
-        &SonarrEvent::ToggleSeasonMonitoring(0, 0)
+        &SonarrEvent::ToggleSeasonMonitoring(1, 2)
       );
     }
 
@@ -539,6 +722,61 @@ mod tests {
       assert!(!app.is_routing);
     }
 
+    #[test]
+    fn test_search_seasons_key() {
+      let mut app = App::test_default();
+      app.data.sonarr_data.seasons.set_items(vec![season()]);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SearchSeason.into());
+    }
+
+    #[test]
+    fn test_search_series_history_key() {
+      let mut app = App::test_default();
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      app.data.sonarr_data.series_history = Some(series_history);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SearchSeriesHistory.into());
+    }
+
+    #[test]
+    fn test_filter_series_history_key() {
+      let mut app = App::test_default();
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      app.data.sonarr_data.series_history = Some(series_history);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+
+      SeriesDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveSonarrBlock::FilterSeriesHistory.into());
+    }
+
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
@@ -555,7 +793,14 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::test_default();
-      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        series(),
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -578,13 +823,25 @@ mod tests {
 
   #[test]
   fn test_series_details_handler_accepts() {
+    let mut series_details_blocks = SERIES_DETAILS_BLOCKS.to_vec();
+    series_details_blocks.extend(SERIES_OVERVIEW_BLOCKS);
+
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
-      if SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block) {
+      if series_details_blocks.contains(&active_sonarr_block) {
         assert!(SeriesDetailsHandler::accepts(active_sonarr_block));
       } else {
         assert!(!SeriesDetailsHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_delegates_series_overview_blocks_to_series_overview_handler() {
+    test_handler_delegation!(
+      SeriesDetailsHandler,
+      ActiveSonarrBlock::SeriesDetails,
+      ActiveSonarrBlock::SeriesOverview
+    );
   }
 
   #[rstest]
@@ -609,8 +866,25 @@ mod tests {
   #[test]
   fn test_extract_series_id_season_number_tuple() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
-    app.data.sonarr_data.seasons.set_items(vec![season()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
+    app.data.sonarr_data.seasons.set_items(vec![
+      Season {
+        season_number: 999,
+        ..season()
+      },
+      Season {
+        season_number: 2,
+        ..season()
+      },
+    ]);
+    app.data.sonarr_data.seasons.select_index(Some(1));
 
     let series_id_season_number_tuple = SeriesDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -620,13 +894,20 @@ mod tests {
     )
     .extract_series_id_season_number_tuple();
 
-    assert_eq!(series_id_season_number_tuple, (1, 1));
+    assert_eq!(series_id_season_number_tuple, (1, 2));
   }
 
   #[test]
   fn test_extract_series_id() {
     let mut app = App::test_default();
-    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      series(),
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
 
     let series_id = SeriesDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

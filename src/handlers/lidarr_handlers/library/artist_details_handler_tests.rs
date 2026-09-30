@@ -15,9 +15,10 @@ mod tests {
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{LidarrHistoryItem, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
+    ARTIST_DETAILS_BLOCKS, ARTIST_OVERVIEW_BLOCKS, ActiveLidarrBlock,
   };
   use crate::models::servarr_models::{Quality, QualityWrapper};
+  use crate::test_handler_delegation;
 
   mod test_handle_delete {
     use super::*;
@@ -137,8 +138,9 @@ mod tests {
     use crate::event::Key;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
-    use crate::models::lidarr_models::{LidarrHistoryItem, LidarrReleaseDownloadBody};
+    use crate::models::lidarr_models::LidarrHistoryItem;
     use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+    use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
       artist, torrent_release,
@@ -307,7 +309,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualArtistSearch.into());
       assert_eq!(
         app.data.lidarr_data.prompt_confirm_action,
-        Some(LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        Some(LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: release.guid,
           indexer_id: release.indexer_id,
         }))
@@ -449,14 +451,16 @@ mod tests {
     use crate::assert_navigation_pushed;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
-    use crate::models::lidarr_models::{Artist, LidarrReleaseDownloadBody};
+    use crate::handlers::lidarr_handlers::library::artist_overview_handler::ArtistOverviewHandler;
+    use crate::models::lidarr_models::{Album, Artist, LidarrHistoryItem};
     use crate::models::servarr_data::lidarr::lidarr_data::{
       ActiveLidarrBlock, EDIT_ARTIST_SELECTION_BLOCKS,
     };
+    use crate::models::servarr_models::ReleaseDownloadBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::torrent_release;
     use crate::{assert_modal_absent, assert_modal_present, assert_navigation_popped};
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
     #[rstest]
@@ -520,6 +524,161 @@ mod tests {
 
       assert_eq!(app.get_current_route(), active_lidarr_block.into());
       assert_modal_absent!(app.data.lidarr_data.edit_artist_modal);
+    }
+
+    #[test]
+    fn test_artist_details_view_key_opens_the_artist_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.artist_overview_modal = None;
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::ArtistOverview.into());
+      assert_modal_present!(app.data.lidarr_data.artist_overview_modal);
+    }
+
+    #[test]
+    fn test_artist_details_view_key_builds_the_overview_from_the_selected_artist() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.artist_overview_modal = None;
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      let overview = &app
+        .data
+        .lidarr_data
+        .artist_overview_modal
+        .as_ref()
+        .unwrap()
+        .overview;
+      assert_eq!(overview.offset, 0);
+      assert_eq!(
+        overview.get_text(),
+        app
+          .data
+          .lidarr_data
+          .artists
+          .current_selection()
+          .overview
+          .clone()
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_artist_details_view_key_for_an_artist_with_no_overview() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.artist_overview_modal = None;
+      let mut artist = app.data.lidarr_data.artists.current_selection().clone();
+      artist.overview = None;
+      app.data.lidarr_data.artists.set_items(vec![artist]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::ArtistOverview.into());
+      assert_str_eq!(
+        app
+          .data
+          .lidarr_data
+          .artist_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .get_text(),
+        ""
+      );
+    }
+
+    #[test]
+    fn test_artist_details_view_key_reopens_the_artist_overview_at_the_top() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.artist_overview_modal = None;
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+      ArtistOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistOverview,
+        None,
+      )
+      .handle();
+      ArtistOverviewHandler::new(
+        DEFAULT_KEYBINDINGS.esc.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistOverview,
+        None,
+      )
+      .handle();
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::ArtistOverview.into());
+      assert_eq!(
+        app
+          .data
+          .lidarr_data
+          .artist_overview_modal
+          .as_ref()
+          .unwrap()
+          .overview
+          .offset,
+        0
+      );
+    }
+
+    #[test]
+    fn test_artist_details_view_key_no_op_when_not_ready() {
+      let mut app = App::test_default_fully_populated();
+      app.data.lidarr_data.artist_overview_modal = None;
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.view.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveLidarrBlock::ArtistDetails.into()
+      );
+      assert_modal_absent!(app.data.lidarr_data.artist_overview_modal);
     }
 
     #[test]
@@ -801,23 +960,98 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualArtistSearch.into());
       assert_eq!(
         app.data.lidarr_data.prompt_confirm_action,
-        Some(LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        Some(LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: release.guid,
           indexer_id: release.indexer_id,
         }))
       );
     }
+
+    #[test]
+    fn test_search_albums_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .albums
+        .set_items(vec![Album::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchAlbums.into());
+    }
+
+    #[test]
+    fn test_search_artist_history_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .set_items(vec![LidarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchArtistHistory.into());
+    }
+
+    #[test]
+    fn test_filter_artist_history_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .set_items(vec![LidarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+
+      ArtistDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::ArtistHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterArtistHistory.into());
+    }
   }
 
   #[test]
   fn test_artist_details_handler_accepts() {
+    let mut artist_details_blocks = ARTIST_DETAILS_BLOCKS.to_vec();
+    artist_details_blocks.extend(ARTIST_OVERVIEW_BLOCKS);
+
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
-      if ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block) {
+      if artist_details_blocks.contains(&active_lidarr_block) {
         assert!(ArtistDetailsHandler::accepts(active_lidarr_block));
       } else {
         assert!(!ArtistDetailsHandler::accepts(active_lidarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_delegates_artist_overview_blocks_to_artist_overview_handler() {
+    test_handler_delegation!(
+      ArtistDetailsHandler,
+      ActiveLidarrBlock::ArtistDetails,
+      ActiveLidarrBlock::ArtistOverview
+    );
   }
 
   #[test]

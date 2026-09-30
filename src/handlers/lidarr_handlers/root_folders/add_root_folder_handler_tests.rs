@@ -1052,27 +1052,31 @@ mod tests {
       add_root_folder
         .quality_profile_list
         .set_items(vec!["Lossless".to_owned(), "FLAC".to_owned()]);
+      add_root_folder.quality_profile_list.state.select(Some(1));
       add_root_folder
         .metadata_profile_list
         .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+      add_root_folder.metadata_profile_list.state.select(Some(1));
       add_root_folder
         .monitor_list
         .set_items(Vec::from_iter(MonitorType::iter()));
+      add_root_folder.monitor_list.state.select(Some(1));
       add_root_folder
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+      add_root_folder.monitor_new_items_list.state.select(Some(1));
       app.data.lidarr_data.add_root_folder_modal = Some(add_root_folder);
       app.data.lidarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Lossless".to_owned()), (2222, "FLAC".to_owned())]);
       app.data.lidarr_data.metadata_profile_map =
-        BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+        BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
       let expected_add_root_folder_body = AddLidarrRootFolderBody {
         name: "Test Name".to_owned(),
         path: "/nfs/Test Path".to_owned(),
-        default_quality_profile_id: 1111,
-        default_metadata_profile_id: 1111,
-        default_monitor_option: MonitorType::All,
-        default_new_item_monitor_option: NewItemMonitorType::All,
+        default_quality_profile_id: 2222,
+        default_metadata_profile_id: 4444,
+        default_monitor_option: MonitorType::Future,
+        default_new_item_monitor_option: NewItemMonitorType::None,
         default_tags: Vec::new(),
         tag_input_string: Some("usenet, testing".to_owned()),
       };
@@ -1525,27 +1529,31 @@ mod tests {
       add_root_folder
         .quality_profile_list
         .set_items(vec!["Lossless".to_owned(), "FLAC".to_owned()]);
+      add_root_folder.quality_profile_list.state.select(Some(1));
       add_root_folder
         .metadata_profile_list
         .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+      add_root_folder.metadata_profile_list.state.select(Some(1));
       add_root_folder
         .monitor_list
         .set_items(Vec::from_iter(MonitorType::iter()));
+      add_root_folder.monitor_list.state.select(Some(1));
       add_root_folder
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+      add_root_folder.monitor_new_items_list.state.select(Some(1));
       app.data.lidarr_data.add_root_folder_modal = Some(add_root_folder);
       app.data.lidarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Lossless".to_owned()), (2222, "FLAC".to_owned())]);
       app.data.lidarr_data.metadata_profile_map =
-        BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+        BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
       let expected_add_root_folder_body = AddLidarrRootFolderBody {
         name: "Test Name".to_owned(),
         path: "/nfs/Test Path".to_owned(),
-        default_quality_profile_id: 1111,
-        default_metadata_profile_id: 1111,
-        default_monitor_option: MonitorType::All,
-        default_new_item_monitor_option: NewItemMonitorType::All,
+        default_quality_profile_id: 2222,
+        default_metadata_profile_id: 4444,
+        default_monitor_option: MonitorType::Future,
+        default_new_item_monitor_option: NewItemMonitorType::None,
         default_tags: Vec::new(),
         tag_input_string: Some("usenet, testing".to_owned()),
       };
@@ -1619,27 +1627,31 @@ mod tests {
     add_root_folder
       .quality_profile_list
       .set_items(vec!["Lossless".to_owned(), "FLAC".to_owned()]);
+    add_root_folder.quality_profile_list.state.select(Some(1));
     add_root_folder
       .metadata_profile_list
       .set_items(vec!["Standard".to_owned(), "Full".to_owned()]);
+    add_root_folder.metadata_profile_list.state.select(Some(1));
     add_root_folder
       .monitor_list
       .set_items(Vec::from_iter(MonitorType::iter()));
+    add_root_folder.monitor_list.state.select(Some(1));
     add_root_folder
       .monitor_new_items_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_root_folder.monitor_new_items_list.state.select(Some(1));
     app.data.lidarr_data.add_root_folder_modal = Some(add_root_folder);
     app.data.lidarr_data.quality_profile_map =
       BiMap::from_iter([(1111, "Lossless".to_owned()), (2222, "FLAC".to_owned())]);
     app.data.lidarr_data.metadata_profile_map =
-      BiMap::from_iter([(1111, "Standard".to_owned()), (2222, "Full".to_owned())]);
+      BiMap::from_iter([(3333, "Standard".to_owned()), (4444, "Full".to_owned())]);
     let expected_add_root_folder_body = AddLidarrRootFolderBody {
       name: "Test Name".to_owned(),
       path: "/nfs/Test Path".to_owned(),
-      default_quality_profile_id: 1111,
-      default_metadata_profile_id: 1111,
-      default_monitor_option: MonitorType::All,
-      default_new_item_monitor_option: NewItemMonitorType::All,
+      default_quality_profile_id: 2222,
+      default_metadata_profile_id: 4444,
+      default_monitor_option: MonitorType::Future,
+      default_new_item_monitor_option: NewItemMonitorType::None,
       default_tags: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
     };

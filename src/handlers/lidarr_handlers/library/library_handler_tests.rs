@@ -13,9 +13,9 @@ mod tests {
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Album, Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
-    DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
-    LIBRARY_BLOCKS, TRACK_DETAILS_BLOCKS,
+    ADD_ARTIST_BLOCKS, ALBUM_DETAILS_BLOCKS, ARTIST_DETAILS_BLOCKS, ARTIST_OVERVIEW_BLOCKS,
+    ActiveLidarrBlock, DELETE_ALBUM_BLOCKS, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS,
+    EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS, TRACK_DETAILS_BLOCKS,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
@@ -29,6 +29,7 @@ mod tests {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(ARTIST_DETAILS_BLOCKS);
+    library_handler_blocks.extend(ARTIST_OVERVIEW_BLOCKS);
     library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
     library_handler_blocks.extend(DELETE_ALBUM_BLOCKS);
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
@@ -243,11 +244,8 @@ mod tests {
   #[test]
   fn test_toggle_monitoring_key() {
     let mut app = App::test_default();
-    app
-      .data
-      .lidarr_data
-      .artists
-      .set_items(vec![Artist::default()]);
+    app.data.lidarr_data.artists.set_items(artists_vec());
+    app.data.lidarr_data.artists.select_index(Some(1));
     app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
     app.is_routing = false;
 
@@ -264,7 +262,7 @@ mod tests {
     assert!(app.is_routing);
     assert_some_eq_x!(
       &app.data.lidarr_data.prompt_confirm_action,
-      &LidarrEvent::ToggleArtistMonitoring(0)
+      &LidarrEvent::ToggleArtistMonitoring(2)
     );
   }
 
@@ -768,5 +766,39 @@ mod tests {
 
     assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
     assert!(app.should_refresh);
+  }
+
+  #[test]
+  fn test_search_artists_key() {
+    let mut app = App::test_default();
+    app.data.lidarr_data.artists.set_items(artists_vec());
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.search.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_navigation_pushed!(app, ActiveLidarrBlock::SearchArtists.into());
+  }
+
+  #[test]
+  fn test_filter_artists_key() {
+    let mut app = App::test_default();
+    app.data.lidarr_data.artists.set_items(artists_vec());
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.filter.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_navigation_pushed!(app, ActiveLidarrBlock::FilterArtists.into());
   }
 }

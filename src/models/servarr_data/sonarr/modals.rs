@@ -303,3 +303,9 @@ impl Default for SeasonDetailsModal {
     }
   }
 }
+
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct SeriesOverviewModal {
+  pub overview: ScrollableText,
+}

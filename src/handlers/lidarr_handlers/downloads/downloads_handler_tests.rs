@@ -141,7 +141,7 @@ mod tests {
     #[case(
       ActiveLidarrBlock::Downloads,
       ActiveLidarrBlock::DeleteDownloadPrompt,
-      LidarrEvent::DeleteDownload(1)
+      LidarrEvent::DeleteDownload(9)
     )]
     #[case(
       ActiveLidarrBlock::Downloads,
@@ -338,7 +338,7 @@ mod tests {
     #[case(
       ActiveLidarrBlock::Downloads,
       ActiveLidarrBlock::DeleteDownloadPrompt,
-      LidarrEvent::DeleteDownload(1)
+      LidarrEvent::DeleteDownload(9)
     )]
     #[case(
       ActiveLidarrBlock::Downloads,
@@ -423,7 +423,7 @@ mod tests {
     )
     .extract_download_id();
 
-    assert_eq!(download_id, 1);
+    assert_eq!(download_id, 9);
   }
 
   #[test]

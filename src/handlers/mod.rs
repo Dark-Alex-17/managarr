@@ -1,5 +1,6 @@
 use lidarr_handlers::LidarrHandler;
 use radarr_handlers::RadarrHandler;
+use readarr_handlers::ReadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
 use crate::app::App;
@@ -18,11 +19,15 @@ use crate::models::{HorizontallyScrollableText, Route};
 mod keybinding_handler;
 mod lidarr_handlers;
 mod radarr_handlers;
+mod readarr_handlers;
 mod sonarr_handlers;
 
 #[cfg(test)]
 #[path = "handlers_tests.rs"]
 mod handlers_tests;
+
+#[cfg(test)]
+mod handler_proptest;
 
 #[cfg(test)]
 #[path = "handler_test_utils.rs"]
@@ -132,6 +137,9 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
       Route::Lidarr(active_lidarr_block, context) => {
         LidarrHandler::new(key, app, active_lidarr_block, context).handle()
       }
+      Route::Readarr(active_readarr_block, context) => {
+        ReadarrHandler::new(key, app, active_readarr_block, context).handle()
+      }
       _ => (),
     }
   }
@@ -196,6 +204,9 @@ fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
       }
       Route::Lidarr(_, _) => {
         app.data.lidarr_data.prompt_confirm = !app.data.lidarr_data.prompt_confirm
+      }
+      Route::Readarr(_, _) => {
+        app.data.readarr_data.prompt_confirm = !app.data.readarr_data.prompt_confirm
       }
       _ => (),
     },

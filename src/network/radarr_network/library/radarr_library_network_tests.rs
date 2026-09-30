@@ -7,6 +7,7 @@ mod tests {
   use crate::models::servarr_data::Notification;
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_models::DownloadStatus;
   use crate::models::stateful_table::SortOption;
   use crate::network::NetworkResource;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
@@ -700,7 +701,7 @@ mod tests {
         "name": "English"
       },
       "sizeOnDisk": 0,
-      "status": "Downloaded",
+      "status": "released",
       "overview": "Blah blah blah",
       "path": "/nfs/movies",
       "studio": "21st Century Alex",
@@ -758,7 +759,7 @@ mod tests {
           IMDB: 
           Rotten Tomatoes: 
           Quality Profile: HD - 1080p
-          Size: 0.00 GB
+          Size: 0.00 MB
           Path: /nfs/movies
           Studio: 21st Century Alex
           Genres: cool, family, fun"
@@ -1199,7 +1200,7 @@ mod tests {
         false,
         &[DownloadRecord {
           movie_id: 1,
-          status: "downloading".to_owned(),
+          status: DownloadStatus::Downloading,
           ..DownloadRecord::default()
         }],
         1
@@ -1215,7 +1216,7 @@ mod tests {
         false,
         &[DownloadRecord {
           movie_id: 1,
-          status: "completed".to_owned(),
+          status: DownloadStatus::Completed,
           ..DownloadRecord::default()
         }],
         1

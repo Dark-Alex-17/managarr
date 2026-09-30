@@ -294,3 +294,9 @@ impl Default for TrackDetailsModal {
     }
   }
 }
+
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct ArtistOverviewModal {
+  pub overview: ScrollableText,
+}

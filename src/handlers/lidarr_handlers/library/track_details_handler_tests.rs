@@ -244,6 +244,38 @@ mod tests {
       assert_eq!(app.get_current_route(), active_lidarr_block.into());
       assert!(!app.is_routing);
     }
+
+    #[test]
+    fn test_search_track_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::TrackHistory.into());
+
+      TrackDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::TrackHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchTrackHistory.into());
+    }
+
+    #[test]
+    fn test_filter_track_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::TrackHistory.into());
+
+      TrackDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::TrackHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterTrackHistory.into());
+    }
   }
 
   #[test]

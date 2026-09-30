@@ -12,8 +12,8 @@ use strum_macros::{Display, EnumIter};
 
 use super::Serdeable;
 use super::servarr_models::{
-  DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+  DiskSpace, DownloadStatus, HostConfig, Indexer, Language, LogResponse, QualityProfile,
+  QualityWrapper, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
 };
 
 #[cfg(test)]
@@ -42,7 +42,8 @@ pub struct AddMovieSearchResult {
   pub tmdb_id: i64,
   pub title: HorizontallyScrollableText,
   pub original_language: Language,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: MovieStatus,
   pub overview: String,
   pub genres: Vec<String>,
   #[serde(deserialize_with = "super::from_i64")]
@@ -98,6 +99,7 @@ pub struct Collection {
   pub search_on_add: bool,
   pub monitored: bool,
   pub overview: Option<String>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub minimum_availability: MinimumAvailability,
   #[serde(deserialize_with = "super::from_i64")]
   pub quality_profile_id: i64,
@@ -126,7 +128,7 @@ pub struct Credit {
   pub character: Option<String>,
   pub department: Option<String>,
   pub job: Option<String>,
-  #[serde(rename(deserialize = "type"))]
+  #[serde(rename = "type", deserialize_with = "super::from_json_or_default")]
   pub credit_type: CreditType,
 }
 
@@ -150,7 +152,8 @@ pub struct DeleteMovieParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
@@ -301,7 +304,8 @@ pub struct Movie {
   pub original_language: Language,
   #[serde(deserialize_with = "super::from_i64")]
   pub size_on_disk: i64,
-  pub status: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
+  pub status: MovieStatus,
   pub overview: String,
   pub path: String,
   pub studio: Option<String>,
@@ -316,12 +320,39 @@ pub struct Movie {
   pub tmdb_id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub quality_profile_id: i64,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub minimum_availability: MinimumAvailability,
   pub certification: Option<String>,
   pub tags: Vec<Number>,
   pub ratings: RatingsList,
   pub movie_file: Option<MovieFile>,
   pub collection: Option<MovieCollection>,
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum MovieStatus {
+  #[default]
+  #[display_style(name = "TBA")]
+  Tba,
+  Announced,
+  #[display_style(name = "In Cinemas")]
+  InCinemas,
+  Released,
+  Deleted,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -401,13 +432,6 @@ pub struct RadarrReleaseDownloadBody {
   pub movie_id: i64,
 }
 
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
-}
-
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RadarrHistoryWrapper {
@@ -466,6 +490,7 @@ pub struct RadarrHistoryItem {
   pub quality: QualityWrapper,
   pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: RadarrHistoryEventType,
   #[serde(default)]
   pub data: RadarrHistoryData,
@@ -475,6 +500,7 @@ pub struct RadarrHistoryItem {
 #[serde(rename_all = "camelCase")]
 pub struct RadarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: RadarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,

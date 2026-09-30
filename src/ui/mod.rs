@@ -10,6 +10,7 @@ use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
 use ratatui::widgets::{Clear, Row};
+use readarr_ui::ReadarrUi;
 use sonarr_ui::SonarrUi;
 use utils::layout_block;
 
@@ -32,6 +33,7 @@ use crate::ui::widgets::popup::{Popup, Size};
 mod builtin_themes;
 mod lidarr_ui;
 mod radarr_ui;
+mod readarr_ui;
 mod sonarr_ui;
 mod styles;
 pub mod theme;
@@ -93,6 +95,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
     route if LidarrUi::accepts(route) => {
       LidarrUi::draw_context_row(f, app, context_area);
       LidarrUi::draw(f, app, table_area);
+    }
+    route if ReadarrUi::accepts(route) => {
+      ReadarrUi::draw_context_row(f, app, context_area);
+      ReadarrUi::draw(f, app, table_area);
     }
     _ => (),
   }

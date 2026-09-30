@@ -11,6 +11,7 @@ mod tests {
   use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
   use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+  use crate::models::servarr_data::readarr::readarr_data::{ActiveReadarrBlock, ReadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::NetworkEvent;
@@ -34,11 +35,18 @@ mod tests {
       ..ServarrConfig::default()
     };
     let sonarr_config_2 = ServarrConfig::default();
+    let readarr_config_1 = ServarrConfig {
+      name: Some("Readarr Test".to_owned()),
+      weight: Some(2),
+      ..ServarrConfig::default()
+    };
+    let readarr_config_2 = ServarrConfig::default();
     let config = AppConfig {
       theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
       lidarr: None,
+      readarr: Some(vec![readarr_config_1.clone(), readarr_config_2.clone()]),
     };
     let expected_tab_routes = vec![
       TabRoute {
@@ -46,6 +54,12 @@ mod tests {
         route: ActiveSonarrBlock::default().into(),
         contextual_help: None,
         config: Some(sonarr_config_1),
+      },
+      TabRoute {
+        title: "Readarr Test".to_owned(),
+        route: ActiveReadarrBlock::default().into(),
+        contextual_help: None,
+        config: Some(readarr_config_1),
       },
       TabRoute {
         title: "Radarr 1".to_owned(),
@@ -64,6 +78,12 @@ mod tests {
         route: ActiveSonarrBlock::default().into(),
         contextual_help: None,
         config: Some(sonarr_config_2),
+      },
+      TabRoute {
+        title: "Readarr 1".to_owned(),
+        route: ActiveReadarrBlock::default().into(),
+        contextual_help: None,
+        config: Some(readarr_config_2),
       },
     ];
 
@@ -220,6 +240,7 @@ mod tests {
     let data = Data {
       lidarr_data: LidarrData::default(),
       radarr_data,
+      readarr_data: ReadarrData::default(),
       sonarr_data,
     };
     let mut app = App {

@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 56330c025ad79db641d0eb9f429ab74e95822e1fb015b58f0e158ea674cd42a1 # shrinks to list_size = 1, page_ops = 1
+cc 29df5ff471eb388b0ffde573a959a539e4cf32acd9e1cea5187bba2268dd57f7 # shrinks to list_size = 1, filter_term = "𑛀"

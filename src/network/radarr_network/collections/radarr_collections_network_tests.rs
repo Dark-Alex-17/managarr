@@ -28,7 +28,7 @@ mod tests {
       "movies": [
         {
           "title": "Test",
-          "overview": "Collection blah blah blah",
+          "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
           "year": 2023,
           "runtime": 120,
           "tmdbId": 1234,
@@ -109,7 +109,7 @@ mod tests {
       "movies": [
         {
           "title": "Test",
-          "overview": "Collection blah blah blah",
+          "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
           "year": 2023,
           "runtime": 120,
           "tmdbId": 1234,
@@ -189,7 +189,7 @@ mod tests {
       "qualityProfileId": 2222,
       "movies": [{
         "title": "Test",
-        "overview": "Collection blah blah blah",
+        "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
         "year": 2023,
         "runtime": 120,
         "tmdbId": 1234,
@@ -218,7 +218,7 @@ mod tests {
       "qualityProfileId": 2222,
       "movies": [{
         "title": "Test",
-        "overview": "Collection blah blah blah",
+        "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
         "year": 2023,
         "runtime": 120,
         "tmdbId": 1234,
@@ -306,7 +306,7 @@ mod tests {
       "qualityProfileId": 2222,
       "movies": [{
         "title": "Test",
-        "overview": "Collection blah blah blah",
+        "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
         "year": 2023,
         "runtime": 120,
         "tmdbId": 1234,
@@ -335,7 +335,7 @@ mod tests {
       "qualityProfileId": 2222,
       "movies": [{
         "title": "Test",
-        "overview": "Collection blah blah blah",
+        "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
         "year": 2023,
         "runtime": 120,
         "tmdbId": 1234,

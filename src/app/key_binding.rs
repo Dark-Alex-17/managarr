@@ -27,6 +27,7 @@ generate_keybindings! {
   filter,
   sort,
   edit,
+  view,
   logs,
   tasks,
   test,
@@ -141,6 +142,11 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Char('e'),
     alt: None,
     desc: "edit",
+  },
+  view: KeyBinding {
+    key: Key::Char('v'),
+    alt: None,
+    desc: "view",
   },
   events: KeyBinding {
     key: Key::Char('e'),

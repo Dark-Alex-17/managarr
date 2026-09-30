@@ -5,10 +5,9 @@ use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
 use crate::models::Route;
-use crate::models::lidarr_models::{
-  LidarrHistoryItem, LidarrRelease, LidarrReleaseDownloadBody, Track,
-};
+use crate::models::lidarr_models::{LidarrHistoryItem, LidarrRelease, Track};
 use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
+use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::models::stateful_table::SortOption;
 use crate::network::lidarr_network::LidarrEvent;
 use serde_json::Number;
@@ -281,7 +280,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for AlbumDetailsHandler<
             .unwrap()
             .album_releases
             .current_selection();
-          let params = LidarrReleaseDownloadBody {
+          let params = ReleaseDownloadBody {
             guid: guid.clone(),
             indexer_id: *indexer_id,
           };
@@ -386,7 +385,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for AlbumDetailsHandler<
           .unwrap()
           .album_releases
           .current_selection();
-        let params = LidarrReleaseDownloadBody {
+        let params = ReleaseDownloadBody {
           guid: guid.clone(),
           indexer_id: *indexer_id,
         };

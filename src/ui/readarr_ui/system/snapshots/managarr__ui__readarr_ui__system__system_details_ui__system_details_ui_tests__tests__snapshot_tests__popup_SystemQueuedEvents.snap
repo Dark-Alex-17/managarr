@@ -1,0 +1,44 @@
+---
+source: src/ui/readarr_ui/system/system_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                 ╭  Queued Events  ────────────────────────────────────────────────────────────────────────────────╮                                 
+                                 │Trigger       Status       Name                     Queued           Started       Duration      │                                 
+                                 │manual        completed    queued event one         1 hour ago       30 minutes ag 00:29:14      │                                 
+                                 │scheduled     started      queued event two         15 minutes ago   4 minutes ago 01:02:03      │                                 
+                                 │external      queued       queued event three       1 minute ago                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 │                                                                                                 │                                 
+                                 ╰─────────────────────────────────────────────────────────────────────────────────────────────────╯

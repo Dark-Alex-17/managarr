@@ -1,20 +1,25 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde::de::DeserializeOwned;
+  use serde_json::{Value, json};
 
   use crate::models::{
     Serdeable,
     servarr_models::{
-      DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Language, Log,
-      LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+      DiskSpace, DownloadStatus, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Language,
+      Log, LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag,
+      Update,
     },
     sonarr_models::{
-      AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus,
-      DownloadsResponse, Episode, EpisodeFile, Series, SeriesMonitor, SeriesStatus, SeriesType,
+      AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse,
+      Episode, EpisodeFile, Series, SeriesMonitor, SeriesStatus, SeriesType,
       SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
-      SonarrTaskName, SystemStatus,
+      SonarrTaskName,
     },
+  };
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    SERIES_JSON, download_record, task,
   };
 
   #[test]
@@ -119,40 +124,6 @@ mod tests {
   }
 
   #[test]
-  fn test_download_status_display() {
-    assert_str_eq!(DownloadStatus::Unknown.to_string(), "unknown");
-    assert_str_eq!(DownloadStatus::Queued.to_string(), "queued");
-    assert_str_eq!(DownloadStatus::Paused.to_string(), "paused");
-    assert_str_eq!(DownloadStatus::Downloading.to_string(), "downloading");
-    assert_str_eq!(DownloadStatus::Completed.to_string(), "completed");
-    assert_str_eq!(DownloadStatus::Failed.to_string(), "failed");
-    assert_str_eq!(DownloadStatus::Warning.to_string(), "warning");
-    assert_str_eq!(DownloadStatus::Delay.to_string(), "delay");
-    assert_str_eq!(
-      DownloadStatus::DownloadClientUnavailable.to_string(),
-      "downloadClientUnavailable"
-    );
-    assert_str_eq!(DownloadStatus::Fallback.to_string(), "fallback");
-  }
-
-  #[test]
-  fn test_download_status_to_display_str() {
-    assert_str_eq!(DownloadStatus::Unknown.to_display_str(), "Unknown");
-    assert_str_eq!(DownloadStatus::Queued.to_display_str(), "Queued");
-    assert_str_eq!(DownloadStatus::Paused.to_display_str(), "Paused");
-    assert_str_eq!(DownloadStatus::Downloading.to_display_str(), "Downloading");
-    assert_str_eq!(DownloadStatus::Completed.to_display_str(), "Completed");
-    assert_str_eq!(DownloadStatus::Failed.to_display_str(), "Failed");
-    assert_str_eq!(DownloadStatus::Warning.to_display_str(), "Warning");
-    assert_str_eq!(DownloadStatus::Delay.to_display_str(), "Delay");
-    assert_str_eq!(
-      DownloadStatus::DownloadClientUnavailable.to_display_str(),
-      "Download Client Unavailable"
-    );
-    assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
-  }
-
-  #[test]
   fn test_sonarr_history_event_type_display() {
     assert_str_eq!(SonarrHistoryEventType::Unknown.to_string(), "unknown",);
     assert_str_eq!(SonarrHistoryEventType::Grabbed.to_string(), "grabbed",);
@@ -209,6 +180,102 @@ mod tests {
     assert_str_eq!(
       SonarrHistoryEventType::DownloadIgnored.to_display_str(),
       "Download Ignored",
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      SonarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("seriesFolderImported")),
+      SonarrHistoryEventType::SeriesFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFolderImported")),
+      SonarrHistoryEventType::DownloadFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      SonarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileDeleted")),
+      SonarrHistoryEventType::EpisodeFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileRenamed")),
+      SonarrHistoryEventType::EpisodeFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      SonarrHistoryEventType::DownloadIgnored
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("episodeFileImportFailed")),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      SonarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      SonarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::SeriesFolderImported),
+      "seriesFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadFolderImported),
+      "downloadFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::EpisodeFileDeleted),
+      "episodeFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::EpisodeFileRenamed),
+      "episodeFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(SonarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
     );
   }
 
@@ -599,5 +666,111 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  #[test]
+  fn test_series_series_type_deserialization_falls_back_to_default() {
+    let expected = Series {
+      series_type: SeriesType::default(),
+      ..serde_json::from_str(SERIES_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "seriesType", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "seriesType", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_series_status_deserialization_falls_back_to_default() {
+    let expected = Series {
+      status: SeriesStatus::default(),
+      ..serde_json::from_str(SERIES_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Series>(SERIES_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_sonarr_task_task_name_deserialization_falls_back_to_default() {
+    let task_json = serde_json::to_string(&task()).unwrap();
+    let expected = SonarrTask {
+      task_name: SonarrTaskName::default(),
+      ..task()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<SonarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<SonarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> SonarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "sourceTitle": "Test Source Title",
+      "episodeId": 1,
+      "quality": { "quality": { "name": "HDTV - 1080p" } },
+      "languages": [],
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type,
+      "data": {}
+    });
+
+    serde_json::from_value::<SonarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: SonarrHistoryEventType) -> String {
+    let history_item = SonarrHistoryItem {
+      event_type,
+      ..SonarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }

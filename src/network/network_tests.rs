@@ -944,6 +944,7 @@ pub(in crate::network) mod test_utils {
       let network_event_clone: NetworkEvent = network_event.clone().into();
       let api_version = match &network_event_clone {
         NetworkEvent::Lidarr(_) => "v1",
+        NetworkEvent::Readarr(_) => "v1",
         _ => "v3",
       };
       let mut server = Server::new_async().await;
@@ -991,6 +992,7 @@ pub(in crate::network) mod test_utils {
         NetworkEvent::Radarr(_) => app.server_tabs.tabs[0].config = Some(servarr_config),
         NetworkEvent::Sonarr(_) => app.server_tabs.tabs[1].config = Some(servarr_config),
         NetworkEvent::Lidarr(_) => app.server_tabs.tabs[2].config = Some(servarr_config),
+        NetworkEvent::Readarr(_) => app.server_tabs.tabs[3].config = Some(servarr_config),
       }
 
       let app_arc = Arc::new(Mutex::new(app));

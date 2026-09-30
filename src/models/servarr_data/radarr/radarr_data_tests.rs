@@ -135,6 +135,7 @@ mod tests {
       assert_none!(&radarr_data.indexer_test_errors);
       assert_none!(&radarr_data.indexer_test_all_results);
       assert_none!(&radarr_data.movie_details_modal);
+      assert_none!(&radarr_data.movie_overview_modal);
       assert_none!(&radarr_data.prompt_confirm_action);
       assert!(!radarr_data.prompt_confirm);
       assert!(!radarr_data.delete_movie_files);

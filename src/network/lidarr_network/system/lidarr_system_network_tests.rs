@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::models::HorizontallyScrollableText;
-  use crate::models::lidarr_models::{LidarrSerdeable, LidarrTask, LidarrTaskName, SystemStatus};
+  use crate::models::lidarr_models::{LidarrSerdeable, LidarrTask, LidarrTaskName};
   use crate::models::servarr_models::{
-    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
+    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
   };
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::updates;

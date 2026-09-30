@@ -631,7 +631,7 @@ mod tests {
     async fn test_handle_list_track_history_command() {
       let expected_artist_id = 1;
       let expected_album_id = 1;
-      let expected_track_id = 1;
+      let expected_track_id = 5;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()

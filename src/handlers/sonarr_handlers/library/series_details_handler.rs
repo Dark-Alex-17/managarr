@@ -1,14 +1,16 @@
+use super::series_overview_handler::SeriesOverviewHandler;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::servarr_data::sonarr::modals::SeriesOverviewModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
-use crate::models::{BlockSelectionState, Route};
+use crate::models::{BlockSelectionState, Route, ScrollableText};
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -39,10 +41,36 @@ impl SeriesDetailsHandler<'_, '_> {
   fn extract_series_id(&self) -> i64 {
     self.app.data.sonarr_data.series.current_selection().id
   }
+
+  fn build_series_overview_modal(&mut self) {
+    let overview = self
+      .app
+      .data
+      .sonarr_data
+      .series
+      .current_selection()
+      .overview
+      .clone()
+      .unwrap_or_default();
+
+    self.app.data.sonarr_data.series_overview_modal = Some(SeriesOverviewModal {
+      overview: ScrollableText::with_string(overview),
+    });
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
+    if SeriesOverviewHandler::accepts(self.active_sonarr_block) {
+      return SeriesOverviewHandler::new(
+        self.key,
+        self.app,
+        self.active_sonarr_block,
+        self._context,
+      )
+      .handle();
+    }
+
     let season_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::SeriesDetails.into())
         .searching_block(ActiveSonarrBlock::SearchSeason.into())
@@ -85,7 +113,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
   }
 
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
-    SERIES_DETAILS_BLOCKS.contains(&active_block)
+    SeriesOverviewHandler::accepts(active_block) || SERIES_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -275,6 +303,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
           self.app.data.sonarr_data.edit_series_modal = Some((&self.app.data.sonarr_data).into());
           self.app.data.sonarr_data.selected_block =
             BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
+        }
+        _ if matches_key!(view, key) => {
+          self.build_series_overview_modal();
+          self
+            .app
+            .push_navigation_stack(ActiveSonarrBlock::SeriesOverview.into());
         }
         _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.sonarr_data.prompt_confirm = true;

@@ -3,14 +3,15 @@
 pub mod test_utils {
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
-    AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus, DownloadsResponse,
+    AudioTags, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse,
     EditArtistParams, LidarrHistoryData, LidarrHistoryEventType, LidarrHistoryItem,
     LidarrHistoryWrapper, LidarrRelease, LidarrTask, LidarrTaskName, MediaInfo, Member,
-    MetadataProfile, NewItemMonitorType, Ratings, SystemStatus, Track, TrackFile,
+    NewItemMonitorType, Ratings, Track, TrackFile,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Quality, QualityProfile, QualityWrapper, RootFolder, Tag,
+    DownloadStatus, Indexer, IndexerField, MetadataProfile, Quality, QualityProfile,
+    QualityWrapper, RootFolder, SystemStatus, Tag,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
@@ -49,7 +50,7 @@ pub mod test_utils {
     "ratings": { "votes": 15, "value": 8.4 },
     "statistics": {
       "albumCount": 1,
-      "trackFileCount": 15,
+      "trackFileCount": 12,
       "trackCount": 15,
       "totalTrackCount": 15,
       "sizeOnDisk": 12345,
@@ -70,10 +71,10 @@ pub mod test_utils {
 			"ratings": {"votes": 15, "value": 8.4},
 			"releaseDate": "2023-01-01T00:00:00Z",
 			"statistics": {
-				"trackFileCount": 10,
+				"trackFileCount": 8,
 				"trackCount": 10,
 				"totalTrackCount": 10,
-				"sizeOnDisk": 1024,
+				"sizeOnDisk": 317162578,
 				"percentOfTracks": 99.9
 			}
     }"#;
@@ -95,7 +96,7 @@ pub mod test_utils {
   pub fn artist_statistics() -> ArtistStatistics {
     ArtistStatistics {
       album_count: 1,
-      track_file_count: 15,
+      track_file_count: 12,
       track_count: 15,
       total_track_count: 15,
       size_on_disk: 12345,
@@ -109,7 +110,14 @@ pub mod test_utils {
       artist_name: "Alex".into(),
       foreign_artist_id: "test-foreign-id".to_owned(),
       status: ArtistStatus::Continuing,
-      overview: Some("some interesting description of the artist".to_owned()),
+      overview: Some(
+        "some interesting description of the artist\r\n\
+         \r\n\
+         \tShe was born in Madison, Wisconsin: a city she has never really left. \r\n\
+         \r\n\
+         Her first album took her seven years to finish.\r\n"
+          .to_owned(),
+      ),
       artist_type: Some("Person".to_owned()),
       disambiguation: Some("American pianist".to_owned()),
       members: Some(vec![member()]),
@@ -176,9 +184,9 @@ pub mod test_utils {
     DownloadRecord {
       title: "Test download title".to_owned(),
       status: DownloadStatus::Downloading,
-      id: 1,
+      id: 9,
       album_id: Some(Number::from(1i64)),
-      artist_id: Some(Number::from(1i64)),
+      artist_id: Some(Number::from(3i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from("/nfs/music/alex/album")),
@@ -239,10 +247,10 @@ pub mod test_utils {
 
   pub fn album_statistics() -> AlbumStatistics {
     AlbumStatistics {
-      track_file_count: 10,
+      track_file_count: 8,
       track_count: 10,
       total_track_count: 10,
-      size_on_disk: 1024,
+      size_on_disk: 317162578,
       percent_of_tracks: 99.9,
     }
   }
@@ -274,11 +282,11 @@ pub mod test_utils {
 
   pub fn lidarr_history_item() -> LidarrHistoryItem {
     LidarrHistoryItem {
-      id: 1,
+      id: 13,
       source_title: "Test source title".into(),
       album_id: 1,
-      artist_id: 1,
-      track_id: 1,
+      artist_id: 3,
+      track_id: 5,
       quality: quality_wrapper(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
       event_type: LidarrHistoryEventType::Grabbed,
@@ -329,9 +337,9 @@ pub mod test_utils {
 
   pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      id: 1,
-      minimum_age: 1,
-      retention: 1,
+      id: 5,
+      minimum_age: 11,
+      retention: 29,
       maximum_size: 12345,
       rss_sync_interval: 60,
     }
@@ -451,7 +459,7 @@ pub mod test_utils {
 
   pub fn track_file() -> TrackFile {
     TrackFile {
-      id: 1,
+      id: 7,
       path: "/music/P!nk/TRUSTFALL/01 - When I Get There.flac".to_string(),
       size: 39216378,
       quality: quality_wrapper(),
@@ -463,10 +471,10 @@ pub mod test_utils {
 
   pub fn track() -> Track {
     Track {
-      id: 1,
-      artist_id: 1,
+      id: 5,
+      artist_id: 3,
       foreign_track_id: "test-foreign-track-id".to_string(),
-      track_file_id: 1,
+      track_file_id: 7,
       album_id: 1,
       explicit: false,
       track_number: "1".to_string(),

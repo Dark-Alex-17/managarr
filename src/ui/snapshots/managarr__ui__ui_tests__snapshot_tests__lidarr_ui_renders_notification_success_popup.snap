@@ -3,7 +3,7 @@ source: src/ui/ui_tests.rs
 expression: output
 ---
 ╭ Managarr - A Servarr management TUI ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Radarr │ Sonarr │ Lidarr                                                                                                                          <?> to open help│
+│ Radarr │ Sonarr │ Lidarr │ Readarr                                                                                                                <?> to open help│
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭  Stats  ──────────────────────────────────────────────────────────────╮╭  Downloads  ─────────────────────────────────────────────────────────╮╭──────────────────╮
 │Lidarr Version:  1.2.3.4                                               ││Test download title                                                   ││  ⠀⠀⠀⣠⣴⣶⡿⠻⣿⣶⣦⣄⠀⠀⠀ │
@@ -19,7 +19,7 @@ expression: output
 │ Library │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                                      │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
 │   Name ▼                       Type          Status       Quality Profile      Metadata Profile    Albums    Tracks       Size        Monitored Tags              │
-│=> Alex                         Person        Continuing   Lossless             Standard            1         15/15        0.00 GB     🏷         alex              │
+│=> Alex                         Person        Continuing   Lossless             Standard            1         12/15        0.01 MB     🏷         alex              │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │

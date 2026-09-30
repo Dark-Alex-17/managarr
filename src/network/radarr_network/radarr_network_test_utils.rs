@@ -3,11 +3,12 @@ pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
     CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
-    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrHistoryData, RadarrHistoryEventType,
-    RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating, RatingsList,
+    Movie, MovieCollection, MovieFile, MovieHistoryItem, MovieStatus, RadarrHistoryData,
+    RadarrHistoryEventType, RadarrHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName, Rating,
+    RatingsList,
   };
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
@@ -24,7 +25,7 @@ pub mod test_utils {
           "name": "English"
         },
         "sizeOnDisk": 3543348019,
-        "status": "Downloaded",
+        "status": "released",
         "overview": "Blah blah blah",
         "path": "/nfs/movies",
         "studio": "21st Century Alex",
@@ -79,7 +80,7 @@ pub mod test_utils {
           "movies": [
             {
               "title": "Test",
-              "overview": "Collection blah blah blah",
+              "overview": "Collection movie blah blah blah\r\n\r\nIt was shot in Madison, Wisconsin: a city the cast never really left.\r\n\r\nThe sequel took seven years to finish.\r\n",
               "year": 2023,
               "runtime": 120,
               "tmdbId": 1234,
@@ -177,7 +178,12 @@ pub mod test_utils {
   pub fn collection_movie() -> CollectionMovie {
     CollectionMovie {
       title: "Test".to_owned().into(),
-      overview: "Collection blah blah blah".to_owned(),
+      overview: "Collection movie blah blah blah\r\n\
+                 \r\n\
+                 It was shot in Madison, Wisconsin: a city the cast never really left.\r\n\
+                 \r\n\
+                 The sequel took seven years to finish.\r\n"
+        .to_owned(),
       year: 2023,
       runtime: 120,
       tmdb_id: 1234,
@@ -228,7 +234,7 @@ pub mod test_utils {
       title: "Test".to_owned().into(),
       original_language: language(),
       size_on_disk: 3543348019,
-      status: "Downloaded".to_owned(),
+      status: MovieStatus::Released,
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
       studio: Some("21st Century Alex".to_owned()),
@@ -294,7 +300,7 @@ pub mod test_utils {
       tmdb_id: 1234,
       title: HorizontallyScrollableText::from("Test"),
       original_language: language(),
-      status: "released".to_owned(),
+      status: MovieStatus::Released,
       overview: "New movie blah blah blah".to_owned(),
       genres: genres(),
       year: 2023,
@@ -334,7 +340,7 @@ pub mod test_utils {
   pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
-      status: "downloading".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 1,
       movie_id: 1,
       size: 3543348019,
@@ -416,10 +422,29 @@ pub mod test_utils {
 
   pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      rss_sync_interval: 60,
       allow_hardcoded_subs: true,
-      id: 1,
-      ..IndexerSettings::default()
+      availability_delay: 19,
+      id: 3,
+      maximum_size: 18400,
+      minimum_age: 27,
+      prefer_indexer_flags: false,
+      retention: 44,
+      rss_sync_interval: 60,
+      whitelisted_hardcoded_subs: "eng".into(),
+    }
+  }
+
+  pub fn stale_indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      allow_hardcoded_subs: false,
+      availability_delay: 31,
+      id: 8,
+      maximum_size: 22750,
+      minimum_age: 52,
+      prefer_indexer_flags: true,
+      retention: 66,
+      rss_sync_interval: 90,
+      whitelisted_hardcoded_subs: "deu".into(),
     }
   }
 

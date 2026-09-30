@@ -247,3 +247,9 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
     edit_collection_modal
   }
 }
+
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct MovieOverviewModal {
+  pub overview: ScrollableText,
+}

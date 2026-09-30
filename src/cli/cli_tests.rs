@@ -9,7 +9,9 @@ mod tests {
   use tokio::sync::Mutex;
 
   use crate::cli::lidarr::LidarrCommand;
+  use crate::cli::readarr::ReadarrCommand;
   use crate::network::lidarr_network::LidarrEvent;
+  use crate::network::readarr_network::ReadarrEvent;
   use crate::{
     Cli,
     app::App,
@@ -23,6 +25,10 @@ mod tests {
       radarr_models::{
         BlocklistItem as RadarrBlocklistItem, BlocklistResponse as RadarrBlocklistResponse,
         RadarrSerdeable,
+      },
+      readarr_models::{
+        BlocklistItem as ReadarrBlocklistItem, BlocklistResponse as ReadarrBlocklistResponse,
+        ReadarrSerdeable,
       },
       sonarr_models::{
         BlocklistItem as SonarrBlocklistItem, BlocklistResponse as SonarrBlocklistResponse,
@@ -64,6 +70,13 @@ mod tests {
   #[test]
   fn test_lidarr_subcommand_delegates_to_lidarr() {
     let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "artists"]);
+
+    assert_ok!(&result);
+  }
+
+  #[test]
+  fn test_readarr_subcommand_delegates_to_readarr() {
+    let result = Cli::command().try_get_matches_from(["managarr", "readarr", "list", "authors"]);
 
     assert_ok!(&result);
   }
@@ -213,6 +226,37 @@ mod tests {
       });
     let app_arc = Arc::new(Mutex::new(App::test_default()));
     let clear_blocklist_command = LidarrCommand::ClearBlocklist.into();
+
+    let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
+
+    assert_ok!(&result);
+  }
+
+  #[tokio::test]
+  async fn test_cli_handler_delegates_readarr_commands_to_the_readarr_cli_handler() {
+    let mut mock_network = MockNetworkTrait::new();
+    mock_network
+      .expect_handle_network_event()
+      .with(eq::<NetworkEvent>(ReadarrEvent::GetBlocklist.into()))
+      .times(1)
+      .returning(|_| {
+        Ok(Serdeable::Readarr(ReadarrSerdeable::BlocklistResponse(
+          ReadarrBlocklistResponse {
+            records: vec![ReadarrBlocklistItem::default()],
+          },
+        )))
+      });
+    mock_network
+      .expect_handle_network_event()
+      .with(eq::<NetworkEvent>(ReadarrEvent::ClearBlocklist.into()))
+      .times(1)
+      .returning(|_| {
+        Ok(Serdeable::Readarr(ReadarrSerdeable::Value(
+          json!({"testResponse": "response"}),
+        )))
+      });
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let clear_blocklist_command = ReadarrCommand::ClearBlocklist.into();
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 

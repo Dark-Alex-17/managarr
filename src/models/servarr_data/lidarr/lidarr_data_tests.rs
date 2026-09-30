@@ -11,12 +11,12 @@ mod tests {
   use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ADD_ROOT_FOLDER_BLOCKS, ALBUM_DETAILS_BLOCKS,
-    ARTIST_DETAILS_BLOCKS, BLOCKLIST_BLOCKS, DELETE_ALBUM_BLOCKS, DELETE_ALBUM_SELECTION_BLOCKS,
-    DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
-    EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
-    EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
-    INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
-    TRACK_DETAILS_BLOCKS,
+    ARTIST_DETAILS_BLOCKS, ARTIST_OVERVIEW_BLOCKS, BLOCKLIST_BLOCKS, DELETE_ALBUM_BLOCKS,
+    DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS,
+    DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS,
+    EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS,
+    INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS,
+    ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS, TRACK_DETAILS_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -149,6 +149,7 @@ mod tests {
     assert_none!(lidarr_data.album_details_modal);
     assert_is_empty!(lidarr_data.artists);
     assert_is_empty!(lidarr_data.artist_history);
+    assert_none!(lidarr_data.artist_overview_modal);
     assert_is_empty!(lidarr_data.blocklist);
     assert!(!lidarr_data.delete_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
@@ -316,6 +317,17 @@ mod tests {
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchArtistHistory));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchArtistHistoryError));
     assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::UpdateAndScanArtistPrompt));
+  }
+
+  #[test]
+  fn test_artist_details_blocks_excludes_artist_overview() {
+    assert!(!ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ArtistOverview));
+  }
+
+  #[test]
+  fn test_artist_overview_blocks_contents() {
+    assert_eq!(ARTIST_OVERVIEW_BLOCKS.len(), 1);
+    assert!(ARTIST_OVERVIEW_BLOCKS.contains(&ActiveLidarrBlock::ArtistOverview));
   }
 
   #[test]

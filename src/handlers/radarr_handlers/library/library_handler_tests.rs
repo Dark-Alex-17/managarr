@@ -391,6 +391,12 @@ mod tests {
     fn test_toggle_monitoring_key() {
       let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![movie(), Movie { id: 2, ..movie() }]);
+      app.data.radarr_data.movies.select_index(Some(1));
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.is_routing = false;
 
@@ -407,7 +413,7 @@ mod tests {
       assert!(app.is_routing);
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::ToggleMovieMonitoring(0)
+        &RadarrEvent::ToggleMovieMonitoring(2)
       );
     }
 
@@ -520,6 +526,48 @@ mod tests {
     }
 
     #[test]
+    fn test_search_movies_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveRadarrBlock::SearchMovie.into());
+    }
+
+    #[test]
+    fn test_filter_movies_key() {
+      let mut app = App::test_default();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveRadarrBlock::FilterMovies.into());
+    }
+
+    #[test]
     fn test_update_all_movies_prompt_confirm() {
       let mut app = App::test_default();
       app
@@ -621,7 +669,12 @@ mod tests {
   #[test]
   fn test_extract_movie_id() {
     let mut app = App::test_default();
-    app.data.radarr_data.movies.set_items(vec![movie()]);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie(), Movie { id: 2, ..movie() }]);
+    app.data.radarr_data.movies.select_index(Some(1));
 
     let movie_id = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -631,7 +684,7 @@ mod tests {
     )
     .extract_movie_id();
 
-    assert_eq!(movie_id, 1);
+    assert_eq!(movie_id, 2);
   }
 
   #[test]

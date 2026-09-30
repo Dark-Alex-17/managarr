@@ -21,6 +21,7 @@ use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 mod add_artist_handler;
 mod album_details_handler;
 mod artist_details_handler;
+mod artist_overview_handler;
 mod delete_album_handler;
 mod delete_artist_handler;
 mod edit_artist_handler;

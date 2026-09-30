@@ -785,29 +785,39 @@ mod tests {
       edit_series
         .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_series.quality_profile_list.state.select(Some(1));
       edit_series
         .language_profile_list
         .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      edit_series.language_profile_list.state.select(Some(1));
       edit_series
         .series_type_list
         .set_items(Vec::from_iter(SeriesType::iter()));
+      edit_series.series_type_list.state.select(Some(1));
       app.data.sonarr_data.edit_series_modal = Some(edit_series);
-      app.data.sonarr_data.series.set_items(vec![Series {
-        monitored: false,
-        season_folder: false,
-        ..series()
-      }]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        Series {
+          monitored: false,
+          season_folder: false,
+          ..series()
+        },
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.data.sonarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       app.data.sonarr_data.language_profiles_map =
-        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+        BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
       let expected_edit_series_params = EditSeriesParams {
         series_id: 1,
         monitored: Some(false),
         use_season_folders: Some(false),
-        series_type: Some(SeriesType::Standard),
-        quality_profile_id: Some(1111),
-        language_profile_id: Some(1111),
+        series_type: Some(SeriesType::Daily),
+        quality_profile_id: Some(2222),
+        language_profile_id: Some(4444),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".to_owned()),
         ..EditSeriesParams::default()
@@ -1298,29 +1308,39 @@ mod tests {
       edit_series
         .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_series.quality_profile_list.state.select(Some(1));
       edit_series
         .language_profile_list
         .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      edit_series.language_profile_list.state.select(Some(1));
       edit_series
         .series_type_list
         .set_items(Vec::from_iter(SeriesType::iter()));
+      edit_series.series_type_list.state.select(Some(1));
       app.data.sonarr_data.edit_series_modal = Some(edit_series);
-      app.data.sonarr_data.series.set_items(vec![Series {
-        monitored: false,
-        season_folder: false,
-        ..series()
-      }]);
+      app.data.sonarr_data.series.set_items(vec![
+        Series {
+          id: 999,
+          ..series()
+        },
+        Series {
+          monitored: false,
+          season_folder: false,
+          ..series()
+        },
+      ]);
+      app.data.sonarr_data.series.select_index(Some(1));
       app.data.sonarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       app.data.sonarr_data.language_profiles_map =
-        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+        BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
       let expected_edit_series_params = EditSeriesParams {
         series_id: 1,
         monitored: Some(false),
         use_season_folders: Some(false),
-        series_type: Some(SeriesType::Standard),
-        quality_profile_id: Some(1111),
-        language_profile_id: Some(1111),
+        series_type: Some(SeriesType::Daily),
+        quality_profile_id: Some(2222),
+        language_profile_id: Some(4444),
         root_folder_path: Some("/nfs/Test Path".to_owned()),
         tag_input_string: Some("usenet, testing".to_owned()),
         ..EditSeriesParams::default()
@@ -1395,29 +1415,39 @@ mod tests {
     edit_series
       .quality_profile_list
       .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+    edit_series.quality_profile_list.state.select(Some(1));
     edit_series
       .language_profile_list
       .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+    edit_series.language_profile_list.state.select(Some(1));
     edit_series
       .series_type_list
       .set_items(Vec::from_iter(SeriesType::iter()));
+    edit_series.series_type_list.state.select(Some(1));
     app.data.sonarr_data.edit_series_modal = Some(edit_series);
-    app.data.sonarr_data.series.set_items(vec![Series {
-      monitored: false,
-      season_folder: false,
-      ..series()
-    }]);
+    app.data.sonarr_data.series.set_items(vec![
+      Series {
+        id: 999,
+        ..series()
+      },
+      Series {
+        monitored: false,
+        season_folder: false,
+        ..series()
+      },
+    ]);
+    app.data.sonarr_data.series.select_index(Some(1));
     app.data.sonarr_data.quality_profile_map =
       BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     app.data.sonarr_data.language_profiles_map =
-      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+      BiMap::from_iter([(3333, "Any".to_owned()), (4444, "English".to_owned())]);
     let expected_edit_series_params = EditSeriesParams {
       series_id: 1,
       monitored: Some(false),
       use_season_folders: Some(false),
-      series_type: Some(SeriesType::Standard),
-      quality_profile_id: Some(1111),
-      language_profile_id: Some(1111),
+      series_type: Some(SeriesType::Daily),
+      quality_profile_id: Some(2222),
+      language_profile_id: Some(4444),
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       tag_input_string: Some("usenet, testing".to_owned()),
       ..EditSeriesParams::default()

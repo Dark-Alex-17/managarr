@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::models::HorizontallyScrollableText;
-  use crate::models::radarr_models::{RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus};
+  use crate::models::radarr_models::{RadarrSerdeable, RadarrTask, RadarrTaskName};
   use crate::models::servarr_models::{
-    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
+    DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;

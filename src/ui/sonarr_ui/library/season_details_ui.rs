@@ -1,9 +1,8 @@
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
-use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, SonarrHistoryItem, SonarrRelease,
-};
+use crate::models::servarr_models::DownloadStatus;
+use crate::models::sonarr_models::{DownloadRecord, Episode, SonarrHistoryItem, SonarrRelease};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
@@ -17,7 +16,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use chrono::Utc;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
@@ -189,7 +188,7 @@ fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       };
 
       let episode_monitored = if episode.monitored { "🏷" } else { "" };
-      let size = convert_to_gb(size_on_disk);
+      let size = format_size(size_on_disk, 2);
       let air_date = if let Some(air_date) = air_date_utc.as_ref() {
         air_date.to_string()
       } else {
@@ -204,7 +203,7 @@ fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(episode_number.to_string()),
           Cell::from(title.clone()),
           Cell::from(air_date),
-          Cell::from(format!("{size:.2} GB")),
+          Cell::from(size),
           Cell::from(quality_profile),
         ]),
       )
@@ -379,7 +378,7 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
               && active_sonarr_block != ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
             app.should_text_scroll,
           );
-          let size = convert_to_gb(*size);
+          let size = format_size(*size, 1);
           let rejected_str = if *rejected { "⛔" } else { "" };
           let peers = if seeders.is_none() || leechers.is_none() {
             Text::from("")
@@ -419,7 +418,7 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             Cell::from(rejected_str),
             Cell::from(title.to_string()),
             Cell::from(indexer.clone()),
-            Cell::from(format!("{size:.1} GB")),
+            Cell::from(size),
             Cell::from(peers),
             Cell::from(language),
             Cell::from(quality),
@@ -483,12 +482,12 @@ fn draw_manual_season_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let prompt = if current_selection.rejected {
     format!(
       "Do you really want to download the rejected release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   } else {
     format!(
       "Do you want to download the release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   };
 

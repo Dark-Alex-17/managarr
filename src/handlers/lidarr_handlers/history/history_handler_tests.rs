@@ -196,6 +196,40 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveLidarrBlock::History.into());
       assert!(!app.should_refresh);
     }
+
+    #[test]
+    fn test_search_history_key() {
+      let mut app = App::test_default();
+      app.data.lidarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveLidarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchHistory.into());
+    }
+
+    #[test]
+    fn test_filter_history_key() {
+      let mut app = App::test_default();
+      app.data.lidarr_data.history.set_items(history_vec());
+      app.push_navigation_stack(ActiveLidarrBlock::History.into());
+
+      HistoryHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::History,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterHistory.into());
+    }
   }
 
   #[test]

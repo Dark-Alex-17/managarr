@@ -5,10 +5,10 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
     DownloadRecord, IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection,
-    MovieFile, MovieMonitor, RadarrRelease, Rating, RatingsList,
+    MovieFile, MovieMonitor, MovieStatus, RadarrRelease, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use chrono::DateTime;
   use serde_json::{Number, json};
@@ -295,7 +295,12 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   pub fn collection_movie() -> CollectionMovie {
     CollectionMovie {
       title: "Test".to_owned().into(),
-      overview: "Collection blah blah blah".to_owned(),
+      overview: "Collection movie blah blah blah\r\n\
+                 \r\n\
+                 It was shot in Madison, Wisconsin: a city the cast never really left.\r\n\
+                 \r\n\
+                 The sequel took seven years to finish.\r\n"
+        .to_owned(),
       year: 2023,
       runtime: 120,
       tmdb_id: 1234,
@@ -324,7 +329,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       title: "Test".to_owned().into(),
       original_language: language(),
       size_on_disk: 3543348019,
-      status: "Downloaded".to_owned(),
+      status: MovieStatus::Released,
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
       studio: Some("21st Century Alex".to_owned()),
@@ -387,10 +392,10 @@ pub(in crate::handlers::radarr_handlers) mod utils {
 
   pub fn add_movie_search_result() -> AddMovieSearchResult {
     AddMovieSearchResult {
-      tmdb_id: 1234,
-      title: HorizontallyScrollableText::from("Test"),
+      tmdb_id: 4321,
+      title: HorizontallyScrollableText::from("Test Search Result"),
       original_language: language(),
-      status: "released".to_owned(),
+      status: MovieStatus::Released,
       overview: "New movie blah blah blah".to_owned(),
       genres: genres(),
       year: 2023,
@@ -402,7 +407,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
-      status: "downloading".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 1,
       movie_id: 1,
       size: 3543348019,
@@ -470,13 +475,13 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
-      minimum_availability: MinimumAvailability::Announced,
+      minimum_availability: MinimumAvailability::InCinemas,
       monitored: true,
       quality_profile_id: 2222,
       tags: Vec::new(),
       tag_input_string: Some("usenet, testing".into()),
       add_options: AddMovieOptions {
-        monitor: MovieMonitor::MovieOnly,
+        monitor: MovieMonitor::MovieAndCollection,
         search_for_movie: true,
       },
     }

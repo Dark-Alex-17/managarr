@@ -16,7 +16,7 @@ mod tests {
       ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
       MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
       SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES,
-      SERIES_DETAILS_CONTEXT_CLUES, SERIES_HISTORY_CONTEXT_CLUES,
+      SERIES_DETAILS_CONTEXT_CLUES, SERIES_HISTORY_CONTEXT_CLUES, SERIES_OVERVIEW_CONTEXT_CLUES,
     },
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -189,9 +189,31 @@ mod tests {
     );
     assert_some_eq_x!(
       series_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.view, "view overview")
+    );
+    assert_some_eq_x!(
+      series_details_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
     );
     assert_none!(series_details_context_clues_iter.next());
+  }
+
+  #[test]
+  fn test_series_overview_context_clues() {
+    let mut series_overview_context_clues_iter = SERIES_OVERVIEW_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      series_overview_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      series_overview_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(series_overview_context_clues_iter.next());
   }
 
   #[test]
@@ -442,6 +464,16 @@ mod tests {
     assert_some_eq_x!(context_clues, expected_context_clues);
   }
 
+  #[test]
+  fn test_sonarr_context_clue_provider_series_overview_block() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveSonarrBlock::SeriesOverview.into());
+
+    let context_clues = SonarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &SERIES_OVERVIEW_CONTEXT_CLUES);
+  }
+
   #[rstest]
   #[case(0, ActiveSonarrBlock::SeasonDetails, &SEASON_DETAILS_CONTEXT_CLUES)]
   #[case(1, ActiveSonarrBlock::SeasonHistory, &SEASON_HISTORY_CONTEXT_CLUES)]
@@ -592,6 +624,24 @@ mod tests {
       ActiveSonarrBlock::EditSeriesTagsInput,
       ActiveSonarrBlock::EditSeriesToggleMonitored,
       ActiveSonarrBlock::EditSeriesToggleSeasonFolder
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_sonarr_block.into());
+
+    let context_clues = SonarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
+  fn test_sonarr_context_clue_provider_confirmation_prompt_popup_clues_delete_series_blocks(
+    #[values(
+      ActiveSonarrBlock::DeleteSeriesPrompt,
+      ActiveSonarrBlock::DeleteSeriesConfirmPrompt,
+      ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion,
+      ActiveSonarrBlock::DeleteSeriesToggleDeleteFile
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {

@@ -31,10 +31,10 @@ mod tests {
       "ratings": {"votes": 15, "value": 8.4},
       "releaseDate": "2023-01-01T00:00:00Z",
       "statistics": {
-        "trackFileCount": 10,
+        "trackFileCount": 8,
         "trackCount": 10,
         "totalTrackCount": 10,
-        "sizeOnDisk": 1024,
+        "sizeOnDisk": 317162578,
         "percentOfTracks": 99.9
       }
     }]);

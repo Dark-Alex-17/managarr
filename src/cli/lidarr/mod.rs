@@ -18,7 +18,8 @@ use super::{CliCommandHandler, Command};
 use crate::cli::lidarr::manual_search_command_handler::{
   LidarrManualSearchCommand, LidarrManualSearchCommandHandler,
 };
-use crate::models::lidarr_models::{LidarrReleaseDownloadBody, LidarrTaskName};
+use crate::models::lidarr_models::LidarrTaskName;
+use crate::models::servarr_models::ReleaseDownloadBody;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
@@ -231,7 +232,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         serde_json::to_string_pretty(&resp)?
       }
       LidarrCommand::DownloadRelease { guid, indexer_id } => {
-        let params = LidarrReleaseDownloadBody { guid, indexer_id };
+        let params = ReleaseDownloadBody { guid, indexer_id };
         let resp = self
           .network
           .handle_network_event(LidarrEvent::DownloadRelease(params).into())

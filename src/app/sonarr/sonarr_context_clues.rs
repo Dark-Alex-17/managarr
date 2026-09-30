@@ -5,8 +5,9 @@ use crate::app::context_clues::{
 use crate::app::{App, context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS};
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{
-  ADD_SERIES_BLOCKS, ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, EDIT_SERIES_BLOCKS,
-  EPISODE_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+  ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_INDEXER_BLOCKS,
+  EDIT_SERIES_BLOCKS, EPISODE_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS, SEASON_DETAILS_BLOCKS,
+  SERIES_DETAILS_BLOCKS, SERIES_OVERVIEW_BLOCKS,
 };
 
 #[cfg(test)]
@@ -38,7 +39,7 @@ pub static SERIES_CONTEXT_CLUES: [ContextClue; 11] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
+pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 9] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -54,6 +55,15 @@ pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
   (
     DEFAULT_KEYBINDINGS.auto_search,
     DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.view, "view overview"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
+pub static SERIES_OVERVIEW_CONTEXT_CLUES: [ContextClue; 2] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
   ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
@@ -177,6 +187,9 @@ impl ContextClueProvider for SonarrContextClueProvider {
         .sonarr_data
         .series_info_tabs
         .get_active_route_contextual_help(),
+      _ if SERIES_OVERVIEW_BLOCKS.contains(&active_sonarr_block) => {
+        Some(&SERIES_OVERVIEW_CONTEXT_CLUES)
+      }
       _ if SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block) => app
         .data
         .sonarr_data
@@ -205,6 +218,9 @@ impl ContextClueProvider for SonarrContextClueProvider {
         || INDEXER_SETTINGS_BLOCKS.contains(&active_sonarr_block)
         || EDIT_SERIES_BLOCKS.contains(&active_sonarr_block) =>
       {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
+      _ if DELETE_SERIES_BLOCKS.contains(&active_sonarr_block) => {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }
       ActiveSonarrBlock::AddSeriesPrompt

@@ -498,7 +498,7 @@ mod tests {
     assert!(app.is_loading);
     assert_eq!(
       rx.recv().await.unwrap(),
-      LidarrEvent::GetTrackDetails(1).into()
+      LidarrEvent::GetTrackDetails(5).into()
     );
     assert!(!app.data.lidarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);
@@ -518,7 +518,7 @@ mod tests {
     assert!(app.is_loading);
     assert_eq!(
       rx.recv().await.unwrap(),
-      LidarrEvent::GetTrackHistory(1, 1, 1).into()
+      LidarrEvent::GetTrackHistory(1, 1, 5).into()
     );
     assert!(!app.data.lidarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);
@@ -759,7 +759,7 @@ mod tests {
     album_details_modal.tracks.set_items(vec![track()]);
     app.data.lidarr_data.album_details_modal = Some(album_details_modal);
 
-    assert_eq!(app.extract_track_id().await, 1);
+    assert_eq!(app.extract_track_id().await, 5);
   }
 
   #[tokio::test]

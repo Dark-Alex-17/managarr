@@ -17,7 +17,7 @@ mod tests {
     MovieDetailsHandler, releases_sorting_options,
   };
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{movie, release};
-  use crate::models::radarr_models::{Credit, MovieHistoryItem};
+  use crate::models::radarr_models::{Credit, Movie, MovieHistoryItem};
   use crate::models::radarr_models::{RadarrRelease, RadarrReleaseDownloadBody};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
@@ -819,11 +819,22 @@ mod tests {
   fn test_build_radarr_release_download_body() {
     let mut app = App::test_default();
     let mut movie_details_modal = MovieDetailsModal::default();
-    movie_details_modal
-      .movie_releases
-      .set_items(vec![release()]);
+    movie_details_modal.movie_releases.set_items(vec![
+      RadarrRelease {
+        guid: "9999".to_owned(),
+        indexer_id: 99,
+        ..release()
+      },
+      release(),
+    ]);
+    movie_details_modal.movie_releases.select_index(Some(1));
     app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-    app.data.radarr_data.movies.set_items(vec![movie()]);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
+    app.data.radarr_data.movies.select_index(Some(1));
     let expected_body = RadarrReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
@@ -844,7 +855,12 @@ mod tests {
   #[test]
   fn test_extract_movie_id() {
     let mut app = App::test_default();
-    app.data.radarr_data.movies.set_items(vec![movie()]);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie { id: 999, ..movie() }, movie()]);
+    app.data.radarr_data.movies.select_index(Some(1));
 
     let movie_id = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

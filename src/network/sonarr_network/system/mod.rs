@@ -1,7 +1,7 @@
 use crate::models::servarr_models::{
-  CommandBody, DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
+  CommandBody, DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, SystemStatus, Update,
 };
-use crate::models::sonarr_models::{SonarrTask, SonarrTaskName, SystemStatus};
+use crate::models::sonarr_models::{SonarrTask, SonarrTaskName};
 use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};

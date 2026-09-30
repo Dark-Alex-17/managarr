@@ -1,14 +1,23 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
+  use ratatui::widgets::{Cell, Row};
+  use serde_json::Number;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
+  use crate::models::lidarr_models::{DownloadRecord, Track};
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock, TRACK_DETAILS_BLOCKS,
   };
+  use crate::models::servarr_models::DownloadStatus;
   use crate::models::stateful_table::StatefulTable;
+  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::download_record;
   use crate::ui::DrawUi;
-  use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
+  use crate::ui::lidarr_ui::library::album_details_ui::{
+    AlbumDetailsUi, decorate_track_row_with_style,
+  };
+  use crate::ui::styles::ManagarrStyle;
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
@@ -23,6 +32,184 @@ mod tests {
         assert!(!AlbumDetailsUi::accepts(active_lidarr_block.into()));
       }
     });
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_downloaded_when_track_has_file() {
+    let track = Track {
+      has_file: true,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&[], &track, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_missing_when_track_has_no_file() {
+    let track = Track {
+      has_file: false,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&[], &track, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_downloading_when_track_has_no_file_and_album_is_downloading()
+   {
+    let downloads_vec = vec![album_download(7, DownloadStatus::Downloading)];
+    let track = Track {
+      has_file: false,
+      album_id: 7,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&downloads_vec, &track, row.clone());
+
+    assert_eq!(style, row.downloading());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_awaiting_import_when_track_has_no_file_and_album_download_is_completed()
+   {
+    let downloads_vec = vec![album_download(7, DownloadStatus::Completed)];
+    let track = Track {
+      has_file: false,
+      album_id: 7,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&downloads_vec, &track, row.clone());
+
+    assert_eq!(style, row.awaiting_import());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_missing_when_album_download_is_neither_downloading_nor_completed()
+   {
+    let downloads_vec = vec![album_download(7, DownloadStatus::Queued)];
+    let track = Track {
+      has_file: false,
+      album_id: 7,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&downloads_vec, &track, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_missing_when_only_a_different_album_is_downloading() {
+    let downloads_vec = vec![album_download(8, DownloadStatus::Downloading)];
+    let track = Track {
+      has_file: false,
+      album_id: 7,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&downloads_vec, &track, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_track_row_with_style_downloaded_when_track_has_file_and_album_is_downloading() {
+    let downloads_vec = vec![album_download(7, DownloadStatus::Downloading)];
+    let track = Track {
+      has_file: true,
+      album_id: 7,
+      ..Track::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_track_row_with_style(&downloads_vec, &track, row.clone());
+
+    assert_eq!(style, row.downloaded());
+  }
+
+  mod test_track_row_styling {
+    use pretty_assertions::assert_eq;
+    use ratatui::style::Style;
+
+    use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::track;
+    use crate::ui::styles::{downloading_style, missing_style};
+    use crate::ui::ui_test_utils::test_utils::{TerminalSize, create_test_terminal};
+
+    use super::*;
+
+    #[test]
+    fn test_album_details_ui_renders_downloading_track_with_downloading_style() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+      set_tracks_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected track");
+
+      assert_eq!(style.fg, downloading_style().fg);
+    }
+
+    #[test]
+    fn test_album_details_ui_renders_missing_track_with_missing_style_when_queue_is_empty() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+      app.data.lidarr_data.downloads.set_items(vec![]);
+      set_tracks_with_unselected_probe(&mut app);
+
+      let style = rendered_row_style(&mut app, "Unselected track");
+
+      assert_eq!(style.fg, missing_style().fg);
+    }
+
+    fn set_tracks_with_unselected_probe(app: &mut App<'_>) {
+      let album_details_modal = app.data.lidarr_data.album_details_modal.as_mut().unwrap();
+      album_details_modal.album_details_tabs.set_index(0);
+      album_details_modal.tracks.set_items(vec![
+        track(),
+        Track {
+          has_file: false,
+          title: "Unselected track".to_owned(),
+          ..track()
+        },
+      ]);
+    }
+
+    fn rendered_row_style(app: &mut App<'_>, needle: &str) -> Style {
+      let (width, height) = TerminalSize::Large.to_cartesian();
+      let mut terminal = create_test_terminal(width, height);
+
+      terminal
+        .draw(|f| {
+          AlbumDetailsUi::draw(f, app, f.area());
+        })
+        .unwrap();
+
+      let buffer = terminal.backend().buffer();
+
+      for y in 0..height {
+        let row = (0..width)
+          .map(|x| buffer.cell((x, y)).expect("a rendered cell").symbol())
+          .collect::<String>();
+
+        if let Some(byte_index) = row.find(needle) {
+          let column = row[..byte_index].chars().count() as u16;
+
+          return buffer.cell((column, y)).expect("a rendered cell").style();
+        }
+      }
+
+      panic!("no rendered row contained {needle}");
+    }
   }
 
   mod snapshot_tests {
@@ -143,6 +330,15 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+  }
+
+  fn album_download(album_id: i64, status: DownloadStatus) -> DownloadRecord {
+    DownloadRecord {
+      status,
+      album_id: Some(Number::from(album_id)),
+      artist_id: Some(Number::from(3i64)),
+      ..download_record()
     }
   }
 }

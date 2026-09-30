@@ -1,6 +1,8 @@
 use serde_json::Number;
 
-use super::modals::{AddArtistModal, AddRootFolderModal, AlbumDetailsModal, EditArtistModal};
+use super::modals::{
+  AddArtistModal, AddRootFolderModal, AlbumDetailsModal, ArtistOverviewModal, EditArtistModal,
+};
 use crate::app::context_clues::{
   BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
   ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
@@ -64,6 +66,7 @@ pub struct LidarrData<'a> {
   pub album_details_modal: Option<AlbumDetailsModal>,
   pub artist_history: StatefulTable<LidarrHistoryItem>,
   pub artist_info_tabs: TabState,
+  pub artist_overview_modal: Option<ArtistOverviewModal>,
   pub artists: StatefulTable<Artist>,
   pub blocklist: StatefulTable<BlocklistItem>,
   pub delete_files: bool,
@@ -150,6 +153,7 @@ impl<'a> Default for LidarrData<'a> {
       albums: StatefulTable::default(),
       album_details_modal: None,
       artist_history: StatefulTable::default(),
+      artist_overview_modal: None,
       artists: StatefulTable::default(),
       blocklist: StatefulTable::default(),
       delete_files: false,
@@ -354,8 +358,13 @@ impl LidarrData<'_> {
     let mut indexer_test_all_results = StatefulTable::default();
     indexer_test_all_results.set_items(vec![indexer_test_result()]);
 
+    let artist_overview_modal = ArtistOverviewModal {
+      overview: ScrollableText::with_string(artist().overview.unwrap_or_default()),
+    };
+
     let mut lidarr_data = LidarrData {
       album_details_modal: Some(album_details_modal),
+      artist_overview_modal: Some(artist_overview_modal),
       delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
@@ -428,6 +437,7 @@ pub enum ActiveLidarrBlock {
   ArtistHistory,
   ArtistHistoryDetails,
   ArtistHistorySortPrompt,
+  ArtistOverview,
   ArtistsSortPrompt,
   AddArtistAlreadyInLibrary,
   AddArtistConfirmPrompt,
@@ -578,6 +588,8 @@ pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
   ActiveLidarrBlock::SearchArtistHistoryError,
   ActiveLidarrBlock::UpdateAndScanArtistPrompt,
 ];
+
+pub static ARTIST_OVERVIEW_BLOCKS: [ActiveLidarrBlock; 1] = [ActiveLidarrBlock::ArtistOverview];
 
 pub static ALBUM_DETAILS_BLOCKS: [ActiveLidarrBlock; 15] = [
   ActiveLidarrBlock::AlbumDetails,

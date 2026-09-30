@@ -1,0 +1,38 @@
+---
+source: src/ui/readarr_ui/downloads/downloads_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Title                                         Percent Complete   Size               Output Path                 Indexer                      Download Client      
+   First Download Title                          50%                3.30 GB            /nfs/books/First Author     DrunkenSlug                  sabnzbd              
+=> Second Download Title                         75%                1.00 GB            /nfs/books/Second Author    Nyaa                         transmission         
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                   ╭────────────────────  Cancel Download  ────────────────────╮                                                     
+                                                   │       Do you really want to delete this download:         │                                                     
+                                                   │                  Second Download Title?                   │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │╭────────────────────────────╮╭───────────────────────────╮│                                                     
+                                                   ││             Yes            ││            No             ││                                                     
+                                                   │╰────────────────────────────╯╰───────────────────────────╯│                                                     
+                                                   ╰───────────────────────────────────────────────────────────╯

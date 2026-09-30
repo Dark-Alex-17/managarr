@@ -1,9 +1,9 @@
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::Route;
-use crate::models::radarr_models::{DownloadRecord, Movie};
+use crate::models::radarr_models::{DownloadRecord, Movie, MovieStatus};
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::servarr_models::{DiskSpace, RootFolder};
+use crate::models::servarr_models::{DiskSpace, DownloadStatus, RootFolder};
 use crate::ui::DrawUi;
 use crate::ui::draw_tabs;
 use crate::ui::radarr_ui::blocklist::BlocklistUi;
@@ -22,7 +22,7 @@ use crate::ui::utils::{
   line_gauge_with_label, line_gauge_with_title, title_block,
 };
 use crate::ui::widgets::loading_block::LoadingBlock;
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use chrono::Duration;
 #[cfg(not(test))]
 use chrono::Utc;
@@ -170,8 +170,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let RootFolder {
         path, free_space, ..
       } = &monitored_root_folders[i];
-      let space: f64 = convert_to_gb(*free_space);
-      let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
+      let space = format_size(*free_space, 2);
+      let root_folder_space = Paragraph::new(format!("{path}: {space} free"))
         .block(borderless_block())
         .default_color();
 
@@ -230,11 +230,11 @@ fn decorate_with_row_style<'a>(
       .iter()
       .find(|&download| download.movie_id == movie.id)
     {
-      if download.status == "downloading" {
+      if download.status == DownloadStatus::Downloading {
         return row.downloading();
       }
 
-      if download.status == "completed" {
+      if download.status == DownloadStatus::Completed {
         return row.awaiting_import();
       }
     }
@@ -243,7 +243,7 @@ fn decorate_with_row_style<'a>(
       return row.unmonitored_missing();
     }
 
-    if movie.status != "released" {
+    if movie.status != MovieStatus::Released {
       return row.unreleased();
     }
 

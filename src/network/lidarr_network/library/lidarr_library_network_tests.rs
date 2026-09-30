@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::lidarr_models::LidarrReleaseDownloadBody;
   use crate::models::servarr_data::Notification;
+  use crate::models::servarr_models::ReleaseDownloadBody;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use pretty_assertions::assert_eq;
@@ -9,7 +9,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_download_lidarr_release_event_uses_provided_params() {
-    let params = LidarrReleaseDownloadBody {
+    let params = ReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
     };
@@ -44,7 +44,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_download_lidarr_release_event_sets_failure_notification_on_error() {
-    let params = LidarrReleaseDownloadBody {
+    let params = ReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
     };

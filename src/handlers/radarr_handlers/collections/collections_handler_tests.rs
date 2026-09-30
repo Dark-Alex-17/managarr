@@ -382,6 +382,48 @@ mod tests {
     }
 
     #[test]
+    fn test_search_collections_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveRadarrBlock::Collections,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveRadarrBlock::SearchCollection.into());
+    }
+
+    #[test]
+    fn test_filter_collections_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveRadarrBlock::Collections,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveRadarrBlock::FilterCollections.into());
+    }
+
+    #[test]
     fn test_update_all_collections_prompt_confirm_confirm() {
       let mut app = App::test_default();
       app

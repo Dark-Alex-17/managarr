@@ -4,12 +4,12 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
-    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+    DownloadStatus, Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::sonarr_models::{
-    AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadRecord, DownloadStatus,
-    Episode, EpisodeFile, MediaInfo, Rating, Season, SeasonStatistics, Series, SeriesStatistics,
-    SeriesStatus, SeriesType,
+    AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadRecord, Episode, EpisodeFile,
+    MediaInfo, Rating, Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus,
+    SeriesType,
   };
   use chrono::DateTime;
   use serde_json::{Number, json};
@@ -191,8 +191,8 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: DownloadStatus::Downloading,
-      id: 1,
-      episode_id: Some(Number::from(1i64)),
+      id: 9,
+      episode_id: Some(Number::from(11i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from(
@@ -205,10 +205,10 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
 
   pub fn episode() -> Episode {
     Episode {
-      id: 1,
+      id: 11,
       series_id: 1,
       tvdb_id: 1234,
-      episode_file_id: 1,
+      episode_file_id: 7,
       season_number: 1,
       episode_number: 1,
       title: "Something cool".to_owned(),
@@ -224,7 +224,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
 
   pub fn episode_file() -> EpisodeFile {
     EpisodeFile {
-      id: 1,
+      id: 7,
       relative_path: "/season 1/episode 1.mkv".to_owned(),
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,
@@ -274,9 +274,9 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
 
   pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      id: 1,
-      minimum_age: 1,
-      retention: 1,
+      id: 7,
+      minimum_age: 13,
+      retention: 21,
       maximum_size: 12345,
       rss_sync_interval: 60,
     }
@@ -338,7 +338,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
         DateTime::parse_from_rfc3339("2022-10-24T01:00:00Z").unwrap(),
       )),
       next_airing: None,
-      episode_file_count: 10,
+      episode_file_count: 7,
       episode_count: 10,
       total_episode_count: 10,
       size_on_disk: 36708563419,
@@ -351,7 +351,14 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       title: "Test".to_owned().into(),
       status: SeriesStatus::Continuing,
       ended: false,
-      overview: Some("Blah blah blah".to_owned()),
+      overview: Some(
+        "Blah blah blah\r\n\
+         \r\n\
+         It was filmed in Madison, Wisconsin: a city the crew never really left.\r\n\
+         \r\n\
+         The first season took seven years to finish.\r\n"
+          .to_owned(),
+      ),
       network: Some("HBO".to_owned()),
       seasons: Some(vec![season()]),
       year: 2022,

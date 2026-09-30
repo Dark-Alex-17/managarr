@@ -5,19 +5,20 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::Line;
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
 use crate::models::lidarr_models::{Album, LidarrHistoryItem, LidarrRelease};
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::album_details_ui::AlbumDetailsUi;
+use crate::ui::lidarr_ui::library::artist_overview_ui::ArtistOverviewUi;
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::decorate_peer_style;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
+  borderless_block, collapse_whitespace, get_width_from_percentage, layout_block_top_border,
+  title_block,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
@@ -25,7 +26,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use ratatui::layout::Alignment;
 use ratatui::text::Text;
 use serde_json::Number;
@@ -43,6 +44,7 @@ impl DrawUi for ArtistDetailsUi {
     };
     AlbumDetailsUi::accepts(route)
       || DeleteAlbumUi::accepts(route)
+      || ArtistOverviewUi::accepts(route)
       || ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
   }
 
@@ -122,6 +124,10 @@ impl DrawUi for ArtistDetailsUi {
       if AlbumDetailsUi::accepts(route) {
         AlbumDetailsUi::draw(f, app, area);
       }
+
+      if ArtistOverviewUi::accepts(route) {
+        ArtistOverviewUi::draw(f, app, area);
+      }
     }
   }
 }
@@ -147,18 +153,12 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .get_by_left(&current_selection.metadata_profile_id)
     .cloned()
     .unwrap_or_default();
-  let overview = Regex::new(r"[\r\n\t]")
-    .unwrap()
-    .replace_all(
-      &deunicode(
-        current_selection
-          .overview
-          .as_ref()
-          .unwrap_or(&String::new()),
-      ),
-      "",
-    )
-    .to_string();
+  let overview = collapse_whitespace(&deunicode(
+    current_selection
+      .overview
+      .as_ref()
+      .unwrap_or(&String::new()),
+  ));
 
   let mut artist_description = vec![
     Line::from(vec![
@@ -223,7 +223,7 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ];
 
   if let Some(stats) = current_selection.statistics.as_ref() {
-    let size = convert_to_gb(stats.size_on_disk);
+    let size = format_size(stats.size_on_disk, 2);
     artist_description.extend(vec![
       Line::from(vec![
         "Albums: ".primary().bold(),
@@ -235,7 +235,7 @@ fn draw_artist_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ]),
       Line::from(vec![
         "Size on Disk: ".primary().bold(),
-        format!("{size:.2} GB").default_color(),
+        size.default_color(),
       ]),
     ]);
   }
@@ -279,42 +279,27 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .release_date
         .map_or_else(|| "N/A".to_owned(), |d| d.format("%Y-%m-%d").to_string());
       let track_count = album.statistics.as_ref().map_or_else(
-        || "0/0".to_owned(),
+        || "N/A".to_owned(),
         |s| format!("{}/{}", s.track_file_count, s.total_track_count),
       );
       let size = album
         .statistics
         .as_ref()
-        .map_or(0f64, |s| convert_to_gb(s.size_on_disk));
+        .map_or_else(|| "N/A".to_owned(), |s| format_size(s.size_on_disk, 2));
       let duration_mins = album.duration / 60000;
 
-      let row = Row::new(vec![
-        Cell::from(monitored.to_owned()),
-        Cell::from(album.title.to_string()),
-        Cell::from(album_type),
-        Cell::from(track_count),
-        Cell::from(format!("{duration_mins} min")),
-        Cell::from(release_date),
-        Cell::from(format!("{size:.2} GB")),
-      ]);
-
-      if !album.monitored {
-        row.unmonitored()
-      } else if let Some(stats) = album.statistics.as_ref() {
-        if stats.track_file_count == stats.total_track_count && stats.total_track_count > 0 {
-          row.downloaded()
-        } else if let Some(release_date) = album.release_date.as_ref() {
-          if release_date > &Utc::now() {
-            row.unreleased()
-          } else {
-            row.missing()
-          }
-        } else {
-          row.missing()
-        }
-      } else {
-        row.indeterminate()
-      }
+      decorate_album_row_with_style(
+        album,
+        Row::new(vec![
+          Cell::from(monitored.to_owned()),
+          Cell::from(album.title.to_string()),
+          Cell::from(album_type),
+          Cell::from(track_count),
+          Cell::from(format!("{duration_mins} min")),
+          Cell::from(release_date),
+          Cell::from(size),
+        ]),
+      )
     };
 
     let is_searching = active_lidarr_block == ActiveLidarrBlock::SearchAlbums;
@@ -347,6 +332,26 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
 
     f.render_widget(album_table, area);
+  }
+}
+
+fn decorate_album_row_with_style<'a>(album: &Album, row: Row<'a>) -> Row<'a> {
+  if !album.monitored {
+    row.unmonitored()
+  } else if let Some(stats) = album.statistics.as_ref() {
+    if stats.track_file_count == stats.total_track_count && stats.total_track_count > 0 {
+      row.downloaded()
+    } else if let Some(release_date) = album.release_date.as_ref() {
+      if release_date > &Utc::now() {
+        row.unreleased()
+      } else {
+        row.missing()
+      }
+    } else {
+      row.missing()
+    }
+  } else {
+    row.indeterminate()
   }
 }
 
@@ -492,7 +497,7 @@ fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           && active_lidarr_block != ActiveLidarrBlock::ManualArtistSearchConfirmPrompt,
         app.should_text_scroll,
       );
-      let size = convert_to_gb(*size);
+      let size = format_size(*size, 1);
       let rejected_str = if *rejected { "⛔" } else { "" };
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::from("")
@@ -523,7 +528,7 @@ fn draw_artist_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(rejected_str),
         Cell::from(title.to_string()),
         Cell::from(indexer.clone()),
-        Cell::from(format!("{size:.1} GB")),
+        Cell::from(size),
         Cell::from(peers),
         Cell::from(quality_name),
       ])
@@ -566,12 +571,12 @@ fn draw_manual_artist_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let prompt = if current_selection.rejected {
     format!(
       "Do you really want to download the rejected release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   } else {
     format!(
       "Do you want to download the release: {}?",
-      &current_selection.title.text
+      current_selection.title.text
     )
   };
 

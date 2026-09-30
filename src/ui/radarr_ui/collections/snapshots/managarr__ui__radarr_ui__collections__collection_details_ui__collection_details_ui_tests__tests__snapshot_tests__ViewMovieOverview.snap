@@ -12,36 +12,36 @@ expression: output
                     │Overview: Collection blah blah blah                                                                                       │                     
                     │Root Folder Path: /nfs/movies                                                                                             │                     
                     │Quality Profile: HD - 1080p                                                                                               │                     
-                    │Minimum Availability: Released                                                                                            │                     
-                    │Monitored: Yes                                                                                                            │                     
-                    │Search on Add: Yes                                                                                                        │                     
-                    │                                                                                                                          │                     
-                    │                                                                                                                          │                     
-                    │                             ╭  Overview  ────────────────────────────────────────────────────╮                           │                     
-                    │  Movies  ───────────────────│Collection blah blah blah                                       │───────────────────────────│                     
-                    │   ✔  Title                  │                                                                │                           │                     
-                    │=> ✔  Test                   │                                                                │family, fun                │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             │                                                                │                           │                     
-                    │                             ╰────────────────────────────────────────────────────────────────╯                           │                     
-                    │                                                                                                                          │                     
-                    │                                                                                                                          │                     
-                    │                                                                                                                          │                     
-                    │                                                                                                                          │                     
-                    │                                                                                                                          │                     
+                    │Minimum Avai╭  Overview  ─────────────────────────────────────────────────────────────────────────────────────╮           │                     
+                    │Monitored: Y│Collection movie blah blah blah                                                                  │           │                     
+                    │Search on Ad│                                                                                                 │           │                     
+                    │            │It was shot in Madison, Wisconsin: a city the cast never really left.                            │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │The sequel took seven years to finish.                                                           │           │                     
+                    │  Movies  ──│                                                                                                 │───────────│                     
+                    │   ✔  Title │                                                                                                 │           │                     
+                    │=> ✔  Test  │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            │                                                                                                 │           │                     
+                    │            ╰─────────────────────────────────────────────────────────────────────────────────────────────────╯           │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     
                     │                                                                                                                          │                     

@@ -2,8 +2,10 @@ use std::fmt::{Display, Formatter, Result};
 
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
+use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
+use strum::{Display, EnumIter};
 
 use super::HorizontallyScrollableText;
 
@@ -88,6 +90,36 @@ pub struct DiskSpace {
   pub free_space: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub total_space: i64,
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum DownloadStatus {
+  #[default]
+  Unknown,
+  Queued,
+  Paused,
+  Downloading,
+  Completed,
+  Failed,
+  Warning,
+  Delay,
+  #[display_style(name = "Download Client Unavailable")]
+  DownloadClientUnavailable,
+  Fallback,
 }
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
@@ -238,6 +270,22 @@ pub struct LogResponse {
   pub records: Vec<Log>,
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct MetadataProfile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub name: String,
+}
+
+impl From<(&i64, &String)> for MetadataProfile {
+  fn from(value: (&i64, &String)) -> Self {
+    MetadataProfile {
+      id: *value.0,
+      name: value.1.clone(),
+    }
+  }
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
@@ -277,6 +325,13 @@ pub struct QueueEvent {
   pub duration: Option<String>,
 }
 
+#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: i64,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
@@ -292,7 +347,9 @@ pub struct RootFolder {
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityConfig {
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub authentication_method: AuthenticationMethod,
+  #[serde(default, deserialize_with = "super::from_json_or_default")]
   #[serde(skip_serializing_if = "Option::is_none")]
   pub authentication_required: Option<AuthenticationRequired>,
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -300,7 +357,15 @@ pub struct SecurityConfig {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub password: Option<String>,
   pub api_key: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub certificate_validation: CertificateValidation,
+}
+
+#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemStatus {
+  pub version: String,
+  pub start_time: DateTime<Utc>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -324,6 +389,7 @@ pub struct Update {
   pub installed: bool,
   pub latest: bool,
   pub installed_on: Option<DateTime<Utc>>,
+  #[serde(default)]
   pub changes: UpdateChanges,
 }
 

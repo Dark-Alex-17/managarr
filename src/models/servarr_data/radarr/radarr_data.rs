@@ -12,7 +12,7 @@ use crate::models::radarr_models::{
 };
 use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal, MovieOverviewModal,
 };
 use crate::models::servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder};
 use crate::models::stateful_list::StatefulList;
@@ -86,6 +86,7 @@ pub struct RadarrData<'a> {
   pub indexer_test_errors: Option<String>,
   pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub movie_details_modal: Option<MovieDetailsModal>,
+  pub movie_overview_modal: Option<MovieOverviewModal>,
   pub prompt_confirm: bool,
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub delete_movie_files: bool,
@@ -158,6 +159,7 @@ impl<'a> Default for RadarrData<'a> {
       indexer_test_errors: None,
       indexer_test_all_results: None,
       movie_details_modal: None,
+      movie_overview_modal: None,
       prompt_confirm: false,
       prompt_confirm_action: None,
       delete_movie_files: false,
@@ -360,6 +362,10 @@ impl RadarrData<'_> {
       .movie_releases
       .sorting(vec![sort_option!(indexer_id)]);
 
+    let movie_overview_modal = MovieOverviewModal {
+      overview: ScrollableText::with_string(collection_movie().overview.clone()),
+    };
+
     let mut radarr_data = RadarrData {
       disk_space_vec: vec![diskspace()],
       version: "1.2.3.4".to_owned(),
@@ -378,6 +384,7 @@ impl RadarrData<'_> {
       indexer_test_errors: Some("error".into()),
       indexer_test_all_results: Some(indexer_test_results),
       movie_details_modal: Some(movie_details_modal),
+      movie_overview_modal: Some(movie_overview_modal),
       delete_movie_files: true,
       ..RadarrData::default()
     };

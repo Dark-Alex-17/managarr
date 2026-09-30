@@ -20,11 +20,16 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 - [x] ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
 - [x] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
 - [x] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
-- [ ] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
+- [x] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
 - [ ] ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
 - [ ] ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - [ ] ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
+
+> [!NOTE]
+> The official Readarr repository has been archived, but Managarr's Readarr support is compatible with any Readarr forks
+> that maintain compatibility with the official Readarr v1 API. See [Tested Readarr Forks](#tested-readarr-forks) below
+> for forks that have been explicitly tested with Managarr, and any oddities in configuring them to work with Managarr.
 
 ## Try Out the Demo
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
@@ -134,8 +139,8 @@ Key:
 
 | Symbol | Status    |
 |--------|-----------|
-| ✅      | Supported |
-| ❌      | Missing   |
+| ✅     | Supported |
+| ❌     | Missing   |
 | 🕒     | Planned   |
 | 🚫     | Won't Add |
 
@@ -143,66 +148,82 @@ Key:
 
 | TUI | CLI | Feature                                                                                                        |
 |-----|-----|----------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, collections, and blocklist                                                       |
-| ✅   | ✅   | View details of a specific movie including description, history, downloaded file info, or the credits          |
-| ✅   | ✅   | View details of any collection and the movies in them                                                          |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| ✅   | ✅   | Search your library or collections                                                                             |
-| ✅   | ✅   | Add movies to your library                                                                                     |
-| ✅   | ✅   | Delete movies, downloads, and indexers                                                                         |
-| ✅   | ✅   | Trigger automatic searches for movies                                                                          |
-| ✅   | ✅   | Trigger refresh and disk scan for movies, downloads, and collections                                           |
-| ✅   | ✅   | Manually search for movies                                                                                     |
-| ✅   | ✅   | Edit your movies, collections, and indexers                                                                    |
-| ✅   | ✅   | Manage your tags                                                                                               |
-| ✅   | ✅   | Manage your root folders                                                                                       |
-| ✅   | ✅   | Manage your blocklist                                                                                          |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+| ✅  | ✅  | View your library, downloads, collections, and blocklist                                                       |
+| ✅  | ✅  | View details of a specific movie including description, history, downloaded file info, or the credits          |
+| ✅  | ✅  | View details of any collection and the movies in them                                                          |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library or collections                                                                             |
+| ✅  | ✅  | Add movies to your library                                                                                     |
+| ✅  | ✅  | Delete movies, downloads, and indexers                                                                         |
+| ✅  | ✅  | Trigger automatic searches for movies                                                                          |
+| ✅  | ✅  | Trigger refresh and disk scan for movies, downloads, and collections                                           |
+| ✅  | ✅  | Manually search for movies                                                                                     |
+| ✅  | ✅  | Edit your movies, collections, and indexers                                                                    |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Sonarr
 
 | TUI | CLI | Feature                                                                                                            |
 |-----|-----|--------------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, blocklist, episodes                                                                  |
-| ✅   | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| ✅   | ✅   | Search your library                                                                                                |
-| ✅   | ✅   | Add series to your library                                                                                         |
-| ✅   | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| ✅   | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
-| ✅   | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
-| ✅   | ✅   | Manually search for series, seasons, or episodes                                                                   |
-| ✅   | ✅   | Edit your series and indexers                                                                                      |
-| ✅   | ✅   | Manage your tags                                                                                                   |
-| ✅   | ✅   | Manage your root folders                                                                                           |
-| ✅   | ✅   | Manage your blocklist                                                                                              |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                                   |
+| ✅  | ✅  | View your library, downloads, blocklist, episodes                                                                  |
+| ✅  | ✅  | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
+| ✅  | ✅  | Search your library                                                                                                |
+| ✅  | ✅  | Add series to your library                                                                                         |
+| ✅  | ✅  | Delete series, downloads, indexers, root folders, and episode files                                                |
+| ✅  | ✅  | Trigger automatic searches for series, seasons, or episodes                                                        |
+| ✅  | ✅  | Trigger refresh and disk scan for series and downloads                                                             |
+| ✅  | ✅  | Manually search for series, seasons, or episodes                                                                   |
+| ✅  | ✅  | Edit your series and indexers                                                                                      |
+| ✅  | ✅  | Manage your tags                                                                                                   |
+| ✅  | ✅  | Manage your root folders                                                                                           |
+| ✅  | ✅  | Manage your blocklist                                                                                              |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                            |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                                   |
 
 ### Lidarr
 
 | TUI | CLI | Feature                                                                                                        |
 |-----|-----|----------------------------------------------------------------------------------------------------------------|
-| ✅   | ✅   | View your library, downloads, blocklist, tracks                                                                |
-| ✅   | ✅   | View details of a specific artists, albums, or tracks including description, history, downloaded file info     |
-| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| ✅   | ✅   | Search your library                                                                                            |
-| ✅   | ✅   | Add artists to your library                                                                                    |
-| ✅   | ✅   | Delete artists, downloads, indexers, root folders, and track files                                             |
-| ✅   | ✅   | Trigger automatic searches for artists or albums                                                               |
-| ✅   | ✅   | Trigger refresh and disk scan for artists and downloads                                                        |
-| ✅   | ✅   | Manually search for  full artist discographies or albums                                                       |
-| ✅   | ✅   | Edit your artists and indexers                                                                                 |
-| ✅   | ✅   | Manage your tags                                                                                               |
-| ✅   | ✅   | Manage your root folders                                                                                       |
-| ✅   | ✅   | Manage your blocklist                                                                                          |
-| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
-| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
+| ✅  | ✅  | View your library, downloads, blocklist, tracks                                                                |
+| ✅  | ✅  | View details of a specific artists, albums, or tracks including description, history, downloaded file info     |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library                                                                                            |
+| ✅  | ✅  | Add artists to your library                                                                                    |
+| ✅  | ✅  | Delete artists, downloads, indexers, root folders, and track files                                             |
+| ✅  | ✅  | Trigger automatic searches for artists or albums                                                               |
+| ✅  | ✅  | Trigger refresh and disk scan for artists and downloads                                                        |
+| ✅  | ✅  | Manually search for  full artist discographies or albums                                                       |
+| ✅  | ✅  | Edit your artists and indexers                                                                                 |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Readarr
 
-- [ ] Support for Readarr
+| TUI | CLI | Feature                                                                                                        |
+|-----|-----|----------------------------------------------------------------------------------------------------------------|
+| ✅  | ✅  | View your library, downloads, blocklist, editions                                                              |
+| ✅  | ✅  | View details of a specific author, book, or edition including description, history, downloaded file info       |
+| 🚫  | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library                                                                                            |
+| ✅  | ✅  | Add authors to your library                                                                                    |
+| ✅  | ✅  | Delete authors, books, downloads, indexers, root folders, and book files                                       |
+| ✅  | ✅  | Trigger automatic searches for authors or books                                                                |
+| ✅  | ✅  | Trigger refresh and disk scan for authors and downloads                                                        |
+| ✅  | ✅  | Manually search for author releases or books                                                                   |
+| ✅  | ✅  | Edit your authors and indexers                                                                                 |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Whisparr
 
@@ -245,7 +266,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.7.0
+managarr 0.8.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -256,6 +277,7 @@ Commands:
   radarr       Commands for manging your Radarr instance
   sonarr       Commands for manging your Sonarr instance
   lidarr       Commands for manging your Lidarr instance
+  readarr      Commands for managing your Readarr instance
   completions  Generate shell completions for the Managarr CLI
   tail-logs    Tail Managarr logs
   config-path  Print the full path to the default configuration file.
@@ -347,6 +369,7 @@ default port for that respective service. That is:
 | Radarr  | `localhost`  | 7878         |
 | Sonarr  | `localhost`  | 8989         |
 | Lidarr  | `localhost`  | 8686         |
+| Readarr | `localhost`  | 8787         |
 
 > [!TIP]
 > In general, all Servarrs store their API tokens under Settings -> General -> Security -> API Key in their web UIs.
@@ -367,6 +390,10 @@ sonarr:
 lidarr:
   # Connect to lidarr running on localhost:8686
   - api_token: <your-lidarr-api-token-here>
+
+readarr:
+  # Connect to readarr running on localhost:8787
+  - api_token: <your-readarr-api-token-here>
 ```
 
 ## Configuration File Location
@@ -437,6 +464,11 @@ lidarr:
     custom_headers: # Example of adding custom headers to all requests to the Servarr instance
       traefik-auth-bypass-key: someBypassKey1234567890
       SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
+
+readarr:
+  - name: Chaptarr (Ebooks) # Example of how to use the Readarr support with a Readarr fork like Chaptarr
+    uri: http://192.168.0.87:8789/readarr/gr/ebook
+    api_token: someApiToken1234567890
 ```
 
 ### SSL Configuration
@@ -546,6 +578,46 @@ Managarr supports using environment variables on startup so you don't have to al
 | `MANAGARR_CONFIG_FILE`                  | Set the path to the config file                                                | `--config`                       |
 | `MANAGARR_DISABLE_SPINNER`              | Disable the CLI spinner (this can be useful when scripting and parsing output) | `--disable-spinner`              |
 
+## Tested Readarr Forks
+
+The following Readarr forks have been explicitly tested with Managarr:
+
+* [Bookshelf](https://github.com/pennydreadful/bookshelf)
+* [Readarr-Resurrected](https://github.com/ricetim/readarr-rresurrected)
+* [Librarr](https://github.com/Rorqualx/Librarr)
+* [Chaptarr](https://github.com/Chaptarr/Chaptarr)
+
+> [!IMPORTANT]
+> Chaptarr houses a dedicated Readarr facade middleware that activates on a path prefix, meaning a bare config doesn't 
+> work. Instead, users need to configure both Audiobooks and Ebooks separately, and based on their desired metadata 
+> fetcher (i.e. Goodreads and Hardcover IDs). Because of this, Chaptarr-based configurations must use the `uri` key 
+> rather than the `host` and `port` keys. The below configuration file demonstrates all the supported variations for
+> connecting Managarr to Chaptarr.
+
+### Chaptarr Example Configuration
+```yaml
+readarr:
+  # Because Chaptarr supports both eBooks and audiobooks, the same instance must be provisioned twice if you're using 
+  # both so Managarr can differentiate between the two. Thus, for Chaptarr, you need an eBook server configured and an 
+  # audiobook server configured like below.
+
+  - name: eBooks (Goodreads) # Readarr originally used Goodreads as its metadata provider
+    uri: http://192.168.0.87:8789/readarr/gr/ebook # Note the `gr` in the path prefix indicating "GoodReads"
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr Audiobooks (Goodreads)
+    uri: http://192.168.0.105:8789/readarr/gr/audiobook
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr eBooks (Hardcover)
+    uri: http://192.168.0.105:8789/readarr/hc/ebook # Note the `hc` in the path prefix indicating "HardCover"
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr Audiobooks (Hardcover)
+    uri: http://192.168.0.105:8789/readarr/hc/audiobook
+    api_token: someApiToken1234567890
+```
+
 ## Screenshots
 
 ### Radarr
@@ -567,6 +639,13 @@ Managarr supports using environment variables on startup so you don't have to al
 ![album_details](screenshots/lidarr/album_details.png)
 ![artist_discography_search](screenshots/lidarr/artist_discography_search.png)
 ![manual_album_search](screenshots/lidarr/manual_album_search.png)
+
+### Readarr
+![readarr_library](screenshots/readarr/readarr_library.png)
+![author_details](screenshots/readarr/author_details.png)
+![book_details](screenshots/readarr/book_details.png)
+![manual_author_search](screenshots/readarr/manual_author_search.png)
+![manual_album_search](screenshots/readarr/manual_book_search.png)
 
 ### General
 ![logs](screenshots/radarr/logs.png)

@@ -1,8 +1,8 @@
 use super::{
   HorizontallyScrollableText, Serdeable,
   servarr_models::{
-    DiskSpace, HostConfig, Indexer, IndexerTestResult, QualityProfile, QualityWrapper, RootFolder,
-    SecurityConfig, Tag,
+    DiskSpace, DownloadStatus, HostConfig, Indexer, IndexerTestResult, MetadataProfile,
+    QualityProfile, QualityWrapper, RootFolder, SecurityConfig, SystemStatus, Tag,
   },
 };
 use crate::models::servarr_models::{IndexerSettings, LogResponse, QueueEvent, Update};
@@ -27,6 +27,7 @@ pub struct Artist {
   pub id: i64,
   pub artist_name: HorizontallyScrollableText,
   pub foreign_artist_id: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: ArtistStatus,
   pub overview: Option<String>,
   pub artist_type: Option<String>,
@@ -38,6 +39,7 @@ pub struct Artist {
   #[serde(deserialize_with = "super::from_i64")]
   pub metadata_profile_id: i64,
   pub monitored: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub monitor_new_items: NewItemMonitorType,
   pub genres: Vec<String>,
   pub tags: Vec<Number>,
@@ -96,22 +98,6 @@ pub struct ArtistStatistics {
 }
 
 impl Eq for ArtistStatistics {}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct MetadataProfile {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: String,
-}
-
-impl From<(&i64, &String)> for MetadataProfile {
-  fn from(value: (&i64, &String)) -> Self {
-    MetadataProfile {
-      id: *value.0,
-      name: value.1.clone(),
-    }
-  }
-}
 
 #[derive(
   Serialize,
@@ -177,6 +163,7 @@ pub enum MonitorType {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
@@ -194,47 +181,10 @@ pub struct DownloadRecord {
 
 impl Eq for DownloadRecord {}
 
-#[derive(
-  Serialize,
-  Deserialize,
-  Default,
-  PartialEq,
-  Eq,
-  Clone,
-  Copy,
-  Debug,
-  EnumIter,
-  Display,
-  EnumDisplayStyle,
-)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum DownloadStatus {
-  #[default]
-  Unknown,
-  Queued,
-  Paused,
-  Downloading,
-  Completed,
-  Failed,
-  Warning,
-  Delay,
-  #[display_style(name = "Download Client Unavailable")]
-  DownloadClientUnavailable,
-  Fallback,
-}
-
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -242,6 +192,7 @@ pub struct SystemStatus {
 pub struct AddArtistSearchResult {
   pub foreign_artist_id: String,
   pub artist_name: HorizontallyScrollableText,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: ArtistStatus,
   pub overview: Option<String>,
   pub artist_type: Option<String>,
@@ -427,6 +378,7 @@ pub struct LidarrHistoryItem {
   #[serde(default)]
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: LidarrHistoryEventType,
   #[serde(default)]
   pub data: LidarrHistoryData,
@@ -436,6 +388,7 @@ pub struct LidarrHistoryItem {
 #[serde(rename_all = "camelCase")]
 pub struct LidarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: LidarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
@@ -490,13 +443,6 @@ pub struct LidarrRelease {
   pub seeders: Option<Number>,
   pub leechers: Option<Number>,
   pub quality: QualityWrapper,
-}
-
-#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct LidarrReleaseDownloadBody {
-  pub guid: String,
-  pub indexer_id: i64,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -3,11 +3,16 @@ mod property_tests {
   use proptest::prelude::*;
 
   use crate::app::App;
-  use crate::handlers::handler_test_utils::test_utils::proptest_helpers::*;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::event::Key;
+  use crate::handlers::handle_events;
+  use crate::handlers::handler_test_utils::test_utils::proptest_helpers::{
+    list_size, text_input_string,
+  };
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
-  use crate::models::{Paginated, Scrollable};
+  use crate::models::{Paginated, Scrollable, strip_non_search_characters};
 
   proptest! {
     #[test]
@@ -16,11 +21,12 @@ mod property_tests {
       index in 0usize..1000
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
 
@@ -39,11 +45,12 @@ mod property_tests {
       scroll_amount in 0usize..20
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
       let initial_id = table.current_selection().id;
@@ -76,7 +83,7 @@ mod property_tests {
       let mut app = App::test_default();
       let initial_route = app.get_current_route();
 
-      let routes = vec![
+      let routes = [
         ActiveRadarrBlock::Movies,
         ActiveRadarrBlock::Collections,
         ActiveRadarrBlock::Downloads,
@@ -100,26 +107,43 @@ mod property_tests {
 
     #[test]
     fn test_string_input_safety(input in text_input_string()) {
-      let _lowercase = input.to_lowercase();
-      let _uppercase = input.to_uppercase();
-      let _trimmed = input.trim();
-      let _len = input.len();
-      let _chars: Vec<char> = input.chars().collect();
+      let mut app = App::test_default();
+      app.data.radarr_data.movies.set_items(vec![Movie::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      handle_events(DEFAULT_KEYBINDINGS.filter.key, &mut app);
 
-      prop_assert!(true);
+      for character in input.chars() {
+        handle_events(Key::Char(character), &mut app);
+      }
+
+      prop_assert_eq!(app.get_current_route(), ActiveRadarrBlock::FilterMovies.into());
+      prop_assert_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text.as_str(),
+        input.as_str()
+      );
+
+      for _ in 0..input.chars().count() {
+        handle_events(DEFAULT_KEYBINDINGS.backspace.key, &mut app);
+      }
+
+      prop_assert_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text.as_str(),
+        ""
+      );
     }
 
     #[test]
     fn test_table_data_integrity(
-      list_size in 1usize..100
+      list_size in list_size()
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie.title = format!("Movie {}", i).into();
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          title: format!("Movie {i}").into(),
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies.clone());
       let original_count = table.items.len();
@@ -137,19 +161,29 @@ mod property_tests {
       page_ops in 0usize..10
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie
-      }).collect();
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          ..Movie::default()
+        })
+        .collect();
 
       table.set_items(movies);
 
       for i in 0..page_ops {
+        let previous_index = table.state.selected().unwrap();
+
         if i % 2 == 0 {
           table.page_down();
+
+          prop_assert_eq!(
+            table.state.selected(),
+            Some((previous_index + 20).min(list_size - 1))
+          );
         } else {
           table.page_up();
+
+          prop_assert_eq!(table.state.selected(), Some(previous_index.saturating_sub(20)));
         }
 
         let current = table.current_selection();
@@ -164,28 +198,43 @@ mod property_tests {
       filter_term in text_input_string()
     ) {
       let mut table = StatefulTable::<Movie>::default();
-      let movies: Vec<Movie> = (0..list_size).map(|i| {
-        let mut movie = Movie::default();
-        movie.id = i as i64;
-        movie.title = format!("Test Movie {}", i % 10).into();
-        movie
-      }).collect();
-
+      let movies: Vec<Movie> = (0..list_size)
+        .map(|i| Movie {
+          id: i as i64,
+          title: format!("Test Movie {}", i % 10).into(),
+          ..Movie::default()
+        })
+        .collect();
       table.set_items(movies.clone());
-      let original_size = table.items.len();
+      table.filter = Some(filter_term.clone().into());
+      let scrubbed_filter = strip_non_search_characters(&filter_term);
+      let matches_filter = |movie: &Movie| {
+        strip_non_search_characters(&movie.title.text).contains(&scrubbed_filter)
+      };
 
-      if !filter_term.is_empty() {
-        let filtered: Vec<Movie> = movies.into_iter()
-          .filter(|m| m.title.text.to_lowercase().contains(&filter_term.to_lowercase()))
-          .collect();
-        table.set_items(filtered);
-      }
+      let has_match = table.apply_filter(|movie| &movie.title.text);
 
-      prop_assert!(table.items.len() <= original_size);
+      prop_assert_eq!(&table.items, &movies);
+      prop_assert!(table.filter.is_none());
 
-      if !table.items.is_empty() {
-        let current = table.current_selection();
-        prop_assert!(current.id >= 0);
+      if has_match {
+        let filtered_items = table.filtered_items.as_ref().unwrap();
+
+        prop_assert!(!filtered_items.is_empty());
+        prop_assert!(filtered_items.len() <= movies.len());
+
+        for movie in filtered_items {
+          prop_assert!(matches_filter(movie));
+        }
+
+        for movie in movies.iter().filter(|movie| !filtered_items.contains(movie)) {
+          prop_assert!(!matches_filter(movie));
+        }
+      } else {
+        prop_assert!(table.filtered_items.is_none());
+        prop_assert!(
+          filter_term.is_empty() || movies.iter().all(|movie| !matches_filter(movie))
+        );
       }
     }
   }

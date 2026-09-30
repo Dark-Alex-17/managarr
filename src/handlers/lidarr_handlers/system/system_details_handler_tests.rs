@@ -970,11 +970,17 @@ mod tests {
   #[test]
   fn test_extract_task_name() {
     let mut app = App::test_default();
-    app
-      .data
-      .lidarr_data
-      .tasks
-      .set_items(vec![LidarrTask::default()]);
+    app.data.lidarr_data.tasks.set_items(vec![
+      LidarrTask {
+        task_name: LidarrTaskName::Backup,
+        ..LidarrTask::default()
+      },
+      LidarrTask {
+        task_name: LidarrTaskName::RefreshArtist,
+        ..LidarrTask::default()
+      },
+    ]);
+    app.data.lidarr_data.tasks.select_index(Some(1));
 
     let task_name = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -984,7 +990,7 @@ mod tests {
     )
     .extract_task_name();
 
-    assert_eq!(task_name, LidarrTaskName::default());
+    assert_eq!(task_name, LidarrTaskName::RefreshArtist);
   }
 
   #[test]

@@ -240,6 +240,59 @@ mod tests {
   }
 
   #[test]
+  fn test_stateful_table_pagination_on_single_item_table_performs_no_op() {
+    let mut stateful_table: StatefulTable<String> = StatefulTable::default();
+    stateful_table.set_items(vec!["Test 1".to_owned()]);
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+  }
+
+  #[test]
+  fn test_stateful_table_filtered_pagination_on_single_item_table_performs_no_op() {
+    let mut filtered_stateful_table: StatefulTable<String> = StatefulTable::default();
+    filtered_stateful_table.set_filtered_items(vec!["Test 1".to_owned()]);
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+
+    filtered_stateful_table.page_down();
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+
+    filtered_stateful_table.page_up();
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      0
+    );
+  }
+
+  #[test]
   fn test_stateful_table_pagination() {
     let mut stateful_table = StatefulTable::default();
     let mut curr = 0;
@@ -265,6 +318,69 @@ mod tests {
       20
     );
 
+    stateful_table.page_down();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      40
+    );
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      60
+    );
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      80
+    );
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      99
+    );
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      99
+    );
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      79
+    );
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      59
+    );
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      39
+    );
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      19
+    );
+
     stateful_table.page_up();
 
     assert_some_eq_x!(
@@ -276,30 +392,7 @@ mod tests {
 
     assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      stateful_table.filtered_items.as_ref().unwrap().len() - 21
-    );
-
-    stateful_table.page_down();
-
-    assert_some_eq_x!(
-      stateful_table.filtered_state.as_ref().unwrap().selected(),
       0
-    );
-
-    stateful_table.scroll_down();
-    stateful_table.page_up();
-
-    assert_some_eq_x!(
-      stateful_table.filtered_state.as_ref().unwrap().selected(),
-      stateful_table.filtered_items.as_ref().unwrap().len() - 20
-    );
-
-    stateful_table.scroll_down();
-    stateful_table.page_down();
-
-    assert_some_eq_x!(
-      stateful_table.filtered_state.as_ref().unwrap().selected(),
-      2
     );
   }
 
@@ -323,33 +416,105 @@ mod tests {
 
     assert_some_eq_x!(stateful_table.state.selected(), 20);
 
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 40);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 60);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 80);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 99);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 99);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 79);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 59);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 39);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 19);
+
     stateful_table.page_up();
 
     assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.page_up();
 
-    assert_some_eq_x!(
-      stateful_table.state.selected(),
-      stateful_table.items.len() - 21
-    );
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+  }
 
-    stateful_table.page_down();
+  #[test]
+  fn test_stateful_table_pagination_on_twenty_one_item_table_stops_at_last_item() {
+    let mut stateful_table = StatefulTable::default();
+    stateful_table.set_items((0..21).collect());
 
     assert_some_eq_x!(stateful_table.state.selected(), 0);
 
-    stateful_table.scroll_down();
-    stateful_table.page_up();
-
-    assert_some_eq_x!(
-      stateful_table.state.selected(),
-      stateful_table.items.len() - 20
-    );
-
-    stateful_table.scroll_down();
     stateful_table.page_down();
 
-    assert_some_eq_x!(stateful_table.state.selected(), 2);
+    assert_some_eq_x!(stateful_table.state.selected(), 20);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 20);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+  }
+
+  #[test]
+  fn test_stateful_table_pagination_on_five_item_table_stops_at_last_item() {
+    let mut stateful_table = StatefulTable::default();
+    stateful_table.set_items((0..5).collect());
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 4);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 4);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+  }
+
+  #[test]
+  fn test_stateful_table_pagination_on_four_item_table_reaches_last_item() {
+    let mut stateful_table = StatefulTable::default();
+    stateful_table.set_items((0..4).collect());
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
+
+    stateful_table.page_down();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 3);
+
+    stateful_table.page_up();
+
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
   }
 
   #[test]

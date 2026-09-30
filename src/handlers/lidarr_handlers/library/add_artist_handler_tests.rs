@@ -1076,10 +1076,16 @@ mod tests {
         .set_index(0, ADD_ARTIST_SELECTION_BLOCKS.len() - 1);
       app.data.lidarr_data.prompt_confirm = true;
       let mut add_searched_artists = StatefulTable::default();
-      add_searched_artists.set_items(vec![add_artist_search_result()]);
+      let mut decoy_search_result = add_artist_search_result();
+      decoy_search_result.foreign_artist_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.artist_name = "Decoy Artist".into();
+      add_searched_artists.set_items(vec![decoy_search_result, add_artist_search_result()]);
+      add_searched_artists.select_index(Some(1));
       app.data.lidarr_data.add_searched_artists = Some(add_searched_artists);
-      app.data.lidarr_data.quality_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
-      app.data.lidarr_data.metadata_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
+      app.data.lidarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "Lossless".to_owned())]);
+      app.data.lidarr_data.metadata_profile_map =
+        BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
       app.data.lidarr_data.add_artist_modal = Some(AddArtistModal {
         tags: "usenet, testing".into(),
         ..AddArtistModal::default()
@@ -1098,6 +1104,15 @@ mod tests {
         .add_artist_modal
         .as_mut()
         .unwrap()
+        .monitor_list
+        .state
+        .select(Some(1));
+      app
+        .data
+        .lidarr_data
+        .add_artist_modal
+        .as_mut()
+        .unwrap()
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
       app
@@ -1106,8 +1121,26 @@ mod tests {
         .add_artist_modal
         .as_mut()
         .unwrap()
+        .monitor_new_items_list
+        .state
+        .select(Some(1));
+      app
+        .data
+        .lidarr_data
+        .add_artist_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "Lossless".to_owned()]);
+      app
+        .data
+        .lidarr_data
+        .add_artist_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .state
+        .select(Some(1));
       app
         .data
         .lidarr_data
@@ -1115,7 +1148,16 @@ mod tests {
         .as_mut()
         .unwrap()
         .metadata_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+      app
+        .data
+        .lidarr_data
+        .add_artist_modal
+        .as_mut()
+        .unwrap()
+        .metadata_profile_list
+        .state
+        .select(Some(1));
       app
         .data
         .lidarr_data
@@ -1123,22 +1165,37 @@ mod tests {
         .as_mut()
         .unwrap()
         .root_folder_list
-        .set_items(vec![RootFolder {
-          path: "/music".to_owned(),
-          ..RootFolder::default()
-        }]);
+        .set_items(vec![
+          RootFolder {
+            path: "/decoy".to_owned(),
+            ..RootFolder::default()
+          },
+          RootFolder {
+            path: "/music".to_owned(),
+            ..RootFolder::default()
+          },
+        ]);
+      app
+        .data
+        .lidarr_data
+        .add_artist_modal
+        .as_mut()
+        .unwrap()
+        .root_folder_list
+        .state
+        .select(Some(1));
       let expected_add_artist_body = AddArtistBody {
         foreign_artist_id: "test-foreign-id".to_string(),
         artist_name: "Test Artist".to_string(),
         monitored: true,
         root_folder_path: "/music".to_string(),
-        quality_profile_id: 1,
-        metadata_profile_id: 1,
+        quality_profile_id: 2222,
+        metadata_profile_id: 4444,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddArtistOptions {
-          monitor: MonitorType::All,
-          monitor_new_items: NewItemMonitorType::All,
+          monitor: MonitorType::Future,
+          monitor_new_items: NewItemMonitorType::None,
           search_for_missing_albums: true,
         },
       };
@@ -1468,10 +1525,16 @@ mod tests {
         .selected_block
         .set_index(0, ADD_ARTIST_SELECTION_BLOCKS.len() - 1);
       let mut add_searched_artists = StatefulTable::default();
-      add_searched_artists.set_items(vec![add_artist_search_result()]);
+      let mut decoy_search_result = add_artist_search_result();
+      decoy_search_result.foreign_artist_id = "decoy-foreign-id".to_owned();
+      decoy_search_result.artist_name = "Decoy Artist".into();
+      add_searched_artists.set_items(vec![decoy_search_result, add_artist_search_result()]);
+      add_searched_artists.select_index(Some(1));
       app.data.lidarr_data.add_searched_artists = Some(add_searched_artists);
-      app.data.lidarr_data.quality_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
-      app.data.lidarr_data.metadata_profile_map = BiMap::from_iter([(1, "Test".to_owned())]);
+      app.data.lidarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "Lossless".to_owned())]);
+      app.data.lidarr_data.metadata_profile_map =
+        BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
       let mut add_artist_modal = AddArtistModal {
         tags: "usenet, testing".into(),
         ..AddArtistModal::default()
@@ -1479,15 +1542,22 @@ mod tests {
       add_artist_modal
         .monitor_list
         .set_items(Vec::from_iter(MonitorType::iter()));
+      add_artist_modal.monitor_list.state.select(Some(1));
       add_artist_modal
         .monitor_new_items_list
         .set_items(Vec::from_iter(NewItemMonitorType::iter()));
       add_artist_modal
+        .monitor_new_items_list
+        .state
+        .select(Some(1));
+      add_artist_modal
         .quality_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "Lossless".to_owned()]);
+      add_artist_modal.quality_profile_list.state.select(Some(1));
       add_artist_modal
         .metadata_profile_list
-        .set_items(vec!["Test".to_owned()]);
+        .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+      add_artist_modal.metadata_profile_list.state.select(Some(1));
       add_artist_modal.root_folder_list.set_items(vec![
         RootFolder {
           id: 1,
@@ -1511,13 +1581,13 @@ mod tests {
         artist_name: "Test Artist".to_string(),
         monitored: true,
         root_folder_path: "/nfs2".to_string(),
-        quality_profile_id: 1,
-        metadata_profile_id: 1,
+        quality_profile_id: 2222,
+        metadata_profile_id: 4444,
         tags: Vec::default(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddArtistOptions {
-          monitor: Default::default(),
-          monitor_new_items: Default::default(),
+          monitor: MonitorType::Future,
+          monitor_new_items: NewItemMonitorType::None,
           search_for_missing_albums: true,
         },
       };
@@ -1641,34 +1711,47 @@ mod tests {
     add_artist_modal.root_folder_list.state.select(Some(1));
     add_artist_modal
       .quality_profile_list
-      .set_items(vec!["Lossless".to_owned()]);
+      .set_items(vec!["Any".to_owned(), "Lossless".to_owned()]);
+    add_artist_modal.quality_profile_list.state.select(Some(1));
     add_artist_modal
       .metadata_profile_list
-      .set_items(vec!["Standard".to_owned()]);
+      .set_items(vec!["None".to_owned(), "Standard".to_owned()]);
+    add_artist_modal.metadata_profile_list.state.select(Some(1));
     add_artist_modal
       .monitor_list
       .set_items(Vec::from_iter(MonitorType::iter()));
+    add_artist_modal.monitor_list.state.select(Some(1));
     add_artist_modal
       .monitor_new_items_list
       .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_artist_modal
+      .monitor_new_items_list
+      .state
+      .select(Some(1));
     app.data.lidarr_data.add_artist_modal = Some(add_artist_modal);
-    app.data.lidarr_data.quality_profile_map = BiMap::from_iter([(1, "Lossless".to_owned())]);
-    app.data.lidarr_data.metadata_profile_map = BiMap::from_iter([(1, "Standard".to_owned())]);
+    app.data.lidarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "Lossless".to_owned())]);
+    app.data.lidarr_data.metadata_profile_map =
+      BiMap::from_iter([(3333, "None".to_owned()), (4444, "Standard".to_owned())]);
     let mut add_searched_artists = StatefulTable::default();
-    add_searched_artists.set_items(vec![add_artist_search_result()]);
+    let mut decoy_search_result = add_artist_search_result();
+    decoy_search_result.foreign_artist_id = "decoy-foreign-id".to_owned();
+    decoy_search_result.artist_name = "Decoy Artist".into();
+    add_searched_artists.set_items(vec![decoy_search_result, add_artist_search_result()]);
+    add_searched_artists.select_index(Some(1));
     app.data.lidarr_data.add_searched_artists = Some(add_searched_artists);
     let expected_add_artist_body = AddArtistBody {
       foreign_artist_id: "test-foreign-id".to_string(),
       artist_name: "Test Artist".into(),
       monitored: true,
       root_folder_path: "/nfs2".to_string(),
-      quality_profile_id: 1,
-      metadata_profile_id: 1,
+      quality_profile_id: 2222,
+      metadata_profile_id: 4444,
       tags: Vec::default(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddArtistOptions {
-        monitor: Default::default(),
-        monitor_new_items: Default::default(),
+        monitor: MonitorType::Future,
+        monitor_new_items: NewItemMonitorType::None,
         search_for_missing_albums: true,
       },
     };

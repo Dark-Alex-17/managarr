@@ -16,6 +16,7 @@ use crate::network::radarr_network::RadarrEvent;
 
 mod collection_details_handler;
 mod edit_collection_handler;
+mod movie_overview_handler;
 
 #[cfg(test)]
 #[path = "collections_handler_tests.rs"]

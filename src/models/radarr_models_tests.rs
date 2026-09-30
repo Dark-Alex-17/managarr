@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde_json::json;
+  use serde::de::DeserializeOwned;
+  use serde_json::{Value, json};
 
   use crate::models::radarr_models::{
     RadarrHistoryEventType, RadarrHistoryItem, RadarrHistoryWrapper,
@@ -9,12 +10,18 @@ mod tests {
   use crate::models::{
     Serdeable,
     radarr_models::{
-      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
-      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
-      MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
-      RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
+      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, CreditType,
+      DiskSpace, DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
+      MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, MovieStatus, QualityProfile,
+      RadarrRelease, RadarrSerdeable, RadarrTask, RadarrTaskName, Tag, Update,
     },
-    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
+    servarr_models::{
+      DownloadStatus, HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig,
+      SystemStatus,
+    },
+  };
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
+    MOVIE_JSON, add_movie_search_result, collection, crew_credit, download_record, task,
   };
 
   #[test]
@@ -42,6 +49,24 @@ mod tests {
       "In Cinemas"
     );
     assert_str_eq!(MinimumAvailability::Released.to_display_str(), "Released");
+  }
+
+  #[test]
+  fn test_movie_status_display() {
+    assert_str_eq!(MovieStatus::Tba.to_string(), "tba");
+    assert_str_eq!(MovieStatus::Announced.to_string(), "announced");
+    assert_str_eq!(MovieStatus::InCinemas.to_string(), "inCinemas");
+    assert_str_eq!(MovieStatus::Released.to_string(), "released");
+    assert_str_eq!(MovieStatus::Deleted.to_string(), "deleted");
+  }
+
+  #[test]
+  fn test_movie_status_to_display_str() {
+    assert_str_eq!(MovieStatus::Tba.to_display_str(), "TBA");
+    assert_str_eq!(MovieStatus::Announced.to_display_str(), "Announced");
+    assert_str_eq!(MovieStatus::InCinemas.to_display_str(), "In Cinemas");
+    assert_str_eq!(MovieStatus::Released.to_display_str(), "Released");
+    assert_str_eq!(MovieStatus::Deleted.to_display_str(), "Deleted");
   }
 
   #[test]
@@ -125,10 +150,118 @@ mod tests {
   }
 
   #[test]
+  fn test_radarr_history_event_type_deserialization() {
+    assert_eq!(
+      deserialize_history_event_type(json!("unknown")),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("grabbed")),
+      RadarrHistoryEventType::Grabbed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFolderImported")),
+      RadarrHistoryEventType::DownloadFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadFailed")),
+      RadarrHistoryEventType::DownloadFailed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileDeleted")),
+      RadarrHistoryEventType::MovieFileDeleted
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFolderImported")),
+      RadarrHistoryEventType::MovieFolderImported
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileRenamed")),
+      RadarrHistoryEventType::MovieFileRenamed
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!("downloadIgnored")),
+      RadarrHistoryEventType::DownloadIgnored
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_deserialization_falls_back_to_unknown() {
+    assert_eq!(
+      deserialize_history_event_type(json!("movieFileImportFailed")),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(2)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(11)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!(null)),
+      RadarrHistoryEventType::Unknown
+    );
+    assert_eq!(
+      deserialize_history_event_type(json!({ "id": 2 })),
+      RadarrHistoryEventType::Unknown
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_serialization() {
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::Unknown),
+      "unknown"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::Grabbed),
+      "grabbed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadFolderImported),
+      "downloadFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadFailed),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFileDeleted),
+      "movieFileDeleted"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFolderImported),
+      "movieFolderImported"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::MovieFileRenamed),
+      "movieFileRenamed"
+    );
+    assert_str_eq!(
+      serialize_history_event_type(RadarrHistoryEventType::DownloadIgnored),
+      "downloadIgnored"
+    );
+  }
+
+  #[test]
+  fn test_credit_serializes_credit_type_under_the_type_key() {
+    let credit_json = serde_json::to_value(crew_credit()).unwrap();
+
+    assert_eq!(credit_json["type"], json!("crew"));
+    assert_none!(credit_json.get("creditType"));
+    assert_eq!(
+      serde_json::from_value::<Credit>(credit_json).unwrap(),
+      crew_credit()
+    );
+  }
+
+  #[test]
   fn test_download_record_default_indexer_value() {
     let json = r#"{ 
       "title": "test",
-      "status": "test",
+      "status": "downloading",
       "id": 0,
       "movieId": 0,
       "size": 0,
@@ -137,7 +270,7 @@ mod tests {
     }"#;
     let expected_record = DownloadRecord {
       title: "test".to_owned(),
-      status: "test".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 0,
       movie_id: 0,
       size: 0,
@@ -514,5 +647,176 @@ mod tests {
       radarr_serdeable,
       RadarrSerdeable::IndexerTestResults(indexer_test_results)
     );
+  }
+
+  #[test]
+  fn test_movie_minimum_availability_deserialization_falls_back_to_default() {
+    let expected = Movie {
+      minimum_availability: MinimumAvailability::default(),
+      ..serde_json::from_str(MOVIE_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "minimumAvailability", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "minimumAvailability", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_movie_status_deserialization_falls_back_to_default() {
+    let expected = Movie {
+      status: MovieStatus::default(),
+      ..serde_json::from_str(MOVIE_JSON).unwrap()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Movie>(MOVIE_JSON, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_add_movie_search_result_status_deserialization_falls_back_to_default() {
+    let add_movie_search_result_json = serde_json::to_string(&add_movie_search_result()).unwrap();
+    let expected = AddMovieSearchResult {
+      status: MovieStatus::default(),
+      ..add_movie_search_result()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<AddMovieSearchResult>(
+        &add_movie_search_result_json,
+        "status",
+        json!(2)
+      ),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<AddMovieSearchResult>(
+        &add_movie_search_result_json,
+        "status",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_collection_minimum_availability_deserialization_falls_back_to_default() {
+    let collection_json = serde_json::to_string(&collection()).unwrap();
+    let expected = Collection {
+      minimum_availability: MinimumAvailability::default(),
+      ..collection()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Collection>(&collection_json, "minimumAvailability", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Collection>(
+        &collection_json,
+        "minimumAvailability",
+        json!("notAThing")
+      ),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_credit_credit_type_deserialization_falls_back_to_default() {
+    let credit_json = serde_json::to_string(&crew_credit()).unwrap();
+    let expected = Credit {
+      credit_type: CreditType::default(),
+      ..crew_credit()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<Credit>(&credit_json, "type", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<Credit>(&credit_json, "type", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_radarr_task_task_name_deserialization_falls_back_to_default() {
+    let task_json = serde_json::to_string(&task()).unwrap();
+    let expected = RadarrTask {
+      task_name: RadarrTaskName::default(),
+      ..task()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<RadarrTask>(&task_json, "taskName", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<RadarrTask>(&task_json, "taskName", json!("notAThing")),
+      expected
+    );
+  }
+
+  #[test]
+  fn test_download_record_status_deserialization_falls_back_to_default() {
+    let download_record_json = serde_json::to_string(&download_record()).unwrap();
+    let expected = DownloadRecord {
+      status: DownloadStatus::default(),
+      ..download_record()
+    };
+
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!(2)),
+      expected
+    );
+    assert_eq!(
+      deserialize_with_field::<DownloadRecord>(&download_record_json, "status", json!("notAThing")),
+      expected
+    );
+  }
+
+  fn deserialize_with_field<T: DeserializeOwned>(json: &str, field: &str, value: Value) -> T {
+    let mut fixture_json: Value = serde_json::from_str(json).unwrap();
+    fixture_json[field] = value;
+
+    serde_json::from_value(fixture_json).unwrap()
+  }
+
+  fn deserialize_history_event_type(event_type: Value) -> RadarrHistoryEventType {
+    let history_item_json = json!({
+      "id": 1,
+      "sourceTitle": "Test Source Title",
+      "movieId": 1,
+      "quality": { "quality": { "name": "HD - 1080p" } },
+      "languages": [],
+      "date": "2024-01-01T00:00:00Z",
+      "eventType": event_type
+    });
+
+    serde_json::from_value::<RadarrHistoryItem>(history_item_json)
+      .unwrap()
+      .event_type
+  }
+
+  fn serialize_history_event_type(event_type: RadarrHistoryEventType) -> String {
+    let history_item = RadarrHistoryItem {
+      event_type,
+      ..RadarrHistoryItem::default()
+    };
+
+    serde_json::to_value(history_item).unwrap()["eventType"]
+      .as_str()
+      .unwrap()
+      .to_owned()
   }
 }

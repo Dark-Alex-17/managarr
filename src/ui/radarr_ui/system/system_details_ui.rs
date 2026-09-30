@@ -126,7 +126,7 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let updates = app.data.radarr_data.updates.get_text();
   let block = title_block("Updates");
 
-  if !updates.is_empty() {
+  if !updates.is_empty() && !app.is_loading {
     let updates_paragraph = Paragraph::new(Text::from(updates))
       .block(borderless_block())
       .scroll((app.data.radarr_data.updates.offset, 0));

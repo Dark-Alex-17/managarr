@@ -6,18 +6,19 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
-use crate::models::sonarr_models::{Season, SeasonStatistics, SonarrHistoryItem};
+use crate::models::sonarr_models::{Season, SonarrHistoryItem};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
+use crate::ui::sonarr_ui::library::series_overview_ui::SeriesOverviewUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
+  borderless_block, collapse_whitespace, get_width_from_percentage, layout_block_top_border,
+  title_block,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
@@ -25,7 +26,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 
 #[cfg(test)]
 #[path = "series_details_ui_tests.rs"]
@@ -40,6 +41,7 @@ impl DrawUi for SeriesDetailsUi {
     };
     SeasonDetailsUi::accepts(route)
       || EpisodeDetailsUi::accepts(route)
+      || SeriesOverviewUi::accepts(route)
       || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
@@ -107,6 +109,10 @@ impl DrawUi for SeriesDetailsUi {
       if SeasonDetailsUi::accepts(route) {
         SeasonDetailsUi::draw(f, app, area);
       }
+
+      if SeriesOverviewUi::accepts(route) {
+        SeriesOverviewUi::draw(f, app, area);
+      }
     }
   }
 }
@@ -132,18 +138,12 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .get_by_left(&current_selection.language_profile_id)
     .unwrap()
     .to_owned();
-  let overview = Regex::new(r"[\r\n\t]")
-    .unwrap()
-    .replace_all(
-      &deunicode(
-        current_selection
-          .overview
-          .as_ref()
-          .unwrap_or(&String::new()),
-      ),
-      "",
-    )
-    .to_string();
+  let overview = collapse_whitespace(&deunicode(
+    current_selection
+      .overview
+      .as_ref()
+      .unwrap_or(&String::new()),
+  ));
 
   let mut series_description = vec![
     Line::from(vec![
@@ -200,10 +200,10 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     ]),
   ];
   if let Some(stats) = current_selection.statistics.as_ref() {
-    let size = convert_to_gb(stats.size_on_disk);
+    let size = format_size(stats.size_on_disk, 2);
     series_description.extend(vec![Line::from(vec![
       "Size on Disk: ".primary().bold(),
-      format!("{size:.2} GB").default_color(),
+      size.default_color(),
     ])]);
   }
 
@@ -229,45 +229,25 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
     let content = Some(&mut app.data.sonarr_data.seasons);
     let season_row_mapping = |season: &Season| {
-      let Season {
-        title,
-        monitored,
-        statistics,
-        ..
-      } = season;
-      let SeasonStatistics {
-        episode_file_count,
-        episode_count,
-        size_on_disk,
-        next_airing,
-        ..
-      } = if let Some(stats) = statistics {
-        stats
-      } else {
-        &SeasonStatistics::default()
-      };
       let season_monitored = if season.monitored { "🏷" } else { "" };
-      let size = convert_to_gb(*size_on_disk);
+      let episode_count = season.statistics.as_ref().map_or_else(
+        || "N/A".to_owned(),
+        |s| format!("{}/{}", s.episode_file_count, s.episode_count),
+      );
+      let size = season
+        .statistics
+        .as_ref()
+        .map_or_else(|| "N/A".to_owned(), |s| format_size(s.size_on_disk, 2));
 
-      let row = Row::new(vec![
-        Cell::from(season_monitored.to_owned()),
-        Cell::from(title.clone().unwrap_or_default()),
-        Cell::from(format!("{episode_file_count}/{episode_count}")),
-        Cell::from(format!("{size:.2} GB")),
-      ]);
-      if !monitored {
-        row.unmonitored()
-      } else if episode_file_count == episode_count {
-        row.downloaded()
-      } else if let Some(next_airing_utc) = next_airing.as_ref() {
-        if next_airing_utc > &Utc::now() {
-          row.unreleased()
-        } else {
-          row.missing()
-        }
-      } else {
-        row.missing()
-      }
+      decorate_season_row_with_style(
+        season,
+        Row::new(vec![
+          Cell::from(season_monitored.to_owned()),
+          Cell::from(season.title.clone().unwrap_or_default()),
+          Cell::from(episode_count),
+          Cell::from(size),
+        ]),
+      )
     };
     let is_searching = active_sonarr_block == ActiveSonarrBlock::SearchSeason;
     let season_table = ManagarrTable::new(content, season_row_mapping)
@@ -288,6 +268,26 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
 
     f.render_widget(season_table, area);
+  }
+}
+
+fn decorate_season_row_with_style<'a>(season: &Season, row: Row<'a>) -> Row<'a> {
+  if !season.monitored {
+    row.unmonitored()
+  } else if let Some(stats) = season.statistics.as_ref() {
+    if stats.episode_file_count == stats.episode_count && stats.episode_count > 0 {
+      row.downloaded()
+    } else if let Some(next_airing) = stats.next_airing.as_ref() {
+      if next_airing > &Utc::now() {
+        row.unreleased()
+      } else {
+        row.missing()
+      }
+    } else {
+      row.missing()
+    }
+  } else {
+    row.indeterminate()
   }
 }
 

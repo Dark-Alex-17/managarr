@@ -1,0 +1,1925 @@
+#[cfg(test)]
+mod tests {
+  use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
+  use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
+  use crate::handlers::readarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
+  use crate::models::servarr_data::modals::EditIndexerModal;
+  use crate::models::servarr_data::readarr::readarr_data::{
+    ActiveReadarrBlock, EDIT_INDEXER_BLOCKS,
+  };
+  use crate::models::servarr_models::{EditIndexerParams, Indexer};
+  use crate::network::readarr_network::readarr_network_test_utils::test_utils::indexer;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+  use strum::IntoEnumIterator;
+
+  mod test_handle_scroll_up_and_down {
+    use crate::app::App;
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use crate::models::servarr_data::readarr::readarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
+
+    use super::*;
+
+    #[rstest]
+    fn test_edit_indexer_priority_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPriorityInput,
+        None,
+      )
+      .handle();
+
+      if key == Key::Up {
+        assert_eq!(
+          app
+            .data
+            .readarr_data
+            .edit_indexer_modal
+            .as_ref()
+            .unwrap()
+            .priority,
+          2
+        );
+      } else {
+        assert_eq!(
+          app
+            .data
+            .readarr_data
+            .edit_indexer_modal
+            .as_ref()
+            .unwrap()
+            .priority,
+          1
+        );
+
+        EditIndexerHandler::new(
+          Key::Up,
+          &mut app,
+          ActiveReadarrBlock::EditIndexerPriorityInput,
+          None,
+        )
+        .handle();
+
+        assert_eq!(
+          app
+            .data
+            .readarr_data
+            .edit_indexer_modal
+            .as_ref()
+            .unwrap()
+            .priority,
+          2
+        );
+
+        EditIndexerHandler::new(
+          key,
+          &mut app,
+          ActiveReadarrBlock::EditIndexerPriorityInput,
+          None,
+        )
+        .handle();
+        assert_eq!(
+          app
+            .data
+            .readarr_data
+            .edit_indexer_modal
+            .as_ref()
+            .unwrap()
+            .priority,
+          1
+        );
+      }
+    }
+
+    #[rstest]
+    fn test_edit_indexer_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.down();
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      if key == Key::Up {
+        assert_eq!(
+          app.data.readarr_data.selected_block.get_active_block(),
+          ActiveReadarrBlock::EditIndexerNameInput
+        );
+      } else {
+        assert_eq!(
+          app.data.readarr_data.selected_block.get_active_block(),
+          ActiveReadarrBlock::EditIndexerToggleEnableAutomaticSearch
+        );
+      }
+    }
+
+    #[rstest]
+    fn test_edit_indexer_prompt_scroll_no_op_when_not_ready(
+      #[values(Key::Up, Key::Down)] key: Key,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.is_loading = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.down();
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        ActiveReadarrBlock::EditIndexerToggleEnableRss
+      );
+    }
+  }
+
+  mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
+    use crate::app::App;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+
+    #[test]
+    fn test_edit_indexer_name_input_home_end() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        name: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .offset
+          .load(Ordering::SeqCst),
+        4
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_url_input_home_end() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        url: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .offset
+          .load(Ordering::SeqCst),
+        4
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_api_key_input_home_end() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        api_key: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .offset
+          .load(Ordering::SeqCst),
+        4
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_seed_ratio_input_home_end() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        seed_ratio: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .offset
+          .load(Ordering::SeqCst),
+        4
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_tags_input_home_end() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        tags: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .load(Ordering::SeqCst),
+        4
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+  }
+
+  mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
+    use crate::app::App;
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use crate::models::servarr_data::readarr::readarr_data::{
+      EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+    };
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.y = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert!(app.data.readarr_data.prompt_confirm);
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert!(!app.data.readarr_data.prompt_confirm);
+    }
+
+    #[rstest]
+    #[case(
+      0,
+      ActiveReadarrBlock::EditIndexerNameInput,
+      ActiveReadarrBlock::EditIndexerUrlInput
+    )]
+    #[case(
+      1,
+      ActiveReadarrBlock::EditIndexerToggleEnableRss,
+      ActiveReadarrBlock::EditIndexerApiKeyInput
+    )]
+    #[case(
+      2,
+      ActiveReadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveReadarrBlock::EditIndexerSeedRatioInput
+    )]
+    #[case(
+      3,
+      ActiveReadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveReadarrBlock::EditIndexerTagsInput
+    )]
+    fn test_left_right_block_toggle_torrents(
+      #[values(Key::Left, Key::Right)] key: Key,
+      #[case] starting_y_index: usize,
+      #[case] left_block: ActiveReadarrBlock,
+      #[case] right_block: ActiveReadarrBlock,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.y = starting_y_index;
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        left_block
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        right_block
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        left_block
+      );
+    }
+
+    #[rstest]
+    #[case(
+      0,
+      ActiveReadarrBlock::EditIndexerNameInput,
+      ActiveReadarrBlock::EditIndexerUrlInput
+    )]
+    #[case(
+      1,
+      ActiveReadarrBlock::EditIndexerToggleEnableRss,
+      ActiveReadarrBlock::EditIndexerApiKeyInput
+    )]
+    #[case(
+      2,
+      ActiveReadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveReadarrBlock::EditIndexerTagsInput
+    )]
+    #[case(
+      3,
+      ActiveReadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveReadarrBlock::EditIndexerPriorityInput
+    )]
+    fn test_left_right_block_toggle_nzb(
+      #[values(Key::Left, Key::Right)] key: Key,
+      #[case] starting_y_index: usize,
+      #[case] left_block: ActiveReadarrBlock,
+      #[case] right_block: ActiveReadarrBlock,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.y = starting_y_index;
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        left_block
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        right_block
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        left_block
+      );
+    }
+
+    #[rstest]
+    fn test_left_right_block_toggle_torren_empty_row_to_prompt_confirm(
+      #[values(Key::Left, Key::Right)] key: Key,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.y = 4;
+      app.data.readarr_data.prompt_confirm = false;
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        ActiveReadarrBlock::EditIndexerPriorityInput
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        ActiveReadarrBlock::EditIndexerConfirmPrompt
+      );
+
+      EditIndexerHandler::new(key, &mut app, ActiveReadarrBlock::EditIndexerPrompt, None).handle();
+
+      assert_eq!(
+        app.data.readarr_data.selected_block.get_active_block(),
+        ActiveReadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert!(app.data.readarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_edit_indexer_name_input_left_right_keys() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        name: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .offset
+          .load(Ordering::SeqCst),
+        1
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_url_input_left_right_keys() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        url: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .offset
+          .load(Ordering::SeqCst),
+        1
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_api_key_input_left_right_keys() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        api_key: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .offset
+          .load(Ordering::SeqCst),
+        1
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_seed_ratio_input_left_right_keys() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        seed_ratio: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .offset
+          .load(Ordering::SeqCst),
+        1
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_tags_input_left_right_keys() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        tags: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .load(Ordering::SeqCst),
+        1
+      );
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .load(Ordering::SeqCst),
+        0
+      );
+    }
+  }
+
+  mod test_handle_submit {
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use crate::app::App;
+    use crate::assert_navigation_popped;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use crate::models::{
+      BlockSelectionState,
+      servarr_data::readarr::readarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+    };
+    use crate::network::readarr_network::ReadarrEvent;
+    use crate::network::readarr_network::readarr_network_test_utils::test_utils::indexer;
+
+    use super::*;
+
+    const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
+
+    #[test]
+    fn test_edit_indexer_prompt_prompt_decline_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app
+        .data
+        .readarr_data
+        .selected_block
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::Indexers.into());
+      assert_none!(app.data.readarr_data.prompt_confirm_action);
+      assert!(!app.should_refresh);
+      assert_none!(app.data.readarr_data.edit_indexer_modal);
+    }
+
+    #[test]
+    fn test_edit_indexer_prompt_prompt_confirmation_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app
+        .data
+        .readarr_data
+        .selected_block
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+        priority: 0,
+      };
+      app.data.readarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      app.data.readarr_data.indexers.set_items(vec![indexer()]);
+      let expected_edit_indexer_params = EditIndexerParams {
+        indexer_id: 8,
+        name: Some("Test Update".to_owned()),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: Some("https://localhost:9696/1/".to_owned()),
+        api_key: Some("test1234".to_owned()),
+        seed_ratio: Some("1.3".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        priority: Some(0),
+        ..EditIndexerParams::default()
+      };
+      app.data.readarr_data.prompt_confirm = true;
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::Indexers.into());
+      assert_modal_absent!(app.data.readarr_data.edit_indexer_modal);
+      assert!(app.should_refresh);
+      assert_eq!(
+        app.data.readarr_data.prompt_confirm_action,
+        Some(ReadarrEvent::EditIndexer(expected_edit_indexer_params))
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.prompt_confirm = true;
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert_modal_present!(app.data.readarr_data.edit_indexer_modal);
+      assert!(!app.should_refresh);
+      assert_none!(app.data.readarr_data.prompt_confirm_action);
+    }
+
+    #[rstest]
+    #[case(0, 0, ActiveReadarrBlock::EditIndexerNameInput)]
+    #[case(0, 1, ActiveReadarrBlock::EditIndexerUrlInput)]
+    #[case(1, 1, ActiveReadarrBlock::EditIndexerApiKeyInput)]
+    #[case(2, 1, ActiveReadarrBlock::EditIndexerSeedRatioInput)]
+    #[case(3, 1, ActiveReadarrBlock::EditIndexerTagsInput)]
+    fn test_edit_indexer_prompt_submit_input_fields(
+      #[case] starting_y: usize,
+      #[case] starting_x: usize,
+      #[case] block: ActiveReadarrBlock,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app
+        .data
+        .readarr_data
+        .selected_block
+        .set_index(starting_x, starting_y);
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, block.into());
+      assert!(app.ignore_special_keys_for_textbox_input);
+    }
+
+    #[test]
+    fn test_edit_indexer_priority_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.set_index(0, 4);
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveReadarrBlock::EditIndexerPriorityInput.into());
+      assert!(!app.ignore_special_keys_for_textbox_input);
+    }
+
+    #[test]
+    fn test_edit_indexer_toggle_enable_rss_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.set_index(0, 1);
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_rss
+          .unwrap()
+      );
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_rss
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_toggle_enable_automatic_search_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.set_index(0, 2);
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_automatic_search
+          .unwrap()
+      );
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_automatic_search
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_toggle_enable_interactive_search_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.readarr_data.selected_block.set_index(0, 3);
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_interactive_search
+          .unwrap()
+      );
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveReadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_interactive_search
+          .unwrap()
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_name_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.ignore_special_keys_for_textbox_input = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        name: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerNameInput.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .text
+          .is_empty()
+      );
+      assert_navigation_popped!(app, ActiveReadarrBlock::EditIndexerPrompt.into());
+    }
+
+    #[test]
+    fn test_edit_indexer_url_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.ignore_special_keys_for_textbox_input = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        url: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerUrlInput.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .text
+          .is_empty()
+      );
+      assert_navigation_popped!(app, ActiveReadarrBlock::EditIndexerPrompt.into());
+    }
+
+    #[test]
+    fn test_edit_indexer_api_key_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.ignore_special_keys_for_textbox_input = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        api_key: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerApiKeyInput.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .text
+          .is_empty()
+      );
+      assert_navigation_popped!(app, ActiveReadarrBlock::EditIndexerPrompt.into());
+    }
+
+    #[test]
+    fn test_edit_indexer_seed_ratio_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.ignore_special_keys_for_textbox_input = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        seed_ratio: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerSeedRatioInput.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .text
+          .is_empty()
+      );
+      assert_navigation_popped!(app, ActiveReadarrBlock::EditIndexerPrompt.into());
+    }
+
+    #[test]
+    fn test_edit_indexer_tags_input_submit() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.ignore_special_keys_for_textbox_input = true;
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        tags: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerTagsInput.into());
+
+      EditIndexerHandler::new(
+        SUBMIT_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert!(
+        !app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
+      );
+      assert_navigation_popped!(app, ActiveReadarrBlock::EditIndexerPrompt.into());
+    }
+  }
+
+  mod test_handle_esc {
+    use super::*;
+    use crate::app::App;
+    use crate::assert_navigation_popped;
+    use crate::event::Key;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use rstest::rstest;
+
+    const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
+
+    #[rstest]
+    fn test_edit_indexer_prompt_esc(#[values(true, false)] is_ready: bool) {
+      let mut app = App::test_default();
+      app.is_loading = is_ready;
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        ESC_KEY,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::Indexers.into());
+      assert!(!app.data.readarr_data.prompt_confirm);
+      assert_none!(app.data.readarr_data.edit_indexer_modal);
+    }
+
+    #[rstest]
+    fn test_edit_indexer_input_fields_esc(
+      #[values(
+        ActiveReadarrBlock::EditIndexerNameInput,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        ActiveReadarrBlock::EditIndexerPriorityInput
+      )]
+      active_readarr_block: ActiveReadarrBlock,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(active_readarr_block.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.ignore_special_keys_for_textbox_input = true;
+
+      EditIndexerHandler::new(ESC_KEY, &mut app, active_readarr_block, None).handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::Indexers.into());
+      assert!(!app.ignore_special_keys_for_textbox_input);
+      assert_some_eq_x!(
+        &app.data.readarr_data.edit_indexer_modal,
+        &EditIndexerModal::default()
+      );
+    }
+  }
+
+  mod test_handle_key_char {
+    use super::*;
+    use crate::app::App;
+    use crate::assert_navigation_popped;
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::modals::EditIndexerModal;
+    use crate::models::servarr_data::readarr::readarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
+    use crate::network::readarr_network::ReadarrEvent;
+    use crate::network::readarr_network::readarr_network_test_utils::test_utils::indexer;
+    use pretty_assertions::{assert_eq, assert_str_eq};
+
+    #[test]
+    fn test_edit_indexer_name_input_backspace() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        name: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .text,
+        "Tes"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_url_input_backspace() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        url: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .text,
+        "Tes"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_api_key_input_backspace() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        api_key: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .text,
+        "Tes"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_seed_ratio_input_backspace() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        seed_ratio: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .text,
+        "Tes"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_tags_input_backspace() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal {
+        tags: "Test".into(),
+        ..EditIndexerModal::default()
+      });
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text,
+        "Tes"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_name_input_char_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        Key::Char('a'),
+        &mut app,
+        ActiveReadarrBlock::EditIndexerNameInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .text,
+        "a"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_url_input_char_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        Key::Char('a'),
+        &mut app,
+        ActiveReadarrBlock::EditIndexerUrlInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .text,
+        "a"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_api_key_input_char_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        Key::Char('a'),
+        &mut app,
+        ActiveReadarrBlock::EditIndexerApiKeyInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .text,
+        "a"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_seed_ratio_input_char_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        Key::Char('a'),
+        &mut app,
+        ActiveReadarrBlock::EditIndexerSeedRatioInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .text,
+        "a"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_tags_input_char_key() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::new(
+        Key::Char('a'),
+        &mut app,
+        ActiveReadarrBlock::EditIndexerTagsInput,
+        None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .readarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text,
+        "a"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_prompt_prompt_confirmation_confirm() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveReadarrBlock::EditIndexerPrompt.into());
+      app.data.readarr_data.selected_block =
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app
+        .data
+        .readarr_data
+        .selected_block
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+        priority: 0,
+      };
+      app.data.readarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      app.data.readarr_data.indexers.set_items(vec![indexer()]);
+      let expected_edit_indexer_params = EditIndexerParams {
+        indexer_id: 8,
+        name: Some("Test Update".to_owned()),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: Some("https://localhost:9696/1/".to_owned()),
+        api_key: Some("test1234".to_owned()),
+        seed_ratio: Some("1.3".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        priority: Some(0),
+        ..EditIndexerParams::default()
+      };
+
+      EditIndexerHandler::new(
+        DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        ActiveReadarrBlock::EditIndexerPrompt,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveReadarrBlock::Indexers.into());
+      assert_modal_absent!(app.data.readarr_data.edit_indexer_modal);
+      assert!(app.should_refresh);
+      assert_eq!(
+        app.data.readarr_data.prompt_confirm_action,
+        Some(ReadarrEvent::EditIndexer(expected_edit_indexer_params))
+      );
+    }
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_accepts() {
+    ActiveReadarrBlock::iter().for_each(|active_readarr_block| {
+      if EDIT_INDEXER_BLOCKS.contains(&active_readarr_block) {
+        assert!(EditIndexerHandler::accepts(active_readarr_block));
+      } else {
+        assert!(!EditIndexerHandler::accepts(active_readarr_block));
+      }
+    })
+  }
+
+  #[rstest]
+  fn test_edit_indexer_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
+  #[test]
+  fn test_build_edit_indexer_params() {
+    let mut app = App::test_default();
+    let edit_indexer_modal = EditIndexerModal {
+      name: "Test Update".into(),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(true),
+      enable_interactive_search: Some(false),
+      url: "https://localhost:9696/1/".into(),
+      api_key: "test1234".into(),
+      seed_ratio: "1.3".into(),
+      tags: "usenet, testing".into(),
+      priority: 0,
+    };
+    app.data.readarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+    let decoy_indexer = Indexer { id: 3, ..indexer() };
+    app
+      .data
+      .readarr_data
+      .indexers
+      .set_items(vec![decoy_indexer, indexer()]);
+    app.data.readarr_data.indexers.select_index(Some(1));
+    let expected_edit_indexer_params = EditIndexerParams {
+      indexer_id: 8,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(true),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
+
+    let params = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.confirm.key,
+      &mut app,
+      ActiveReadarrBlock::EditIndexerPrompt,
+      None,
+    )
+    .build_edit_indexer_params();
+
+    assert_eq!(params, expected_edit_indexer_params);
+    assert_modal_absent!(app.data.readarr_data.edit_indexer_modal);
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_not_ready_when_loading() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+    app.is_loading = true;
+
+    let handler = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::EditIndexerPrompt,
+      None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_not_ready_when_edit_indexer_modal_is_none() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+    app.is_loading = false;
+
+    let handler = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::EditIndexerPrompt,
+      None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_ready_when_edit_indexer_modal_is_some() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::Indexers.into());
+    app.is_loading = false;
+    app.data.readarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+    let handler = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveReadarrBlock::EditIndexerPrompt,
+      None,
+    );
+
+    assert!(handler.is_ready());
+  }
+}

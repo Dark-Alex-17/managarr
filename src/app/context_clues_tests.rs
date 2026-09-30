@@ -9,6 +9,7 @@ mod test {
   use crate::app::{App, key_binding::DEFAULT_KEYBINDINGS};
   use crate::models::servarr_data::ActiveKeybindingBlock;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 
   #[test]
@@ -297,6 +298,16 @@ mod test {
   fn test_servarr_context_clue_provider_delegates_to_sonarr_provider() {
     let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
+
+    let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &SYSTEM_TASKS_CONTEXT_CLUES,);
+  }
+
+  #[test]
+  fn test_servarr_context_clue_provider_delegates_to_readarr_provider() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveReadarrBlock::SystemTasks.into());
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 

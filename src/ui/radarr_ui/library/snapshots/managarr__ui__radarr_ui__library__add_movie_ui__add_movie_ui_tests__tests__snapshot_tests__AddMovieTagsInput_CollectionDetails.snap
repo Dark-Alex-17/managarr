@@ -13,11 +13,11 @@ expression: output
                     │Root Folder Path: /nfs/movies                                                                                             │                     
                     │Quality Profile: HD - 1080p                                                                                               │                     
                     │Minimum Avai╭──────────────────────────────────────  Add Movie - Test  ───────────────────────────────────────╮           │                     
-                    │Monitored: Y│                                    Collection blah blah blah                                    │           │                     
+                    │Monitored: Y│                                 Collection movie blah blah blah                                 │           │                     
                     │Search on Ad│                                                                                                 │           │                     
+                    │            │              It was shot in Madison, Wisconsin: a city the cast never really left.              │           │                     
                     │            │                                                                                                 │           │                     
-                    │            │                                                                                                 │           │                     
-                    │            │                                                                                                 │           │                     
+                    │            │                             The sequel took seven years to finish.                              │           │                     
                     │  Movies  ──│                                                                                                 │───────────│                     
                     │   ✔  Title │                                               ╭────────────────────────────────────────────╮    │           │                     
                     │=> ✔  Test  │                                  Root Folder: │/nfs                                      ▼ │    │           │                     

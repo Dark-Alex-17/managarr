@@ -9,10 +9,10 @@ mod tests {
     AlbumDetailsHandler, releases_sorting_options,
   };
   use crate::models::HorizontallyScrollableText;
-  use crate::models::lidarr_models::{LidarrRelease, LidarrReleaseDownloadBody};
+  use crate::models::lidarr_models::LidarrRelease;
   use crate::models::servarr_data::lidarr::lidarr_data::{ALBUM_DETAILS_BLOCKS, ActiveLidarrBlock};
   use crate::models::servarr_data::lidarr::modals::AlbumDetailsModal;
-  use crate::models::servarr_models::{Quality, QualityWrapper};
+  use crate::models::servarr_models::{Quality, QualityWrapper, ReleaseDownloadBody};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
@@ -255,7 +255,7 @@ mod tests {
     )]
     #[case(
       ActiveLidarrBlock::DeleteTrackFilePrompt,
-      LidarrEvent::DeleteTrackFile(1)
+      LidarrEvent::DeleteTrackFile(7)
     )]
     fn test_album_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveLidarrBlock,
@@ -297,7 +297,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualAlbumSearch.into());
       assert_some_eq_x!(
         &app.data.lidarr_data.prompt_confirm_action,
-        &LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        &LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: "1234".to_owned(),
           indexer_id: 2,
         })
@@ -606,7 +606,7 @@ mod tests {
     )]
     #[case(
       ActiveLidarrBlock::DeleteTrackFilePrompt,
-      LidarrEvent::DeleteTrackFile(1)
+      LidarrEvent::DeleteTrackFile(7)
     )]
     fn test_album_details_prompt_confirm_confirm_key(
       #[case] prompt_block: ActiveLidarrBlock,
@@ -654,11 +654,59 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ManualAlbumSearch.into());
       assert_some_eq_x!(
         &app.data.lidarr_data.prompt_confirm_action,
-        &LidarrEvent::DownloadRelease(LidarrReleaseDownloadBody {
+        &LidarrEvent::DownloadRelease(ReleaseDownloadBody {
           guid: "1234".to_owned(),
           indexer_id: 2,
         })
       );
+    }
+
+    #[test]
+    fn test_search_tracks_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumDetails.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchTracks.into());
+    }
+
+    #[test]
+    fn test_search_album_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumHistory.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::SearchAlbumHistory.into());
+    }
+
+    #[test]
+    fn test_filter_album_history_key() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::AlbumHistory.into());
+
+      AlbumDetailsHandler::new(
+        DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        ActiveLidarrBlock::AlbumHistory,
+        None,
+      )
+      .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::FilterAlbumHistory.into());
     }
   }
 
@@ -704,7 +752,7 @@ mod tests {
     )
     .extract_track_file_id();
 
-    assert_eq!(track_file_id, 1);
+    assert_eq!(track_file_id, 7);
   }
 
   #[test]

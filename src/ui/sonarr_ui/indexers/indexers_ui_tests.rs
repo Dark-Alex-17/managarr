@@ -32,6 +32,7 @@ mod tests {
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::sonarr_data::{
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+      INDEXER_SETTINGS_SELECTION_BLOCKS,
     };
     use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::indexer;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
@@ -145,6 +146,20 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_indexer_settings_over_indexers() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
+      app.data.sonarr_data.selected_block =
+        BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         IndexersUi::draw(f, app, f.area());

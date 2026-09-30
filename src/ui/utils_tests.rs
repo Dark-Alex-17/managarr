@@ -4,9 +4,9 @@ mod test {
   use crate::models::servarr_models::{DiskSpace, RootFolder};
   use crate::ui::styles::{ManagarrStyle, default_style, failure_style, secondary_style};
   use crate::ui::utils::{
-    borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style,
-    extract_monitored_disk_space_vec, extract_monitored_root_folders, get_width_from_percentage,
-    layout_block, layout_block_bottom_border, layout_block_top_border,
+    borderless_block, centered_rect, collapse_whitespace, convert_to_minutes_hours_days,
+    decorate_peer_style, extract_monitored_disk_space_vec, extract_monitored_root_folders,
+    get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border,
     layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
     style_log_list_item, title_block, title_block_centered, title_style, unstyled_title_block,
   };
@@ -252,6 +252,62 @@ mod test {
   fn test_convert_to_minutes_hours_days_days() {
     assert_str_eq!(convert_to_minutes_hours_days(1440), "1 day");
     assert_str_eq!(convert_to_minutes_hours_days(2880), "2 days");
+  }
+
+  #[test]
+  fn test_collapse_whitespace_replaces_a_line_break_with_a_single_space() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century.\nShe was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_collapses_a_carriage_return_line_feed_to_a_single_space() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century.\r\nShe was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_collapses_a_blank_line_and_indentation_to_a_single_space() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century.\r\n\r\n\tShe was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_does_not_double_a_space_that_precedes_a_line_break() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century. \r\nShe was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_replaces_a_tab_with_a_single_space() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century.\tShe was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_trims_surrounding_whitespace() {
+    assert_str_eq!(
+      collapse_whitespace("\r\n  the 20th century.\r\n"),
+      "the 20th century."
+    );
+  }
+
+  #[test]
+  fn test_collapse_whitespace_leaves_single_spaced_text_unchanged() {
+    assert_str_eq!(
+      collapse_whitespace("the 20th century. She was born in Ohio"),
+      "the 20th century. She was born in Ohio"
+    );
   }
 
   #[rstest]

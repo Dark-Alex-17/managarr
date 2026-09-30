@@ -2,7 +2,7 @@
 mod test {
   use crate::models::radarr_models::{Collection, MinimumAvailability, Movie, MovieMonitor};
   use crate::models::servarr_data::radarr::modals::{
-    AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal,
+    AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, MovieOverviewModal,
   };
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
   use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
@@ -253,5 +253,12 @@ mod test {
     assert_str_eq!(edit_collection_modal.path.text, "/nfs/movies/Test");
     assert_eq!(edit_collection_modal.monitored, Some(true));
     assert_eq!(edit_collection_modal.search_on_add, Some(true));
+  }
+
+  #[test]
+  fn test_movie_overview_modal_default() {
+    let movie_overview_modal = MovieOverviewModal::default();
+
+    assert_is_empty!(movie_overview_modal.overview);
   }
 }

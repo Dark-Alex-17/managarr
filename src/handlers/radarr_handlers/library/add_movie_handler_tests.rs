@@ -17,7 +17,9 @@ mod tests {
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_body;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
   use crate::models::HorizontallyScrollableText;
-  use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, MovieMonitor};
+  use crate::models::radarr_models::{
+    AddMovieBody, AddMovieSearchResult, CollectionMovie, MinimumAvailability, MovieMonitor,
+  };
   use crate::models::servarr_data::radarr::modals::AddMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
   use crate::models::servarr_models::RootFolder;
@@ -766,7 +768,7 @@ mod tests {
   mod test_handle_submit {
     use crate::assert_navigation_popped;
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{
-      add_movie_body, add_movie_search_result, collection_movie,
+      add_movie_search_result, collection_movie,
     };
     use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
@@ -942,7 +944,14 @@ mod tests {
     fn test_add_movie_search_results_submit_movie_already_in_library() {
       let mut app = App::test_default();
       let mut add_searched_movies = StatefulTable::default();
-      add_searched_movies.set_items(vec![AddMovieSearchResult::default()]);
+      add_searched_movies.set_items(vec![
+        AddMovieSearchResult {
+          tmdb_id: 5678,
+          ..AddMovieSearchResult::default()
+        },
+        AddMovieSearchResult::default(),
+      ]);
+      add_searched_movies.select_index(Some(1));
       app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       app
         .data
@@ -1026,16 +1035,22 @@ mod tests {
       add_movie_modal.root_folder_list.state.select(Some(1));
       add_movie_modal
         .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
       add_movie_modal
         .monitor_list
         .set_items(Vec::from_iter(MovieMonitor::iter()));
       add_movie_modal
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      add_movie_modal.quality_profile_list.state.select(Some(1));
+      add_movie_modal.monitor_list.state.select(Some(1));
+      add_movie_modal
+        .minimum_availability_list
+        .state
+        .select(Some(1));
       app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
       app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       let context = if movie_details_context {
         app
           .data
@@ -1061,7 +1076,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::AddMovie(add_movie_body())
+        &RadarrEvent::AddMovie(expected_add_movie_body(movie_details_context))
       );
       assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
@@ -1321,7 +1336,7 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       handlers::radarr_handlers::radarr_handler_test_utils::utils::{
-        add_movie_body, add_movie_search_result, collection_movie,
+        add_movie_search_result, collection_movie,
       },
       models::{
         BlockSelectionState,
@@ -1461,16 +1476,22 @@ mod tests {
       add_movie_modal.root_folder_list.state.select(Some(1));
       add_movie_modal
         .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
       add_movie_modal
         .monitor_list
         .set_items(Vec::from_iter(MovieMonitor::iter()));
       add_movie_modal
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      add_movie_modal.quality_profile_list.state.select(Some(1));
+      add_movie_modal.monitor_list.state.select(Some(1));
+      add_movie_modal
+        .minimum_availability_list
+        .state
+        .select(Some(1));
       app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
       app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
       let context = if movie_details_context {
         app
           .data
@@ -1496,7 +1517,7 @@ mod tests {
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_some_eq_x!(
         &app.data.radarr_data.prompt_confirm_action,
-        &RadarrEvent::AddMovie(add_movie_body())
+        &RadarrEvent::AddMovie(expected_add_movie_body(movie_details_context))
       );
       assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
@@ -1572,26 +1593,45 @@ mod tests {
     add_movie_modal.root_folder_list.state.select(Some(1));
     add_movie_modal
       .quality_profile_list
-      .set_items(vec!["HD - 1080p".to_owned()]);
+      .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
     add_movie_modal
       .monitor_list
       .set_items(Vec::from_iter(MovieMonitor::iter()));
     add_movie_modal
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    add_movie_modal.quality_profile_list.state.select(Some(1));
+    add_movie_modal.monitor_list.state.select(Some(1));
+    add_movie_modal
+      .minimum_availability_list
+      .state
+      .select(Some(1));
     app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
-    app.data.radarr_data.quality_profile_map = BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+    app.data.radarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    app.data.radarr_data.collection_movies.set_items(vec![
+      CollectionMovie {
+        tmdb_id: 5678,
+        title: HorizontallyScrollableText::from("Some Other Movie"),
+        ..CollectionMovie::default()
+      },
+      collection_movie(),
+    ]);
+    app.data.radarr_data.collection_movies.select_index(Some(1));
+    let mut add_searched_movies = StatefulTable::default();
+    add_searched_movies.set_items(vec![
+      AddMovieSearchResult {
+        tmdb_id: 5678,
+        title: HorizontallyScrollableText::from("Some Other Movie"),
+        ..AddMovieSearchResult::default()
+      },
+      add_movie_search_result(),
+    ]);
+    add_searched_movies.select_index(Some(1));
+    app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
     let context = if movie_details_context {
-      app
-        .data
-        .radarr_data
-        .collection_movies
-        .set_items(vec![collection_movie()]);
       Some(ActiveRadarrBlock::CollectionDetails)
     } else {
-      let mut add_searched_movies = StatefulTable::default();
-      add_searched_movies.set_items(vec![add_movie_search_result()]);
-      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       None
     };
 
@@ -1603,7 +1643,10 @@ mod tests {
     )
     .build_add_movie_body();
 
-    assert_eq!(actual_add_movie_body, add_movie_body());
+    assert_eq!(
+      actual_add_movie_body,
+      expected_add_movie_body(movie_details_context)
+    );
   }
 
   #[test]
@@ -1634,5 +1677,17 @@ mod tests {
     );
 
     assert!(handler.is_ready());
+  }
+
+  fn expected_add_movie_body(movie_details_context: bool) -> AddMovieBody {
+    if movie_details_context {
+      add_movie_body()
+    } else {
+      AddMovieBody {
+        tmdb_id: 4321,
+        title: "Test Search Result".to_owned(),
+        ..add_movie_body()
+      }
+    }
   }
 }

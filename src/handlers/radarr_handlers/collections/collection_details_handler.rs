@@ -1,14 +1,16 @@
+use super::movie_overview_handler::MovieOverviewHandler;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::matches_key;
+use crate::models::servarr_data::radarr::modals::MovieOverviewModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::{BlockSelectionState, Route};
+use crate::models::{BlockSelectionState, Route, ScrollableText};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -21,10 +23,35 @@ pub(super) struct CollectionDetailsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl CollectionDetailsHandler<'_, '_> {}
+impl CollectionDetailsHandler<'_, '_> {
+  fn build_movie_overview_modal(&mut self) {
+    let overview = self
+      .app
+      .data
+      .radarr_data
+      .collection_movies
+      .current_selection()
+      .overview
+      .clone();
+
+    self.app.data.radarr_data.movie_overview_modal = Some(MovieOverviewModal {
+      overview: ScrollableText::with_string(overview),
+    });
+  }
+}
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
+    if MovieOverviewHandler::accepts(self.active_radarr_block) {
+      return MovieOverviewHandler::new(
+        self.key,
+        self.app,
+        self.active_radarr_block,
+        self._context,
+      )
+      .handle();
+    }
+
     let collection_movies_table_handling_config =
       TableHandlingConfig::new(ActiveRadarrBlock::CollectionDetails.into());
 
@@ -98,6 +125,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
         .iter()
         .any(|movie| movie.tmdb_id == tmdb_id)
       {
+        self.build_movie_overview_modal();
         self
           .app
           .push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
@@ -117,13 +145,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
   }
 
   fn handle_esc(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::CollectionDetails => {
-        self.app.data.radarr_data.collection_movies = StatefulTable::default();
-        self.app.pop_navigation_stack();
-      }
-      ActiveRadarrBlock::ViewMovieOverview => self.app.pop_navigation_stack(),
-      _ => (),
+    if self.active_radarr_block == ActiveRadarrBlock::CollectionDetails {
+      self.app.data.radarr_data.collection_movies = StatefulTable::default();
+      self.app.pop_navigation_stack();
     }
   }
 

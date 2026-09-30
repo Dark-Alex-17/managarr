@@ -9,8 +9,9 @@ mod tests {
   use crate::app::lidarr::lidarr_context_clues::{
     ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ALBUM_DETAILS_CONTEXT_CLUES,
     ALBUM_HISTORY_CONTEXT_CLUES, ARTIST_DETAILS_CONTEXT_CLUES, ARTIST_HISTORY_CONTEXT_CLUES,
-    ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider, MANUAL_ALBUM_SEARCH_CONTEXT_CLUES,
-    MANUAL_ARTIST_SEARCH_CONTEXT_CLUES, TRACK_DETAILS_CONTEXT_CLUES, TRACK_HISTORY_CONTEXT_CLUES,
+    ARTIST_OVERVIEW_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider,
+    MANUAL_ALBUM_SEARCH_CONTEXT_CLUES, MANUAL_ARTIST_SEARCH_CONTEXT_CLUES,
+    TRACK_DETAILS_CONTEXT_CLUES, TRACK_HISTORY_CONTEXT_CLUES,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS,
@@ -116,9 +117,31 @@ mod tests {
     );
     assert_some_eq_x!(
       artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.view, "view overview")
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
     );
     assert_none!(artist_details_context_clues_iter.next());
+  }
+
+  #[test]
+  fn test_artist_overview_context_clues() {
+    let mut artist_overview_context_clues_iter = ARTIST_OVERVIEW_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      artist_overview_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      artist_overview_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(artist_overview_context_clues_iter.next());
   }
 
   #[test]
@@ -472,6 +495,16 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_context_clue_provider_artist_overview_block() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveLidarrBlock::ArtistOverview.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &ARTIST_OVERVIEW_CONTEXT_CLUES);
+  }
+
+  #[test]
   fn test_lidarr_context_clue_provider_artists_block() {
     let mut app = App::test_default();
     app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
@@ -566,6 +599,42 @@ mod tests {
       ActiveLidarrBlock::AddArtistSelectRootFolder,
       ActiveLidarrBlock::AddArtistTagsInput,
       ActiveLidarrBlock::AddArtistAlreadyInLibrary
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
+  fn test_lidarr_context_clue_provider_confirmation_prompt_context_clues_delete_artist_blocks(
+    #[values(
+      ActiveLidarrBlock::DeleteArtistPrompt,
+      ActiveLidarrBlock::DeleteArtistConfirmPrompt,
+      ActiveLidarrBlock::DeleteArtistToggleAddListExclusion,
+      ActiveLidarrBlock::DeleteArtistToggleDeleteFile
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[rstest]
+  fn test_lidarr_context_clue_provider_confirmation_prompt_context_clues_delete_album_blocks(
+    #[values(
+      ActiveLidarrBlock::DeleteAlbumPrompt,
+      ActiveLidarrBlock::DeleteAlbumConfirmPrompt,
+      ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion,
+      ActiveLidarrBlock::DeleteAlbumToggleDeleteFile
     )]
     active_lidarr_block: ActiveLidarrBlock,
   ) {

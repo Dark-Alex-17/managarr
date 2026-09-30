@@ -80,12 +80,14 @@ pub fn init_logging_config() -> log4rs::Config {
     .unwrap()
 }
 
-pub fn convert_to_gb(bytes: i64) -> f64 {
-  bytes as f64 / 1024f64.powi(3)
-}
-
-pub fn convert_f64_to_gb(bytes: f64) -> f64 {
-  bytes / 1024f64.powi(3)
+pub fn format_size(bytes: i64, precision: usize) -> String {
+  if bytes >= 1024i64.pow(3) {
+    let gb = bytes as f64 / 1024f64.powi(3);
+    format!("{gb:.precision$} GB")
+  } else {
+    let mb = bytes as f64 / 1024f64.powi(2);
+    format!("{mb:.precision$} MB")
+  }
 }
 
 pub fn convert_runtime(runtime: i64) -> (i64, i64) {
@@ -379,6 +381,13 @@ pub fn select_cli_configuration(
         let default_lidarr_config =
           config.lidarr.as_ref().expect("Lidarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_lidarr_config);
+      }
+      Command::Readarr(_) => {
+        let default_readarr_config =
+          config.readarr.as_ref().expect("Readarr config must exist")[0].clone();
+        app
+          .server_tabs
+          .select_tab_by_config(&default_readarr_config);
       }
       _ => (),
     }

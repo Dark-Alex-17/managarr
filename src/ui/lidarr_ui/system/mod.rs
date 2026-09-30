@@ -165,7 +165,7 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   let logs_box = SelectableList::new(&mut app.data.lidarr_data.logs, |log| {
     let log_line = log.to_string();
-    let level = log_line.split('|').collect::<Vec<&str>>()[1].to_string();
+    let level = log.text.split('|').collect::<Vec<&str>>()[1].to_string();
 
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })

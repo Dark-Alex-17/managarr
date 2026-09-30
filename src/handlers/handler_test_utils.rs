@@ -1,6 +1,6 @@
 #[cfg(test)]
 #[macro_use]
-mod test_utils {
+pub mod test_utils {
   #[macro_export]
   macro_rules! simple_stateful_iterable_vec {
     ($name:ident) => {
@@ -333,10 +333,16 @@ mod test_utils {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
+      let navigation_stack_depth_before_delegation = app.get_navigation_stack_depth();
 
       $handler::new(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
 
       pretty_assertions::assert_eq!(app.get_current_route(), $base.into());
+      pretty_assertions::assert_eq!(
+        app.get_navigation_stack_depth(),
+        navigation_stack_depth_before_delegation - 1,
+        "Expected the delegated handler to pop exactly one route off the navigation stack"
+      );
     };
   }
 
@@ -404,5 +410,17 @@ mod test_utils {
         "Expected route after popping navigation stack"
       );
     };
+  }
+
+  pub mod proptest_helpers {
+    use proptest::prelude::*;
+
+    pub fn list_size() -> impl Strategy<Value = usize> {
+      1usize..100
+    }
+
+    pub fn text_input_string() -> impl Strategy<Value = String> {
+      "\\PC{0,50}"
+    }
   }
 }

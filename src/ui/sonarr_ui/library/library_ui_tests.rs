@@ -2,7 +2,7 @@
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
-    EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+    EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SERIES_OVERVIEW_BLOCKS,
   };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
@@ -27,6 +27,7 @@ mod tests {
     library_ui_blocks.extend(DELETE_SERIES_BLOCKS);
     library_ui_blocks.extend(EDIT_SERIES_BLOCKS);
     library_ui_blocks.extend(SERIES_DETAILS_BLOCKS);
+    library_ui_blocks.extend(SERIES_OVERVIEW_BLOCKS);
     library_ui_blocks.extend(SEASON_DETAILS_BLOCKS);
     library_ui_blocks.extend(EPISODE_DETAILS_BLOCKS);
 

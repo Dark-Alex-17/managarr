@@ -49,7 +49,7 @@ doctest:
 # Run all proptests
 [group: 'test']
 proptest:
-    @cargo test proptest
+    @cargo test -- property_tests proptest
 
 alias test-snapshots := snapshot-tests
 # Run all snapshot tests

@@ -158,7 +158,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Blocklist,
       ActiveSonarrBlock::DeleteBlocklistItemPrompt,
-      SonarrEvent::DeleteBlocklistItem(3)
+      SonarrEvent::DeleteBlocklistItem(2)
     )]
     #[case(
       ActiveSonarrBlock::Blocklist,
@@ -172,6 +172,7 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.sonarr_data.blocklist.set_items(blocklist_vec());
+      app.data.sonarr_data.blocklist.select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -356,7 +357,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Blocklist,
       ActiveSonarrBlock::DeleteBlocklistItemPrompt,
-      SonarrEvent::DeleteBlocklistItem(3)
+      SonarrEvent::DeleteBlocklistItem(2)
     )]
     #[case(
       ActiveSonarrBlock::Blocklist,
@@ -370,6 +371,7 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.sonarr_data.blocklist.set_items(blocklist_vec());
+      app.data.sonarr_data.blocklist.select_index(Some(1));
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -543,6 +545,7 @@ mod tests {
   fn test_extract_blocklist_item_id() {
     let mut app = App::test_default();
     app.data.sonarr_data.blocklist.set_items(blocklist_vec());
+    app.data.sonarr_data.blocklist.select_index(Some(1));
 
     let blocklist_item_id = BlocklistHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -552,7 +555,7 @@ mod tests {
     )
     .extract_blocklist_item_id();
 
-    assert_eq!(blocklist_item_id, 3);
+    assert_eq!(blocklist_item_id, 2);
   }
 
   #[test]

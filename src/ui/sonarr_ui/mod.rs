@@ -37,7 +37,7 @@ use crate::{
     servarr_models::{DiskSpace, RootFolder},
     sonarr_models::DownloadRecord,
   },
-  utils::convert_to_gb,
+  utils::format_size,
 };
 
 mod blocklist;
@@ -177,8 +177,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let RootFolder {
         path, free_space, ..
       } = &monitored_root_folders[i];
-      let space: f64 = convert_to_gb(*free_space);
-      let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
+      let space = format_size(*free_space, 2);
+      let root_folder_space = Paragraph::new(format!("{path}: {space} free"))
         .block(borderless_block())
         .default_color();
 

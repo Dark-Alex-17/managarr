@@ -16,8 +16,8 @@ use strum_macros::Display;
 use super::{
   HorizontallyScrollableText, Serdeable,
   servarr_models::{
-    DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-    QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+    DiskSpace, DownloadStatus, HostConfig, Indexer, Language, LogResponse, QualityProfile,
+    QualityWrapper, QueueEvent, RootFolder, SecurityConfig, SystemStatus, Tag, Update,
   },
 };
 
@@ -112,6 +112,7 @@ pub struct DeleteSeriesParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
@@ -127,36 +128,6 @@ pub struct DownloadRecord {
 }
 
 impl Eq for DownloadRecord {}
-
-#[derive(
-  Serialize,
-  Deserialize,
-  Default,
-  PartialEq,
-  Eq,
-  Clone,
-  Copy,
-  Debug,
-  EnumIter,
-  Display,
-  EnumDisplayStyle,
-)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum DownloadStatus {
-  #[default]
-  Unknown,
-  Queued,
-  Paused,
-  Downloading,
-  Completed,
-  Failed,
-  Warning,
-  Delay,
-  #[display_style(name = "Download Client Unavailable")]
-  DownloadClientUnavailable,
-  Fallback,
-}
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -314,12 +285,14 @@ pub struct Series {
   #[serde(deserialize_with = "super::from_i64")]
   pub year: i64,
   pub monitored: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub series_type: SeriesType,
   pub path: String,
   pub genres: Vec<String>,
   pub tags: Vec<Number>,
   pub ratings: Rating,
   pub ended: bool,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub status: SeriesStatus,
   pub overview: Option<String>,
   pub network: Option<String>,
@@ -499,6 +472,7 @@ pub struct SonarrHistoryItem {
   pub quality: QualityWrapper,
   pub languages: Vec<Option<Language>>,
   pub date: DateTime<Utc>,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,
 }
@@ -555,6 +529,7 @@ pub struct SonarrReleaseDownloadBody {
 #[serde(rename_all = "camelCase")]
 pub struct SonarrTask {
   pub name: String,
+  #[serde(deserialize_with = "super::from_json_or_default")]
   pub task_name: SonarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
@@ -626,10 +601,3 @@ serde_enum_from!(
     Value(Value),
   }
 );
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
-}

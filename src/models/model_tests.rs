@@ -11,12 +11,13 @@ mod tests {
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, TabRoute, TabState,
   };
-  use crate::models::{from_i64, strip_non_search_characters};
+  use crate::models::{from_i64, from_json_or_default, strip_non_search_characters};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde::de::IntoDeserializer;
   use serde::de::value::Error as ValueError;
   use serde::de::value::F64Deserializer;
   use serde::de::value::I64Deserializer;
+  use serde::de::value::StrDeserializer;
   use serde_json::to_string;
 
   const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];
@@ -801,6 +802,20 @@ mod tests {
     let deserializer: F64Deserializer<ValueError> = 1f64.into_deserializer();
 
     assert_ok_eq_x!(from_f64(deserializer), 1.0);
+  }
+
+  #[test]
+  fn test_from_json_or_default() {
+    let deserializer: I64Deserializer<ValueError> = 1i64.into_deserializer();
+
+    assert_ok_eq_x!(from_json_or_default::<_, i64>(deserializer), 1);
+  }
+
+  #[test]
+  fn test_from_json_or_default_falls_back_to_default() {
+    let deserializer: StrDeserializer<'_, ValueError> = "unexpected".into_deserializer();
+
+    assert_ok_eq_x!(from_json_or_default::<_, i64>(deserializer), 0);
   }
 
   #[test]

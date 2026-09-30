@@ -1,14 +1,14 @@
 use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-use crate::models::servarr_models::Language;
+use crate::models::servarr_models::{DownloadStatus, Language};
 use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, EpisodeFile, MonitorEpisodeBody, SonarrCommandBody,
+  DownloadRecord, Episode, EpisodeFile, MonitorEpisodeBody, SonarrCommandBody,
   SonarrHistoryWrapper, SonarrRelease,
 };
 use crate::models::{Route, ScrollableText};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
-use crate::utils::convert_to_gb;
+use crate::utils::format_size;
 use anyhow::Result;
 use indoc::formatdoc;
 use log::info;
@@ -222,12 +222,12 @@ impl Network<'_, '_> {
           overview.unwrap_or_default(),
         ));
         if let Some(file) = episode_file {
-          let size = convert_to_gb(file.size);
+          let size = format_size(file.size, 2);
           episode_details_modal.file_details = formatdoc!(
             "
             Relative Path: {}
             Absolute Path: {}
-            Size: {size:.2} GB
+            Size: {size}
             Language: {}
             Date Added: {}",
             file.relative_path,

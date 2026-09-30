@@ -9,8 +9,10 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, ListItem, Paragraph, Wrap};
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -182,6 +184,14 @@ pub(super) fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -
   } else {
     text.success()
   }
+}
+
+static WHITESPACE_RE: OnceLock<Regex> = OnceLock::new();
+
+pub(super) fn collapse_whitespace(text: &str) -> String {
+  let re = WHITESPACE_RE.get_or_init(|| Regex::new(r"\s+").unwrap());
+
+  re.replace_all(text.trim(), " ").to_string()
 }
 
 pub(super) fn extract_monitored_root_folders(

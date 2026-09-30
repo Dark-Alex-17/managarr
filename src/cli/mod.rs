@@ -6,6 +6,7 @@ use clap_complete::Shell;
 use indoc::indoc;
 use lidarr::{LidarrCliHandler, LidarrCommand};
 use radarr::{RadarrCliHandler, RadarrCommand};
+use readarr::{ReadarrCliHandler, ReadarrCommand};
 use sonarr::{SonarrCliHandler, SonarrCommand};
 use tokio::sync::Mutex;
 
@@ -13,6 +14,7 @@ use crate::{app::App, network::NetworkTrait};
 
 pub mod lidarr;
 pub mod radarr;
+pub mod readarr;
 pub mod sonarr;
 
 #[cfg(test)]
@@ -29,6 +31,9 @@ pub enum Command {
 
   #[command(subcommand, about = "Commands for manging your Lidarr instance")]
   Lidarr(LidarrCommand),
+
+  #[command(subcommand, about = "Commands for managing your Readarr instance")]
+  Readarr(ReadarrCommand),
 
   #[command(
     arg_required_else_help = true,
@@ -75,6 +80,11 @@ pub(crate) async fn handle_command(
     }
     Command::Lidarr(lidarr_command) => {
       LidarrCliHandler::with(app, lidarr_command, network)
+        .handle()
+        .await?
+    }
+    Command::Readarr(readarr_command) => {
+      ReadarrCliHandler::with(app, readarr_command, network)
         .handle()
         .await?
     }

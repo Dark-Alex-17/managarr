@@ -4,16 +4,14 @@ mod tests {
   use std::fs::{self, File};
   use std::io::{BufRead, BufReader, Seek, SeekFrom, Write};
 
-  use pretty_assertions::assert_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
   use tokio_util::sync::CancellationToken;
 
   use crate::{
     Cli,
     app::{App, AppConfig, ServarrConfig},
-    utils::{
-      convert_f64_to_gb, convert_runtime, convert_to_gb, select_cli_configuration, was_log_rotated,
-    },
+    utils::{convert_runtime, format_size, select_cli_configuration, was_log_rotated},
   };
 
   #[test]
@@ -49,15 +47,13 @@ mod tests {
   }
 
   #[test]
-  fn test_convert_to_gb() {
-    assert_eq!(convert_to_gb(2147483648), 2f64);
-    assert_eq!(convert_to_gb(2662879723), 2.4799999995157123);
-  }
-
-  #[test]
-  fn test_convert_f64_to_gb() {
-    assert_eq!(convert_f64_to_gb(2147483648f64), 2f64);
-    assert_eq!(convert_f64_to_gb(2662879723f64), 2.4799999995157123);
+  fn test_format_size() {
+    assert_str_eq!(format_size(2_457_600, 2), "2.34 MB");
+    assert_str_eq!(format_size(2_469_606_195, 2), "2.30 GB");
+    assert_str_eq!(format_size(1_073_741_824, 2), "1.00 GB");
+    assert_str_eq!(format_size(1_073_741_823, 2), "1024.00 MB");
+    assert_str_eq!(format_size(0, 2), "0.00 MB");
+    assert_str_eq!(format_size(6_710_886, 1), "6.4 MB");
   }
 
   #[test]

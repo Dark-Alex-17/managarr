@@ -8,7 +8,7 @@ mod tests {
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
-    indexer, indexer_settings,
+    indexer, indexer_settings, stale_indexer_settings,
   };
   use bimap::BiMap;
   use mockito::Matcher;
@@ -36,15 +36,15 @@ mod tests {
   #[tokio::test]
   async fn test_handle_edit_all_radarr_indexer_settings_event() {
     let indexer_settings_json = json!({
-        "minimumAge": 0,
-        "maximumSize": 0,
-        "retention": 0,
+        "minimumAge": 27,
+        "maximumSize": 18400,
+        "retention": 44,
         "rssSyncInterval": 60,
         "preferIndexerFlags": false,
-        "availabilityDelay": 0,
+        "availabilityDelay": 19,
         "allowHardcodedSubs": true,
-        "whitelistedHardcodedSubs": "",
-        "id": 1
+        "whitelistedHardcodedSubs": "eng",
+        "id": 3
     });
     let (async_server, app, _server) = MockServarrApi::put()
       .with_request_body(indexer_settings_json)
@@ -641,15 +641,15 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_all_indexer_settings_event() {
     let indexer_settings_response_json = json!({
-        "minimumAge": 0,
-        "maximumSize": 0,
-        "retention": 0,
+        "minimumAge": 27,
+        "maximumSize": 18400,
+        "retention": 44,
         "rssSyncInterval": 60,
         "preferIndexerFlags": false,
-        "availabilityDelay": 0,
+        "availabilityDelay": 19,
         "allowHardcodedSubs": true,
-        "whitelistedHardcodedSubs": "",
-        "id": 1
+        "whitelistedHardcodedSubs": "eng",
+        "id": 3
     });
     let response: IndexerSettings =
       serde_json::from_value(indexer_settings_response_json.clone()).unwrap();
@@ -677,21 +677,21 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_all_indexer_settings_event_no_op_if_already_present() {
     let indexer_settings_response_json = json!({
-        "minimumAge": 0,
-        "maximumSize": 0,
-        "retention": 0,
+        "minimumAge": 27,
+        "maximumSize": 18400,
+        "retention": 44,
         "rssSyncInterval": 60,
         "preferIndexerFlags": false,
-        "availabilityDelay": 0,
+        "availabilityDelay": 19,
         "allowHardcodedSubs": true,
-        "whitelistedHardcodedSubs": "",
-        "id": 1
+        "whitelistedHardcodedSubs": "eng",
+        "id": 3
     });
     let (async_server, app, _server) = MockServarrApi::get()
       .returns(indexer_settings_response_json)
       .build_for(RadarrEvent::GetAllIndexerSettings)
       .await;
-    app.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+    app.lock().await.data.radarr_data.indexer_settings = Some(stale_indexer_settings());
     let mut network = test_network(&app);
 
     assert!(
@@ -704,7 +704,7 @@ mod tests {
     async_server.assert_async().await;
     assert_eq!(
       app.lock().await.data.radarr_data.indexer_settings,
-      Some(IndexerSettings::default())
+      Some(stale_indexer_settings())
     );
   }
 

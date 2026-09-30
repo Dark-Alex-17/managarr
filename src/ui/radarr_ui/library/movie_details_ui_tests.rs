@@ -6,6 +6,7 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::App;
+  use crate::models::radarr_models::MovieStatus;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
   use crate::ui::DrawUi;
   use crate::ui::radarr_ui::library::movie_details_ui::{
@@ -13,7 +14,7 @@ mod tests {
   };
   use crate::ui::styles::{
     awaiting_import_style, downloaded_style, downloading_style, missing_style,
-    unmonitored_missing_style,
+    unmonitored_missing_style, unreleased_style,
   };
   use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
@@ -29,21 +30,26 @@ mod tests {
   }
 
   #[rstest]
-  #[case("Downloading", true, "", downloading_style())]
-  #[case("Downloaded", true, "", downloaded_style())]
-  #[case("Awaiting Import", true, "", awaiting_import_style())]
-  #[case("Missing", false, "", unmonitored_missing_style())]
-  #[case("Missing", false, "", unmonitored_missing_style())]
-  #[case("Missing", true, "released", missing_style())]
-  #[case("", true, "", downloaded_style())]
+  #[case("Downloading", true, MovieStatus::Released, downloading_style())]
+  #[case("Downloaded", true, MovieStatus::Released, downloaded_style())]
+  #[case(
+    "Awaiting Import",
+    true,
+    MovieStatus::Released,
+    awaiting_import_style()
+  )]
+  #[case("Missing", false, MovieStatus::InCinemas, unmonitored_missing_style())]
+  #[case("Missing", true, MovieStatus::InCinemas, unreleased_style())]
+  #[case("Missing", true, MovieStatus::Released, missing_style())]
+  #[case("", true, MovieStatus::Released, downloaded_style())]
   fn test_style_from_download_status(
     #[case] download_status: &str,
     #[case] is_monitored: bool,
-    #[case] movie_status: &str,
+    #[case] movie_status: MovieStatus,
     #[case] expected_style: Style,
   ) {
     assert_eq!(
-      style_from_download_status(download_status, is_monitored, movie_status.to_owned()),
+      style_from_download_status(download_status, is_monitored, movie_status),
       expected_style
     );
   }

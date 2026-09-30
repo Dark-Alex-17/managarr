@@ -148,6 +148,11 @@ mod tests {
       } else {
         "usenet".to_owned()
       };
+      let decoy_protocol = if torrent_protocol {
+        "usenet".to_owned()
+      } else {
+        "torrent".to_owned()
+      };
       let mut expected_edit_indexer_modal = EditIndexerModal {
         name: "Test".into(),
         enable_rss: Some(true),
@@ -191,7 +196,14 @@ mod tests {
         fields: Some(fields),
         ..Indexer::default()
       };
-      sonarr_data.indexers.set_items(vec![indexer]);
+      sonarr_data.indexers.set_items(vec![
+        Indexer {
+          protocol: decoy_protocol,
+          ..Indexer::default()
+        },
+        indexer,
+      ]);
+      sonarr_data.indexers.select_index(Some(1));
       app.data.sonarr_data = sonarr_data;
 
       IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
@@ -239,7 +251,14 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm_submit() {
       let mut app = App::test_default();
-      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+      app.data.sonarr_data.indexers.set_items(vec![
+        Indexer {
+          id: 999,
+          ..indexer()
+        },
+        indexer(),
+      ]);
+      app.data.sonarr_data.indexers.select_index(Some(1));
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
@@ -538,7 +557,14 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm() {
       let mut app = App::test_default();
-      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+      app.data.sonarr_data.indexers.set_items(vec![
+        Indexer {
+          id: 999,
+          ..indexer()
+        },
+        indexer(),
+      ]);
+      app.data.sonarr_data.indexers.select_index(Some(1));
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
@@ -649,7 +675,14 @@ mod tests {
   #[test]
   fn test_extract_indexer_id() {
     let mut app = App::test_default();
-    app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+    app.data.sonarr_data.indexers.set_items(vec![
+      Indexer {
+        id: 999,
+        ..indexer()
+      },
+      indexer(),
+    ]);
+    app.data.sonarr_data.indexers.select_index(Some(1));
 
     let indexer_id = IndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,

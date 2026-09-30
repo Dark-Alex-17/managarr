@@ -3,10 +3,12 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
-  AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams,
-  LidarrReleaseDownloadBody, LidarrSerdeable, LidarrTaskName, MetadataProfile,
+  AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams, LidarrSerdeable,
+  LidarrTaskName,
 };
-use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
+use crate::models::servarr_models::{
+  EditIndexerParams, IndexerSettings, MetadataProfile, QualityProfile, ReleaseDownloadBody, Tag,
+};
 use crate::network::{Network, RequestMethod};
 
 mod blocklist;
@@ -39,7 +41,7 @@ pub enum LidarrEvent {
   DeleteRootFolder(i64),
   DeleteTag(i64),
   DeleteTrackFile(i64),
-  DownloadRelease(LidarrReleaseDownloadBody),
+  DownloadRelease(ReleaseDownloadBody),
   EditArtist(EditArtistParams),
   EditAllIndexerSettings(IndexerSettings),
   EditIndexer(EditIndexerParams),

@@ -160,7 +160,6 @@ mod tests {
   #[rstest]
   fn test_delegates_library_blocks_to_library_handler(
     #[values(
-      ActiveLidarrBlock::Artists,
       ActiveLidarrBlock::ArtistsSortPrompt,
       ActiveLidarrBlock::FilterArtists,
       ActiveLidarrBlock::FilterArtistsError,
@@ -187,7 +186,6 @@ mod tests {
   #[rstest]
   fn test_delegates_downloads_blocks_to_downloads_handler(
     #[values(
-      ActiveLidarrBlock::Downloads,
       ActiveLidarrBlock::DeleteDownloadPrompt,
       ActiveLidarrBlock::UpdateDownloadsPrompt
     )]
@@ -203,7 +201,6 @@ mod tests {
   #[rstest]
   fn test_delegates_blocklist_blocks_to_blocklist_handler(
     #[values(
-      ActiveLidarrBlock::Blocklist,
       ActiveLidarrBlock::BlocklistItemDetails,
       ActiveLidarrBlock::DeleteBlocklistItemPrompt,
       ActiveLidarrBlock::BlocklistClearAllItemsPrompt,
@@ -221,7 +218,6 @@ mod tests {
   #[rstest]
   fn test_delegates_history_blocks_to_history_handler(
     #[values(
-      ActiveLidarrBlock::History,
       ActiveLidarrBlock::HistoryItemDetails,
       ActiveLidarrBlock::HistorySortPrompt,
       ActiveLidarrBlock::FilterHistory,
@@ -241,7 +237,6 @@ mod tests {
   #[rstest]
   fn test_delegates_root_folders_blocks_to_root_folders_handler(
     #[values(
-      ActiveLidarrBlock::RootFolders,
       ActiveLidarrBlock::AddRootFolderPrompt,
       ActiveLidarrBlock::DeleteRootFolderPrompt
     )]
@@ -258,7 +253,6 @@ mod tests {
   fn test_delegates_indexers_blocks_to_indexers_handler(
     #[values(
       ActiveLidarrBlock::DeleteIndexerPrompt,
-      ActiveLidarrBlock::Indexers,
       ActiveLidarrBlock::AllIndexerSettingsPrompt,
       ActiveLidarrBlock::IndexerSettingsConfirmPrompt,
       ActiveLidarrBlock::IndexerSettingsMaximumSizeInput,
@@ -278,7 +272,6 @@ mod tests {
   #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
-      ActiveLidarrBlock::System,
       ActiveLidarrBlock::SystemLogs,
       ActiveLidarrBlock::SystemQueuedEvents,
       ActiveLidarrBlock::SystemTasks,
