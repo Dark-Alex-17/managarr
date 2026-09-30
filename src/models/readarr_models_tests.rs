@@ -940,6 +940,22 @@ mod tests {
   }
 
   #[test]
+  fn test_book_deserialization_defaults_grabbed_when_absent() {
+    let book_json = json!({
+      "id": 1,
+      "title": "The Name of the Wind",
+      "authorId": 3,
+      "foreignBookId": "test-foreign-book-id",
+      "monitored": true
+    });
+
+    let book: Book = serde_json::from_value(book_json).unwrap();
+
+    assert!(!book.grabbed);
+    assert!(book.monitored);
+  }
+
+  #[test]
   fn test_edition_deserialization() {
     let edition_json = json!({
       "id": 106,

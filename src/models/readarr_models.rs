@@ -280,6 +280,7 @@ pub struct Book {
   pub ratings: Option<Ratings>,
   pub release_date: Option<DateTime<Utc>>,
   pub statistics: Option<BookStatistics>,
+  #[serde(default)]
   pub grabbed: bool,
 }
 
