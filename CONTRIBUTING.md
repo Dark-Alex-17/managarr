@@ -93,8 +93,8 @@ act -W .github/workflows/release.yml --input_type bump=minor
 
 ## Authorship Policy
 
-All code in this repository is written and reviewed by humans. AI-generated code (e.g., Copilot, ChatGPT,
-Claude, etc.) is not permitted unless explicitly disclosed and approved.
+All code in this repository is written and reviewed by humans, or AI-generated where explicitly disclosed. AI-generated code (e.g., Copilot, ChatGPT,
+Claude, etc.) is permitted only when explicitly disclosed and approved. For example: disclosing the use of AI-generated code in a PR description. 
 
 Submissions must certify that the contributor understands and can maintain the code they submit.
 
