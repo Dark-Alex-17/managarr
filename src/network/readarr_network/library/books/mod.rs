@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::readarr_models::{
   Book, BookFile, DeleteParams, Edition, ReadarrCommandBody, ReadarrHistoryItem, ReadarrRelease,
+  ReadarrReleaseResponse,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::network::readarr_network::ReadarrEvent;
@@ -170,16 +171,19 @@ impl Network<'_, '_> {
       .await;
 
     self
-      .handle_request::<(), Vec<ReadarrRelease>>(request_props, |release_vec, mut app| {
+      .handle_request::<(), ReadarrReleaseResponse>(request_props, |response, mut app| {
         let book_details_modal = app
           .data
           .readarr_data
           .book_details_modal
           .get_or_insert_default();
 
-        book_details_modal.book_releases.set_items(release_vec);
+        book_details_modal
+          .book_releases
+          .set_items(response.into_releases());
       })
       .await
+      .map(ReadarrReleaseResponse::into_releases)
   }
 
   pub(in crate::network::readarr_network) async fn get_books(

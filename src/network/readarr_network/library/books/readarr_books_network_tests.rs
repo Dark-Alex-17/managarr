@@ -533,6 +533,57 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_get_book_releases_event_unwraps_the_release_envelope() {
+    let expected_releases = vec![torrent_release()];
+    let releases_json = json!({
+      "releases": [serde_json::from_str::<Value>(RELEASE_JSON).unwrap()],
+      "hiddenReleases": [],
+      "filterSummary": { "totalResults": 1, "displayedCount": 1 },
+      "siblingToggleEnabled": false
+    });
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(releases_json)
+      .query("bookId=7")
+      .build_for(ReadarrEvent::GetBookReleases(7))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      let mut book_details_modal = BookDetailsModal::default();
+      book_details_modal
+        .book_releases
+        .set_items(vec![stale_release()]);
+      app.data.readarr_data.book_details_modal = Some(book_details_modal);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetBookReleases(7))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Releases(releases) = result.unwrap() else {
+      panic!("Expected Releases")
+    };
+
+    assert_eq!(releases, expected_releases);
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .readarr_data
+        .book_details_modal
+        .as_ref()
+        .unwrap()
+        .book_releases
+        .items,
+      expected_releases
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_book_releases_event_empty_book_details_modal() {
     let expected_releases = vec![torrent_release()];
     let (mock, app, _server) = MockServarrApi::get()

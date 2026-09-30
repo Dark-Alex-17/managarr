@@ -134,6 +134,48 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_get_author_releases_event_unwraps_the_release_envelope() {
+    let expected_releases = vec![torrent_release()];
+    let releases_json = json!({
+      "releases": [serde_json::from_str::<Value>(RELEASE_JSON).unwrap()],
+      "hiddenReleases": [],
+      "filterSummary": { "totalResults": 1, "displayedCount": 1 },
+      "siblingToggleEnabled": false
+    });
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(releases_json)
+      .query("authorId=3")
+      .build_for(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+    {
+      let mut app = app.lock().await;
+      app.server_tabs.set_index(3);
+      app
+        .data
+        .readarr_data
+        .author_releases
+        .set_items(vec![stale_release()]);
+    }
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_readarr_event(ReadarrEvent::GetAuthorReleases(3))
+      .await;
+
+    mock.assert_async().await;
+
+    let ReadarrSerdeable::Releases(releases) = result.unwrap() else {
+      panic!("Expected Releases")
+    };
+
+    assert_eq!(releases, expected_releases);
+    assert_eq!(
+      app.lock().await.data.readarr_data.author_releases.items,
+      expected_releases
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_author_releases_event_failure() {
     let stale_releases = vec![stale_release()];
     let (mock, app, _server) = MockServarrApi::get()

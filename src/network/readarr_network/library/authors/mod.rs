@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::readarr_models::{
   AddAuthorBody, AddAuthorSearchResult, Author, DeleteParams, EditAuthorParams, ReadarrCommandBody,
-  ReadarrHistoryItem, ReadarrRelease,
+  ReadarrHistoryItem, ReadarrRelease, ReadarrReleaseResponse,
 };
 use crate::models::servarr_data::readarr::readarr_data::ActiveReadarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -235,10 +235,15 @@ impl Network<'_, '_> {
       .await;
 
     self
-      .handle_request::<(), Vec<ReadarrRelease>>(request_props, |release_vec, mut app| {
-        app.data.readarr_data.author_releases.set_items(release_vec);
+      .handle_request::<(), ReadarrReleaseResponse>(request_props, |response, mut app| {
+        app
+          .data
+          .readarr_data
+          .author_releases
+          .set_items(response.into_releases());
       })
       .await
+      .map(ReadarrReleaseResponse::into_releases)
   }
 
   pub(in crate::network::readarr_network) async fn get_readarr_author_history(

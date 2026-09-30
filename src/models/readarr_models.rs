@@ -455,6 +455,29 @@ pub struct ReadarrRelease {
   pub quality: QualityWrapper,
 }
 
+#[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum ReadarrReleaseResponse {
+  Releases(Vec<ReadarrRelease>),
+  // Chaptarr wraps the release list in a filter summary envelope, even behind its Readarr facade
+  Envelope { releases: Vec<ReadarrRelease> },
+}
+
+impl Default for ReadarrReleaseResponse {
+  fn default() -> Self {
+    ReadarrReleaseResponse::Releases(Vec::new())
+  }
+}
+
+impl ReadarrReleaseResponse {
+  pub fn into_releases(self) -> Vec<ReadarrRelease> {
+    match self {
+      ReadarrReleaseResponse::Releases(releases)
+      | ReadarrReleaseResponse::Envelope { releases } => releases,
+    }
+  }
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlocklistItem {

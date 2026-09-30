@@ -9,7 +9,7 @@ mod tests {
     AddAuthorSearchResult, BlocklistItem, BlocklistResponse, Book, BookFile, DownloadRecord,
     DownloadsResponse, Edition, MediaInfo, MonitorType, NewItemMonitorType,
     ReadarrHistoryEventType, ReadarrHistoryItem, ReadarrHistoryWrapper, ReadarrRelease,
-    ReadarrTask, ReadarrTaskName,
+    ReadarrReleaseResponse, ReadarrTask, ReadarrTaskName,
   };
   use crate::models::servarr_models::{
     DiskSpace, DownloadStatus, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log,
@@ -495,6 +495,29 @@ mod tests {
     let readarr_serdeable: ReadarrSerdeable = releases.clone().into();
 
     assert_eq!(readarr_serdeable, ReadarrSerdeable::Releases(releases));
+  }
+
+  #[test]
+  fn test_readarr_release_response_default_is_an_empty_release_list() {
+    assert_eq!(
+      ReadarrReleaseResponse::default(),
+      ReadarrReleaseResponse::Releases(Vec::new())
+    );
+  }
+
+  #[test]
+  fn test_readarr_release_response_into_releases() {
+    let releases = vec![ReadarrRelease {
+      guid: "test".to_owned(),
+      ..ReadarrRelease::default()
+    }];
+    let list = ReadarrReleaseResponse::Releases(releases.clone());
+    let envelope = ReadarrReleaseResponse::Envelope {
+      releases: releases.clone(),
+    };
+
+    assert_eq!(list.into_releases(), releases);
+    assert_eq!(envelope.into_releases(), releases);
   }
 
   #[test]
