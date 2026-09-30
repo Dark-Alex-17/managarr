@@ -88,6 +88,7 @@ impl AddAuthorHandler<'_, '_> {
       quality_profile_id,
       metadata_profile_id,
       tags: Vec::new(),
+      images: Vec::new(),
       tag_input_string: Some(tags),
       add_options: AddAuthorOptions {
         monitor,

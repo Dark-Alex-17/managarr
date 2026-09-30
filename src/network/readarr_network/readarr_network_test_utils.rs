@@ -394,6 +394,7 @@ pub mod test_utils {
       quality_profile_id: 1,
       metadata_profile_id: 1,
       tags: Vec::default(),
+      images: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddAuthorOptions {
         monitor: MonitorType::All,

@@ -1237,6 +1237,7 @@ mod tests {
         quality_profile_id: 2222,
         metadata_profile_id: 4444,
         tags: Vec::default(),
+        images: Vec::new(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddAuthorOptions {
           monitor: MonitorType::Future,
@@ -1628,6 +1629,7 @@ mod tests {
         quality_profile_id: 2222,
         metadata_profile_id: 4444,
         tags: Vec::default(),
+        images: Vec::new(),
         tag_input_string: Some("usenet, testing".to_owned()),
         add_options: AddAuthorOptions {
           monitor: MonitorType::Future,
@@ -1795,6 +1797,7 @@ mod tests {
       quality_profile_id: 2222,
       metadata_profile_id: 4444,
       tags: Vec::default(),
+      images: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddAuthorOptions {
         monitor: MonitorType::Future,

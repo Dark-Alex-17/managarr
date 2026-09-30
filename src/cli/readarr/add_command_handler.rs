@@ -171,6 +171,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, ReadarrAddCommand> for ReadarrAddCommandH
           quality_profile_id,
           metadata_profile_id,
           tags,
+          images: Vec::new(),
           tag_input_string: None,
           add_options: AddAuthorOptions {
             monitor,

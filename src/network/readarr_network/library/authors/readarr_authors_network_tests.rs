@@ -680,6 +680,7 @@ mod tests {
         "qualityProfileId": 1,
         "metadataProfileId": 1,
         "tags": [1, 2],
+        "images": [],
         "addOptions": {
           "monitor": "all",
           "monitorNewItems": "all",
@@ -722,6 +723,7 @@ mod tests {
         "qualityProfileId": 1,
         "metadataProfileId": 1,
         "tags": [1, 2],
+        "images": [],
         "addOptions": {
           "monitor": "all",
           "monitorNewItems": "all",

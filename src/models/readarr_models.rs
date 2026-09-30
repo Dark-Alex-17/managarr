@@ -222,6 +222,8 @@ pub struct AddAuthorBody {
   pub quality_profile_id: i64,
   pub metadata_profile_id: i64,
   pub tags: Vec<i64>,
+  // Readarr-Resurrected persists the add body directly and rejects it when the images list is absent
+  pub images: Vec<Value>,
   #[serde(skip_serializing, skip_deserializing)]
   pub tag_input_string: Option<String>,
   pub add_options: AddAuthorOptions,

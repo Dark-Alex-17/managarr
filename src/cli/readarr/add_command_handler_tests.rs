@@ -447,6 +447,7 @@ mod tests {
         quality_profile_id: 1,
         metadata_profile_id: 1,
         tags: vec![1, 2],
+        images: Vec::new(),
         tag_input_string: None,
         add_options: AddAuthorOptions {
           monitor: MonitorType::All,
