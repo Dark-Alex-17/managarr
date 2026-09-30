@@ -88,3 +88,30 @@ jobs:
 
       - name: cargo +1.95.0 check
         run: cargo check
+
+  dockerfile-msrv:
+    # The Dockerfile's pinned Rust image is only built at release time, so a
+    # rust-version bump that misses it fails silently until the next release.
+    # Catch the drift on every push instead.
+    name: dockerfile / msrv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check Dockerfile Rust image against Cargo.toml rust-version
+        run: |
+          set -euo pipefail
+          msrv=$(sed -nE 's/^rust-version = "([0-9.]+)"$/\1/p' Cargo.toml)
+          image_tag=$(sed -nE 's/^FROM rust:([0-9.]+) AS builder$/\1/p' Dockerfile)
+          : "${msrv:?failed to extract rust-version from Cargo.toml}"
+          : "${image_tag:?failed to extract the rust image tag from the Dockerfile}"
+          # The rust image tag pins major.minor, so compare on major.minor only
+          msrv_mm=$(echo "$msrv" | cut -d. -f1,2)
+          image_mm=$(echo "$image_tag" | cut -d. -f1,2)
+          if [ "$(printf '%s\n' "$msrv_mm" "$image_mm" | sort -V | head -n1)" != "$msrv_mm" ]; then
+            echo "Dockerfile builds with rust:$image_tag, but Cargo.toml declares rust-version = \"$msrv\"."
+            echo "Cargo refuses to build under an older toolchain, so the release Docker publish step will fail."
+            echo "Update the FROM rust:* line in the Dockerfile to at least $msrv_mm."
+            exit 1
+          fi
+          echo "OK: Dockerfile rust:$image_tag satisfies rust-version $msrv"
