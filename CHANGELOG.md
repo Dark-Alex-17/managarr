@@ -5,6 +5,147 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.8.0 (2026-09-30)
+
+### Feat
+
+- show sizes under a gigabyte in megabytes
+- **lidarr**: highlight tracks whose album is downloading or awaiting import
+- **readarr**: show the author overview in the add author prompt
+- **radarr**: render the movie overview popup at the large size
+- **radarr**: make the collection movie overview popup scrollable
+- **sonarr**: add a scrollable overview popup to series details
+- **lidarr**: add a scrollable overview popup to artist details
+- **readarr**: add a scrollable overview popup to author details
+- **readarr**: add the indexers UI
+- **readarr**: add the indexers handlers
+- **readarr**: add the system UI
+- **readarr**: add the system handlers
+- **readarr**: add the root folders UI
+- **readarr**: add the add root folder handler
+- **readarr**: add the root folders handler
+- **readarr**: add the history UI
+- **readarr**: add the downloads UI
+- **readarr**: add the blocklist UI
+- **readarr**: add the history handler
+- **readarr**: add the downloads handler
+- **readarr**: add the blocklist handler
+- **readarr**: add the delete book UI
+- **readarr**: add the delete author UI
+- **readarr**: add the edit author UI
+- **readarr**: add the add author UI
+- **readarr**: add the delete book handler
+- **readarr**: add the delete author handler
+- **readarr**: add the edit author handler
+- **readarr**: add the add author handler
+- **readarr**: render the edition details popup
+- **readarr**: render the book details popup
+- **readarr**: reach the book file info tab from the book details tabs
+- **readarr**: scroll and dismiss the edition details popup
+- **readarr**: handle the book details tabs and open the edition details popup
+- **readarr**: render the author details view
+- **readarr**: handle key events for the author details view
+- **readarr**: handle key events for the authors library table
+- **readarr**: fetch data on tick for the active block
+- **readarr**: edit the shared indexer settings and expose the command on the CLI
+- **readarr**: fetch the shared indexer settings and expose them on the CLI
+- **readarr**: test all indexers and expose the command on the CLI
+- **readarr**: test an indexer and expose the command on the CLI
+- **readarr**: delete an indexer and expose the command on the CLI
+- **readarr**: edit an indexer and expose the command on the CLI
+- **readarr**: fetch all indexers and expose them on the CLI
+- **readarr**: clear the blocklist and expose the command on the CLI
+- **readarr**: delete an item from the blocklist and expose the command on the CLI
+- **readarr**: fetch the blocklist and expose it on the CLI
+- **readarr**: manually download a release and expose the command on the CLI
+- **readarr**: fetch releases for an author and expose them on the CLI
+- **readarr**: fetch releases for a book and expose them on the CLI
+- **readarr**: mark a history item as failed and expose the command on the CLI
+- **readarr**: fetch Readarr history and expose it on the CLI
+- **readarr**: refresh Readarr downloads and expose the command on the CLI
+- **readarr**: delete a download and expose the command on the CLI
+- **readarr**: fetch Readarr downloads and expose them on the CLI
+- **readarr**: delete a book file and expose the command on the CLI
+- **readarr**: delete a book and expose the command on the CLI
+- **readarr**: toggle book monitoring and expose the command on the CLI
+- **readarr**: trigger an automatic book search and expose the command on the CLI
+- **readarr**: fetch Readarr book history and expose it on the CLI
+- **readarr**: fetch Readarr book files and expose them on the CLI
+- **readarr**: fetch Readarr book editions and expose them on the CLI
+- **readarr**: fetch Readarr book details and expose them on the CLI
+- **readarr**: fetch Readarr books and expose them on the CLI
+- **readarr**: fetch Readarr author history and expose it on the CLI
+- **readarr**: refresh all Readarr authors and expose the command on the CLI
+- **readarr**: refresh and rescan a Readarr author and expose the command on the CLI
+- **readarr**: trigger automatic author searches and expose the command on the CLI
+- **readarr**: toggle Readarr author monitoring and expose the command on the CLI
+- **readarr**: delete Readarr authors and expose the command on the CLI
+- **readarr**: edit Readarr authors and expose the command on the CLI
+- **readarr**: add authors to Readarr and expose the command on the CLI
+- **readarr**: search for new Readarr authors and expose the command on the CLI
+- **readarr**: fetch Readarr author details and expose them on the CLI
+- **readarr**: fetch Readarr authors and expose them on the CLI
+- **readarr**: delete Readarr root folders and expose the command on the CLI
+- **readarr**: add Readarr root folders and expose the command on the CLI
+- **readarr**: delete Readarr tags and expose the command on the CLI
+- **readarr**: add Readarr tags and expose the command on the CLI
+- **readarr**: fetch Readarr root folders and expose them on the CLI
+- **readarr**: fetch Readarr tags and expose them on the CLI
+- **readarr**: fetch Readarr metadata profiles and expose them on the CLI
+- **readarr**: fetch Readarr quality profiles and expose them on the CLI
+- **readarr**: fetch Readarr queued events and expose them on the CLI
+- **readarr**: trigger Readarr tasks and expose the command on the CLI
+- **readarr**: fetch Readarr tasks and expose them on the CLI
+- **readarr**: fetch Readarr logs and expose them on the CLI
+- **readarr**: fetch Readarr updates and expose them on the CLI
+- **readarr**: fetch the Readarr security config and expose it on the CLI
+- **readarr**: fetch the Readarr host config and expose it on the CLI
+- **readarr**: fetch Readarr disk space and expose it on the CLI
+- **readarr**: fetch the Readarr system status and expose it on the CLI
+- **readarr**: add the Readarr health check network call
+- scaffold Readarr support across the state, app, handler, UI, and CLI layers
+- updated gitignore to not include coyote memory or workspace config
+
+### Fix
+
+- **readarr**: send an empty images list when adding an author
+- **readarr**: accept release searches wrapped in a filter summary envelope
+- **readarr**: tolerate book payloads that omit the grabbed flag
+- **radarr**: render the movie overview one size down so the collection details stay visible behind it
+- **app/mod**: use correct api for tab when starting on non default tab
+- passes servarr-name global switch to both the tui and cli
+- **radarr**: model the movie status as an enum
+- page up and down stop at the table edges instead of wrapping
+- **radarr**: serialize the credit type under the same key it is read from
+- **radarr**: model the download status as a DownloadStatus enum
+- fall back to the default when a servarr returns an unknown enum value
+- show N/A instead of zeros when a season, album or book has no statistics
+- stop paging up or down on a single row table from crashing
+- keep history readable when an event type is unrecognised
+- **readarr**: attach editions when toggling book monitoring
+- **sonarr**: stop marking seasons fully downloaded when no episodes are known
+- keep a space between overview words that span a line break
+- parse the log level from the unscrolled log text
+- **radarr**: show a loading block while the updates popup refreshes
+- show confirmation prompt clues on delete prompts
+- drop redundant references in format arguments
+- **readarr**: stop a long author overview hiding the other fields
+- **ui**: render detail popup labels in bold
+- **readarr**: stop appending stray colons to the edition overview
+- **readarr**: move the book file delete to the File tab
+- **readarr**: render the update all authors confirmation prompt
+- **readarr**: drop the always-empty author type column from the authors table
+- tolerate update records that omit the changes list
+- address reviewer feedback — rename scroll field to bool, relocate static, drop env var
+- revert draw gating; replace frame-count scroll with wall-clock timer
+- address reviewer feedback — regex OnceLock and restore tick rate
+- reduce TUI idle CPU and improve server error banners
+
+### Refactor
+
+- share one DownloadStatus enum across the servarr models
+- move shared servarr types into servarr_models
+
 ## v0.7.3 (2026-06-25)
 
 ### Feat
