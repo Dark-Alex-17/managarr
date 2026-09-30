@@ -29,7 +29,7 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 > [!NOTE]
 > The official Readarr repository has been archived, but Managarr's Readarr support is compatible with any Readarr forks
 > that maintain compatibility with the official Readarr v1 API. See [Tested Readarr Forks](#tested-readarr-forks) below
-> for forks that have been explicitly tested with Managarr.
+> for forks that have been explicitly tested with Managarr, and any oddities in configuring them to work with Managarr.
 
 ## Try Out the Demo
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
@@ -464,6 +464,11 @@ lidarr:
     custom_headers: # Example of adding custom headers to all requests to the Servarr instance
       traefik-auth-bypass-key: someBypassKey1234567890
       SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
+
+readarr:
+  - name: Chaptarr (Ebooks) # Example of how to use the Readarr support with a Readarr fork like Chaptarr
+    uri: http://192.168.0.87:8789/readarr/gr/ebook
+    api_token: someApiToken1234567890
 ```
 
 ### SSL Configuration
@@ -580,6 +585,38 @@ The following Readarr forks have been explicitly tested with Managarr:
 * [Bookshelf](https://github.com/pennydreadful/bookshelf)
 * [Readarr-Resurrected](https://github.com/ricetim/readarr-rresurrected)
 * [Librarr](https://github.com/Rorqualx/Librarr)
+* [Chaptarr](https://github.com/Chaptarr/Chaptarr)
+
+> [!IMPORTANT]
+> Chaptarr houses a dedicated Readarr facade middleware that activates on a path prefix, meaning a bare config doesn't 
+> work. Instead, users need to configure both Audiobooks and Ebooks separately, and based on their desired metadata 
+> fetcher (i.e. Goodreads and Hardcover IDs). Because of this, Chaptarr-based configurations must use the `uri` key 
+> rather than the `host` and `port` keys. The below configuration file demonstrates all the supported variations for
+> connecting Managarr to Chaptarr.
+
+### Chaptarr Example Configuration
+```yaml
+readarr:
+  # Because Chaptarr supports both eBooks and audiobooks, the same instance must be provisioned twice if you're using 
+  # both so Managarr can differentiate between the two. Thus, for Chaptarr, you need an eBook server configured and an 
+  # audiobook server configured like below.
+
+  - name: eBooks (Goodreads) # Readarr originally used Goodreads as its metadata provider
+    uri: http://192.168.0.87:8789/readarr/gr/ebook # Note the `gr` in the path prefix indicating "GoodReads"
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr Audiobooks (Goodreads)
+    uri: http://192.168.0.105:8789/readarr/gr/audiobook
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr eBooks (Hardcover)
+    uri: http://192.168.0.105:8789/readarr/hc/ebook # Note the `hc` in the path prefix indicating "HardCover"
+    api_token: someApiToken1234567890
+
+  - name: Chaptarr Audiobooks (Hardcover)
+    uri: http://192.168.0.105:8789/readarr/hc/audiobook
+    api_token: someApiToken1234567890
+```
 
 ## Screenshots
 
