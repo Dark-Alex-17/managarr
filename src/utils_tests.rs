@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
+  use anyhow::{Error, anyhow};
   use clap::Parser;
+  use serde_json::json;
   use std::fs::{self, File};
   use std::io::{BufRead, BufReader, Seek, SeekFrom, Write};
 
@@ -11,7 +13,10 @@ mod tests {
   use crate::{
     Cli,
     app::{App, AppConfig, ServarrConfig},
-    utils::{convert_runtime, format_size, select_cli_configuration, was_log_rotated},
+    network::NetworkError,
+    utils::{
+      convert_runtime, format_cli_error, format_size, select_cli_configuration, was_log_rotated,
+    },
   };
 
   #[test]
@@ -62,6 +67,123 @@ mod tests {
 
     assert_eq!(hours, 2);
     assert_eq!(minutes, 34);
+  }
+
+  #[test]
+  fn test_format_cli_error_network_error_with_json_body() {
+    let error = Error::new(NetworkError {
+      message: "Request failed. Received 404 Not Found response code with body: Not Found"
+        .to_owned(),
+      status: 404,
+      body: Some(json!({ "status": 404, "title": "Not Found" })),
+    });
+
+    let output = format_cli_error(&error);
+
+    assert_str_eq!(
+      output,
+      r#"{
+  "error": {
+    "message": "Request failed. Received 404 Not Found response code with body: Not Found",
+    "status": 404,
+    "body": {
+      "status": 404,
+      "title": "Not Found"
+    }
+  }
+}"#
+    );
+  }
+
+  #[test]
+  fn test_format_cli_error_network_error_with_string_body() {
+    let error = Error::new(NetworkError {
+      message:
+        "Request failed. Received 503 Service Unavailable response code with body: Service Unavailable"
+          .to_owned(),
+      status: 503,
+      body: Some(json!("Service Unavailable")),
+    });
+
+    let output = format_cli_error(&error);
+
+    assert_str_eq!(
+      output,
+      r#"{
+  "error": {
+    "message": "Request failed. Received 503 Service Unavailable response code with body: Service Unavailable",
+    "status": 503,
+    "body": "Service Unavailable"
+  }
+}"#
+    );
+  }
+
+  #[test]
+  fn test_format_cli_error_network_error_with_null_body() {
+    let error = Error::new(NetworkError {
+      message: "Request failed. Received 404 Not Found response code with body: ".to_owned(),
+      status: 404,
+      body: None,
+    });
+
+    let output = format_cli_error(&error);
+
+    assert_str_eq!(
+      output,
+      r#"{
+  "error": {
+    "message": "Request failed. Received 404 Not Found response code with body: ",
+    "status": 404,
+    "body": null
+  }
+}"#
+    );
+  }
+
+  #[test]
+  fn test_format_cli_error_network_error_wrapped_in_context() {
+    let error = Error::new(NetworkError {
+      message: "Request failed. Received 404 Not Found response code with body: Not Found"
+        .to_owned(),
+      status: 404,
+      body: Some(json!({ "status": 404, "title": "Not Found" })),
+    })
+    .context("failed to fetch system status");
+
+    let output = format_cli_error(&error);
+
+    assert_str_eq!(
+      output,
+      r#"{
+  "error": {
+    "message": "Request failed. Received 404 Not Found response code with body: Not Found",
+    "status": 404,
+    "body": {
+      "status": 404,
+      "title": "Not Found"
+    }
+  }
+}"#
+    );
+  }
+
+  #[test]
+  fn test_format_cli_error_plain_anyhow_error() {
+    let error = anyhow!("Failed to send request. connection refused ");
+
+    let output = format_cli_error(&error);
+
+    assert_str_eq!(
+      output,
+      r#"{
+  "error": {
+    "message": "Failed to send request. connection refused ",
+    "status": null,
+    "body": null
+  }
+}"#
+    );
   }
 
   #[test]

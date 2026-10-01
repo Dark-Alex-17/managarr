@@ -10,7 +10,7 @@ mod tests {
   use reqwest::header::HeaderMap;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
-  use serde_json::json;
+  use serde_json::{Value, json};
   use tokio::sync::{Mutex, mpsc};
   use tokio_util::sync::CancellationToken;
 
@@ -22,7 +22,9 @@ mod tests {
   use crate::network::network_tests::test_utils::test_network;
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, NetworkEvent, NetworkTrait, RequestMethod, RequestProps};
+  use crate::network::{
+    Network, NetworkError, NetworkEvent, NetworkTrait, RequestMethod, RequestProps,
+  };
 
   #[tokio::test]
   async fn test_handle_network_event_radarr_event() {
@@ -396,6 +398,104 @@ mod tests {
       resp.unwrap_err().to_string(),
       "Request failed. Received 500 Internal Server Error response code with body: database is locked database is locked"
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_request_non_success_code_downcasts_to_network_error_with_json_body() {
+    let (async_server, app_arc, server) = mock_api(RequestMethod::Get, 404, true).await;
+    let mut network = test_network(&app_arc);
+
+    let resp = network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Get,
+          body: None,
+          api_token: "test1234".to_owned(),
+          ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
+        },
+        |_, _| (),
+      )
+      .await;
+
+    async_server.assert_async().await;
+    let network_error = resp.unwrap_err().downcast::<NetworkError>().unwrap();
+    assert_str_eq!(
+      network_error.message,
+      r#"Request failed. Received 404 Not Found response code with body: { "value": "Test" }"#
+    );
+    assert_eq!(network_error.status, 404);
+    assert_some_eq_x!(network_error.body.as_ref(), &json!({ "value": "Test" }));
+  }
+
+  #[tokio::test]
+  async fn test_handle_request_non_success_code_downcasts_to_network_error_with_string_body() {
+    let mut server = Server::new_async().await;
+    let async_server = server
+      .mock("GET", "/test")
+      .match_header("X-Api-Key", "test1234")
+      .with_status(503)
+      .with_body("Service Unavailable")
+      .create_async()
+      .await;
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let mut network = test_network(&app_arc);
+
+    let resp = network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Get,
+          body: None,
+          api_token: "test1234".to_owned(),
+          ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
+        },
+        |_, _| (),
+      )
+      .await;
+
+    async_server.assert_async().await;
+    let network_error = resp.unwrap_err().downcast::<NetworkError>().unwrap();
+    assert_str_eq!(
+      network_error.message,
+      "Request failed. Received 503 Service Unavailable response code with body: Service Unavailable"
+    );
+    assert_eq!(network_error.status, 503);
+    assert_some_eq_x!(
+      network_error.body.as_ref(),
+      &Value::String("Service Unavailable".to_owned())
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_request_non_success_code_downcasts_to_network_error_with_empty_body() {
+    let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
+    let mut network = test_network(&app_arc);
+
+    let resp = network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Post,
+          body: None,
+          api_token: "test1234".to_owned(),
+          ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
+        },
+        |_, _| (),
+      )
+      .await;
+
+    async_server.assert_async().await;
+    let network_error = resp.unwrap_err().downcast::<NetworkError>().unwrap();
+    assert_str_eq!(
+      network_error.message,
+      r#"Request failed. Received 404 Not Found response code with body: "#
+    );
+    assert_eq!(network_error.status, 404);
+    assert_none!(network_error.body);
   }
 
   #[rstest]

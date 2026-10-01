@@ -1,4 +1,5 @@
-use std::fmt::Debug;
+use std::error::Error;
+use std::fmt::{self, Debug};
 use std::sync::{Arc, OnceLock};
 
 use anyhow::{Result, anyhow};
@@ -156,8 +157,22 @@ impl<'a, 'b> Network<'a, 'b> {
               let error_body = format_error_body(&response_body);
 
               error!("Request failed. Received {status} response code with body: {response_body}");
-              self.app.lock().await.handle_error(anyhow!("Request failed. Received {status} response code with body: {error_body}"));
-              Err(anyhow!("Request failed. Received {status} response code with body: {error_body}"))
+              let message = format!("Request failed. Received {status} response code with body: {error_body}");
+              let body = if response_body.is_empty() {
+                None
+              } else {
+                Some(
+                  serde_json::from_str::<Value>(&response_body)
+                    .unwrap_or(Value::String(response_body)),
+                )
+              };
+              let network_error = NetworkError {
+                message,
+                status: status.as_u16(),
+                body,
+              };
+              self.app.lock().await.handle_error(network_error.clone().into());
+              Err(network_error.into())
             }
           }
           Err(e) => {
@@ -303,6 +318,21 @@ fn format_error_body(response_body: &str) -> String {
 
   re.replace_all(&body, " ").to_string()
 }
+
+#[derive(Clone, Debug)]
+pub struct NetworkError {
+  pub message: String,
+  pub status: u16,
+  pub body: Option<Value>,
+}
+
+impl fmt::Display for NetworkError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.message)
+  }
+}
+
+impl Error for NetworkError {}
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
 pub enum RequestMethod {

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use anyhow::{Context, anyhow};
+use anyhow::{Context, Error, anyhow};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{LevelFilter, error};
@@ -18,13 +18,15 @@ use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use regex::Regex;
 use reqwest::{Certificate, Client};
+use serde::Serialize;
+use serde_json::Value;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
 use crate::app::{App, AppConfig, log_and_print_error};
 use crate::cli::{self, Command};
 use crate::models::Route;
-use crate::network::Network;
+use crate::network::{Network, NetworkError};
 use crate::ui::theme::ThemeDefinitionsWrapper;
 
 #[cfg(test)]
@@ -282,6 +284,36 @@ pub(super) fn render_spinner() -> ProgressBar {
   pb
 }
 
+#[derive(Serialize)]
+struct CliError<'a> {
+  error: CliErrorDetails<'a>,
+}
+
+#[derive(Serialize)]
+struct CliErrorDetails<'a> {
+  message: String,
+  status: Option<u16>,
+  body: Option<&'a Value>,
+}
+
+fn format_cli_error(error: &Error) -> String {
+  let details = match error.downcast_ref::<NetworkError>() {
+    Some(network_error) => CliErrorDetails {
+      message: network_error.message.clone(),
+      status: Some(network_error.status),
+      body: network_error.body.as_ref(),
+    },
+    None => CliErrorDetails {
+      message: error.to_string(),
+      status: None,
+      body: None,
+    },
+  };
+
+  serde_json::to_string_pretty(&CliError { error: details })
+    .expect("CLI error details are infallibly serializable")
+}
+
 pub(super) async fn start_cli_with_spinner(
   config: AppConfig,
   reqwest_client: Client,
@@ -295,7 +327,8 @@ pub(super) async fn start_cli_with_spinner(
     let mut app = app.lock().await;
     app.cli_mode = true;
     select_cli_configuration(&mut app, &config, &command, servarr_name).unwrap_or_else(|error| {
-      log_and_print_error(error.to_string());
+      error!("{error}");
+      eprintln!("{}", format_cli_error(&error));
       process::exit(1);
     });
   }
@@ -309,7 +342,7 @@ pub(super) async fn start_cli_with_spinner(
     }
     Err(e) => {
       pb.finish();
-      eprintln!("error: {}", e.to_string().red());
+      eprintln!("{}", format_cli_error(&e));
       process::exit(1);
     }
   }
@@ -328,7 +361,8 @@ pub(super) async fn start_cli_no_spinner(
     let mut app = app.lock().await;
     app.cli_mode = true;
     select_cli_configuration(&mut app, &config, &command, servarr_name).unwrap_or_else(|error| {
-      log_and_print_error(error.to_string());
+      error!("{error}");
+      eprintln!("{}", format_cli_error(&error));
       process::exit(1);
     });
   }
@@ -339,7 +373,7 @@ pub(super) async fn start_cli_no_spinner(
       println!("{output}");
     }
     Err(e) => {
-      eprintln!("error: {}", e.to_string().red());
+      eprintln!("{}", format_cli_error(&e));
       process::exit(1);
     }
   }
@@ -360,6 +394,7 @@ pub fn select_cli_configuration(
           (Route::Radarr(..), Command::Radarr(_))
             | (Route::Sonarr(..), Command::Sonarr(_))
             | (Route::Lidarr(..), Command::Lidarr(_))
+            | (Route::Readarr(..), Command::Readarr(_))
         )
     });
     app.server_tabs.index = selected_index.ok_or_else(|| {
