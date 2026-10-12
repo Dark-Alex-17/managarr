@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.8.1 (2026-10-12)
+
+### Feat
+
+- all CLI-based errors now come out in the same JSON format to further improve scripting and LLM integration
+
+### Fix
+
+- never panic when the log directory is unwritable; disable file logging instead [#67]
+
 ## v0.8.0 (2026-09-30)
 
 ### Feat
