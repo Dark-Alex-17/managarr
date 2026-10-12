@@ -15,7 +15,8 @@ mod tests {
     app::{App, AppConfig, ServarrConfig},
     network::NetworkError,
     utils::{
-      convert_runtime, format_cli_error, format_size, select_cli_configuration, was_log_rotated,
+      build_logging_config, convert_runtime, format_cli_error, format_size, resolve_log_dir,
+      select_cli_configuration, was_log_rotated,
     },
   };
 
@@ -235,5 +236,80 @@ mod tests {
     assert!(!was_log_rotated(&path, &mut reader));
 
     fs::remove_file(&path).unwrap();
+  }
+
+  #[test]
+  fn test_resolve_log_dir_returns_preferred_dir_when_creatable() {
+    let preferred = std::env::temp_dir().join(format!(
+      "managarr_test_preferred_log_dir_{}",
+      std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&preferred);
+
+    let resolved = resolve_log_dir(preferred.clone());
+
+    assert_eq!(resolved, preferred);
+    assert!(preferred.is_dir());
+
+    fs::remove_dir_all(&preferred).unwrap();
+  }
+
+  #[test]
+  fn test_resolve_log_dir_keeps_preferred_dir_and_disables_file_logging_when_uncreatable() {
+    let blocker = std::env::temp_dir().join(format!(
+      "managarr_test_log_dir_blocker_{}",
+      std::process::id()
+    ));
+    let _ = fs::remove_file(&blocker);
+    fs::write(&blocker, "not a directory").unwrap();
+    let preferred = blocker.join("logs");
+
+    let resolved = resolve_log_dir(preferred.clone());
+
+    assert_eq!(resolved, preferred);
+    assert!(!resolved.exists());
+
+    let config = build_logging_config(resolved.join("managarr.log"));
+
+    assert!(config.appenders().is_empty());
+    assert!(config.root().appenders().is_empty());
+
+    fs::remove_file(&blocker).unwrap();
+  }
+
+  #[test]
+  fn test_build_logging_config_uses_logfile_appender_when_log_path_is_writable() {
+    let log_dir = std::env::temp_dir().join(format!(
+      "managarr_test_logging_config_{}",
+      std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&log_dir);
+    fs::create_dir_all(&log_dir).unwrap();
+
+    let config = build_logging_config(log_dir.join("managarr.log"));
+
+    assert_eq!(config.appenders().len(), 1);
+    assert_str_eq!(config.appenders()[0].name(), "logfile");
+    assert_eq!(config.root().appenders(), ["logfile"]);
+
+    drop(config);
+    fs::remove_dir_all(&log_dir).unwrap();
+  }
+
+  #[test]
+  fn test_build_logging_config_disables_logging_when_appender_is_unbuildable() {
+    let blocker = std::env::temp_dir().join(format!(
+      "managarr_test_appender_blocker_{}",
+      std::process::id()
+    ));
+    let _ = fs::remove_file(&blocker);
+    fs::write(&blocker, "not a directory").unwrap();
+
+    let config = build_logging_config(blocker.join("logs").join("managarr.log"));
+
+    assert!(config.appenders().is_empty());
+    assert!(config.root().appenders().is_empty());
+
+    fs::remove_file(&blocker).unwrap();
   }
 }

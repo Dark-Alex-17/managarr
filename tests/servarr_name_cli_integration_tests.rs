@@ -5,7 +5,7 @@ use std::{
   sync::atomic::{AtomicU64, Ordering},
 };
 
-use assert_cmd::cargo::cargo_bin_cmd;
+use assert_cmd::{Command, cargo::cargo_bin_cmd};
 use mockito::Server;
 
 static NEXT_CONFIG_ID: AtomicU64 = AtomicU64::new(0);
@@ -36,6 +36,14 @@ impl Drop for TemporaryConfig {
   }
 }
 
+fn managarr_command() -> Command {
+  let home = std::env::temp_dir().join(format!("managarr-servarr-name-home-{}", process::id()));
+  fs::create_dir_all(&home).unwrap();
+  let mut command = cargo_bin_cmd!("managarr");
+  command.env("HOME", &home).env("XDG_CACHE_HOME", &home);
+  command
+}
+
 #[test]
 fn named_instance_of_different_servarr_type_rejects_command() {
   let mut radarr_server = Server::new();
@@ -62,7 +70,7 @@ fn named_instance_of_different_servarr_type_rejects_command() {
     sonarr_server.url()
   ));
 
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
@@ -112,7 +120,7 @@ fn named_readarr_instance_selected_for_readarr_command() {
     readarr_server.url()
   ));
 
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
@@ -163,7 +171,7 @@ fn same_named_servarrs_select_command_matching_instance() {
     sonarr_server.url()
   ));
 
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
@@ -204,7 +212,7 @@ fn unknown_servarr_name_fails() {
     "radarr:\n  - name: Movies\n    uri: {}\n    api_token: test-token\n",
     radarr_server.url()
   ));
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
@@ -243,7 +251,7 @@ fn whitespace_servarr_name_trimmed() {
     "radarr:\n  - name: Movies\n    uri: {}\n    api_token: test-token\n",
     radarr_server.url()
   ));
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())
@@ -293,7 +301,7 @@ fn no_servarr_name_uses_first_configured_instance() {
     radarr_server2.url()
   ));
 
-  let mut command = cargo_bin_cmd!("managarr");
+  let mut command = managarr_command();
   let assertion = command
     .arg("--config-file")
     .arg(config.path())

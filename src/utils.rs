@@ -2,7 +2,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::process;
-use std::sync::Arc;
+use std::sync::{Arc, Once};
 use std::time::Duration;
 
 use anyhow::Result;
@@ -34,52 +34,92 @@ use crate::ui::theme::ThemeDefinitionsWrapper;
 mod utils_tests;
 
 pub fn get_log_path() -> PathBuf {
-  let mut log_path = if cfg!(target_os = "linux") {
+  let preferred = if cfg!(target_os = "linux") {
     dirs_next::cache_dir().unwrap_or_else(|| PathBuf::from("~/.cache"))
   } else if cfg!(target_os = "macos") {
-    dirs_next::home_dir().unwrap().join("Library/Logs")
+    dirs_next::home_dir()
+      .map(|h| h.join("Library/Logs"))
+      .unwrap_or_else(std::env::temp_dir)
   } else {
     dirs_next::data_local_dir().unwrap_or_else(|| PathBuf::from("C:\\Logs"))
-  };
+  }
+  .join("managarr");
 
-  log_path.push("managarr");
+  resolve_log_dir(preferred).join("managarr.log")
+}
 
-  if let Err(e) = fs::create_dir_all(&log_path) {
-    eprintln!("Failed to create log directory: {e:?}");
+fn resolve_log_dir(preferred: PathBuf) -> PathBuf {
+  static WARN_ONCE: Once = Once::new();
+
+  if let Err(e) = fs::create_dir_all(&preferred) {
+    WARN_ONCE.call_once(|| {
+      eprintln!(
+        "Failed to create log directory {}: {e}; file logging will be disabled",
+        preferred.display()
+      );
+    });
   }
 
-  log_path.push("managarr.log");
-  log_path
+  preferred
 }
 
 pub fn init_logging_config() -> log4rs::Config {
-  let log_path = get_log_path();
+  build_logging_config(get_log_path())
+}
+
+fn build_logging_config(log_path: PathBuf) -> log4rs::Config {
   let archive_pattern = log_path
     .with_file_name("managarr.{}.log")
     .to_string_lossy()
     .into_owned();
 
   let trigger = SizeTrigger::new(10 * 1024 * 1024);
-  let roller = FixedWindowRoller::builder()
-    .build(&archive_pattern, 3)
-    .expect("Failed to build log roller");
+  let roller = match FixedWindowRoller::builder().build(&archive_pattern, 3) {
+    Ok(roller) => roller,
+    Err(e) => {
+      eprintln!(
+        "Failed to build log roller for {archive_pattern}: {e}; file logging will be disabled"
+      );
+      return disabled_logging_config();
+    }
+  };
   let policy = CompoundPolicy::new(Box::new(trigger), Box::new(roller));
 
-  let logfile = RollingFileAppender::builder()
+  let logfile = match RollingFileAppender::builder()
     .encoder(Box::new(PatternEncoder::new(
       "{d(%Y-%m-%d %H:%M:%S%.3f)(utc)} <{i}> [{l}] {f}:{L} - {m}{n}",
     )))
-    .build(log_path, Box::new(policy))
-    .expect("Failed to build rolling file appender");
+    .build(&log_path, Box::new(policy))
+  {
+    Ok(logfile) => logfile,
+    Err(e) => {
+      eprintln!(
+        "Failed to build rolling file appender for {}: {e}; file logging will be disabled",
+        log_path.display()
+      );
+      return disabled_logging_config();
+    }
+  };
 
-  log4rs::Config::builder()
+  match log4rs::Config::builder()
     .appender(Appender::builder().build("logfile", Box::new(logfile)))
     .build(
       Root::builder()
         .appender("logfile")
         .build(LevelFilter::Debug),
-    )
-    .unwrap()
+    ) {
+    Ok(config) => config,
+    Err(e) => {
+      eprintln!("Failed to build logging config: {e}; file logging will be disabled");
+      disabled_logging_config()
+    }
+  }
+}
+
+fn disabled_logging_config() -> log4rs::Config {
+  log4rs::Config::builder()
+    .build(Root::builder().build(LevelFilter::Debug))
+    .expect("appender-free logging config is infallibly valid")
 }
 
 pub fn format_size(bytes: i64, precision: usize) -> String {
@@ -102,7 +142,12 @@ pub fn convert_runtime(runtime: i64) -> (i64, i64) {
 pub async fn tail_logs(no_color: bool) -> Result<()> {
   let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
   let file_path = get_log_path();
-  let file = File::open(&file_path).expect("Cannot open file");
+  let file = File::open(&file_path).with_context(|| {
+    format!(
+      "Unable to open log file {}; file logging may be disabled",
+      file_path.display()
+    )
+  })?;
   let mut reader = BufReader::new(file);
 
   reader
