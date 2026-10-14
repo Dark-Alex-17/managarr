@@ -43,6 +43,8 @@ impl ProbeEnv {
       .env("HOME", self.base.join("home"))
       .env("XDG_CACHE_HOME", self.blocked_cache_dir())
       .env("TMPDIR", self.base.join("fresh_tmp"))
+      .env("SSL_CERT_FILE", self.base.join("no_certs.crt"))
+      .env("SSL_CERT_DIR", self.base.join("no_certs_dir"))
       .arg("--config-file")
       .arg(self.base.join("config.yml"));
     command
@@ -164,6 +166,8 @@ fn unset_home_does_not_panic_on_startup() {
     .env_clear()
     .env("PATH", std::env::var_os("PATH").unwrap())
     .env("TMPDIR", env.base.join("fresh_tmp"))
+    .env("SSL_CERT_FILE", env.base.join("no_certs.crt"))
+    .env("SSL_CERT_DIR", env.base.join("no_certs_dir"))
     .current_dir(&env.base)
     .arg("--config-file")
     .arg(env.base.join("config.yml"))
@@ -180,5 +184,51 @@ fn unset_home_does_not_panic_on_startup() {
   assert!(
     !stderr.contains("panicked"),
     "binary panicked instead of degrading gracefully: {stderr}"
+  );
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn config_path_succeeds_without_loadable_tls_certificates() {
+  let env = ProbeEnv::new("config_path");
+
+  let mut command = env.command();
+  let assertion = command.arg("config-path").assert().success();
+  let output = assertion.get_output();
+  let stderr = str::from_utf8(&output.stderr).unwrap();
+
+  assert!(
+    !output.stdout.is_empty(),
+    "config-path produced no stdout despite exiting successfully"
+  );
+  assert!(
+    !stderr.contains("builder error"),
+    "config-path built the reqwest client despite needing no network: {stderr}"
+  );
+  assert!(
+    !stderr.contains("panicked"),
+    "binary panicked instead of degrading gracefully: {stderr}"
+  );
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn servarr_command_without_loadable_tls_certificates_reports_builder_error() {
+  let env = ProbeEnv::new("servarr_builder_error");
+
+  let mut command = env.command();
+  let assertion = command
+    .args(["--disable-spinner", "radarr", "list", "movies"])
+    .assert()
+    .failure();
+  let stderr = str::from_utf8(&assertion.get_output().stderr).unwrap();
+
+  assert!(
+    stderr.contains("error: builder error"),
+    "network-bound command did not surface the client builder failure: {stderr}"
+  );
+  assert!(
+    !stderr.contains("panicked"),
+    "builder failure panicked instead of exiting cleanly: {stderr}"
   );
 }

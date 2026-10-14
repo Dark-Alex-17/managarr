@@ -153,7 +153,6 @@ async fn main() -> Result<()> {
   config.validate(&config_path);
   config.post_process_initialization();
 
-  let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
   let ctrlc_cancellation_token = cancellation_token.clone();
@@ -185,6 +184,7 @@ async fn main() -> Result<()> {
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) | Command::Lidarr(_) | Command::Readarr(_) => {
+        let reqwest_client = build_network_client(&config);
         if spinner_disabled {
           start_cli_no_spinner(
             config,
@@ -219,6 +219,7 @@ async fn main() -> Result<()> {
       }
     },
     None => {
+      let reqwest_client = build_network_client(&config);
       let app_nw = Arc::clone(&app);
       std::thread::spawn(move || {
         start_networking(sync_network_rx, &app_nw, cancellation_token, reqwest_client)
