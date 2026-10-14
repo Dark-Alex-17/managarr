@@ -197,9 +197,11 @@ fn config_path_succeeds_without_loadable_tls_certificates() {
   let output = assertion.get_output();
   let stderr = str::from_utf8(&output.stderr).unwrap();
 
-  assert!(
-    !output.stdout.is_empty(),
-    "config-path produced no stdout despite exiting successfully"
+  let stdout = str::from_utf8(&output.stdout).unwrap();
+  assert_eq!(
+    stdout.trim_end(),
+    env.base.join("config.yml").display().to_string(),
+    "config-path did not print the config file passed via --config-file"
   );
   assert!(
     !stderr.contains("builder error"),

@@ -51,8 +51,8 @@ pub enum Command {
   },
 
   #[command(about = indoc!{"
-      Print the full path to the default configuration file.
-      This file can be changed to another location using the '--config-file' flag
+      Print the full path to the configuration file in use.
+      This is the default configuration file location unless overridden with the '--config-file' flag
     "})]
   ConfigPath,
 }

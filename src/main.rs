@@ -131,7 +131,10 @@ async fn main() -> Result<()> {
   let default_config_path = config_file_path.display().to_string();
 
   if matches!(args.command, Some(Command::ConfigPath)) {
-    println!("{default_config_path}");
+    match args.global.config_file {
+      Some(ref config_file) => println!("{}", config_file.display()),
+      None => println!("{default_config_path}"),
+    }
     return Ok(());
   }
 
